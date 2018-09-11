@@ -1,0 +1,16 @@
+version: 0.2
+
+env:
+  parameter-store:
+    AWS_ACCESS_KEY_ID: "AccessKeyId"
+    AWS_SECRET_ACCESS_KEY: "AccessKey"
+
+phases:
+  build:
+    commands:
+      - dotnet build
+  post_build:
+    commands:
+      - dotnet publish -c release
+      - cd ParkingRota
+      - dotnet lambda deploy-serverless
