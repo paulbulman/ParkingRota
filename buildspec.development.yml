@@ -9,8 +9,8 @@ phases:
   build:
     commands:
       - dotnet build
+      - dotnet test ParkingRota.IntegrationTests
   post_build:
     commands:
-      - dotnet publish -c release
-      - cd ParkingRota
-      - dotnet lambda deploy-serverless
+      - chmod +x deploy.development.sh
+      - ./deploy.development.sh

@@ -9,8 +9,8 @@ phases:
   build:
     commands:
       - dotnet build
+      - dotnet test ParkingRota.IntegrationTests
   post_build:
     commands:
-      - dotnet publish -c release
-      - cd ParkingRota
-      - dotnet eb deploy-environment
+      - chmod +x deploy.production.sh
+      - ./deploy.production.sh
