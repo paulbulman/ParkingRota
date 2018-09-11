@@ -24,8 +24,5 @@ namespace ParkingRota.IntegrationTests
 
             Assert.Equal("text/html; charset=utf-8", response.Content.Headers.ContentType.ToString());
         }
-
-        [Fact]
-        public void Test_FailingTestBreaksBuild() => Assert.True(false);
     }
 }
