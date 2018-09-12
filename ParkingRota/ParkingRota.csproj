@@ -17,5 +17,10 @@
     <DotNetCliToolReference Include="Amazon.ElasticBeanstalk.Tools" Version="1.1.4" />
     <DotNetCliToolReference Include="Amazon.Lambda.Tools" Version="2.2.0" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\ParkingRota.Data\ParkingRota.Data.csproj" />
+  </ItemGroup>
 </Project>
 

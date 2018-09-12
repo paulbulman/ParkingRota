@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingRota", "ParkingRota\ParkingRota.csproj", "{782962C9-5B15-4B36-978A-31A88A968169}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkingRota.IntegrationTests", "ParkingRota.IntegrationTests\ParkingRota.IntegrationTests.csproj", "{1150441D-A3F1-4548-82FB-7D445C2BF058}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingRota.IntegrationTests", "ParkingRota.IntegrationTests\ParkingRota.IntegrationTests.csproj", "{1150441D-A3F1-4548-82FB-7D445C2BF058}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkingRota.Data", "ParkingRota.Data\ParkingRota.Data.csproj", "{28FBCF74-8AB3-4948-8AAB-26F2EC40C350}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{1150441D-A3F1-4548-82FB-7D445C2BF058}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1150441D-A3F1-4548-82FB-7D445C2BF058}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1150441D-A3F1-4548-82FB-7D445C2BF058}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28FBCF74-8AB3-4948-8AAB-26F2EC40C350}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28FBCF74-8AB3-4948-8AAB-26F2EC40C350}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28FBCF74-8AB3-4948-8AAB-26F2EC40C350}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28FBCF74-8AB3-4948-8AAB-26F2EC40C350}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
