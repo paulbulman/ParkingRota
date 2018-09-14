@@ -10,6 +10,7 @@ phases:
   build:
     commands:
       - dotnet build
+      - dotnet test ParkingRota.UnitTests
       - dotnet test ParkingRota.IntegrationTests
   post_build:
     commands:
