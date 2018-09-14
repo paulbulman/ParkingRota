@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingRota", "ParkingRota\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingRota.IntegrationTests", "ParkingRota.IntegrationTests\ParkingRota.IntegrationTests.csproj", "{1150441D-A3F1-4548-82FB-7D445C2BF058}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkingRota.Data", "ParkingRota.Data\ParkingRota.Data.csproj", "{28FBCF74-8AB3-4948-8AAB-26F2EC40C350}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingRota.Data", "ParkingRota.Data\ParkingRota.Data.csproj", "{28FBCF74-8AB3-4948-8AAB-26F2EC40C350}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkingRota.DatabaseUpgrader", "ParkingRota.DatabaseUpgrader\ParkingRota.DatabaseUpgrader.csproj", "{CE235D69-DBC5-47C5-A684-746622B36AC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingRota.DatabaseUpgrader", "ParkingRota.DatabaseUpgrader\ParkingRota.DatabaseUpgrader.csproj", "{CE235D69-DBC5-47C5-A684-746622B36AC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkingRota.UnitTests", "ParkingRota.UnitTests\ParkingRota.UnitTests.csproj", "{EA980D01-6CE7-4ED6-90B0-CABC6BC8AEB6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{CE235D69-DBC5-47C5-A684-746622B36AC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE235D69-DBC5-47C5-A684-746622B36AC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE235D69-DBC5-47C5-A684-746622B36AC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA980D01-6CE7-4ED6-90B0-CABC6BC8AEB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA980D01-6CE7-4ED6-90B0-CABC6BC8AEB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA980D01-6CE7-4ED6-90B0-CABC6BC8AEB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA980D01-6CE7-4ED6-90B0-CABC6BC8AEB6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
