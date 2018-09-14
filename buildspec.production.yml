@@ -5,8 +5,6 @@ env:
     AWS_ACCESS_KEY_ID: "AccessKeyId"
     AWS_SECRET_ACCESS_KEY: "AccessKey"
     AdminConnectionString: "ParkingRotaProductionAdminConnectionString"
-    RdsSecurityGroupId: "RdsSecurityGroupId"
-    CodeBuildCidr: "CodeBuildCidr"
 
 phases:
   build:
