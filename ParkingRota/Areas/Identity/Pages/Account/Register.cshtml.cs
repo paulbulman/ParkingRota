@@ -104,7 +104,9 @@
                 }
                 else
                 {
-                    this.ModelState.AddModelError(string.Empty, "Registration token not valid.");
+                    this.ModelState.AddModelError(
+                        $"{nameof(this.Input)}.{nameof(this.Input.RegistrationToken)}",
+                        "Registration token not valid.");
                 }
             }
 
