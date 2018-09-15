@@ -1,5 +1,7 @@
 namespace ParkingRota
 {
+    using Business;
+    using Business.Model;
     using Data;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -33,6 +35,9 @@ namespace ParkingRota
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
+            services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
