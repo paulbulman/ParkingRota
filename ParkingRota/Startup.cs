@@ -13,6 +13,7 @@ namespace ParkingRota
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Middleware;
+    using NodaTime;
 
     public class Startup
     {
@@ -36,6 +37,8 @@ namespace ParkingRota
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddSingleton<IClock>(SystemClock.Instance);
 
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();

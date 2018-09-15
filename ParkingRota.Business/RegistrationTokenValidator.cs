@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using Model;
+    using NodaTime;
 
     public interface IRegistrationTokenValidator
     {
@@ -11,13 +12,18 @@
 
     public class RegistrationTokenValidator : IRegistrationTokenValidator
     {
+        private readonly IClock clock;
         private readonly IRegistrationTokenRepository registrationTokenRepository;
 
-        public RegistrationTokenValidator(IRegistrationTokenRepository registrationTokenRepository) =>
+        public RegistrationTokenValidator(IClock clock, IRegistrationTokenRepository registrationTokenRepository)
+        {
+            this.clock = clock;
             this.registrationTokenRepository = registrationTokenRepository;
+        }
 
         public bool TokenIsValid(string token) =>
             this.registrationTokenRepository.RegistrationTokens.Any(r =>
-                string.Equals(r.Token, token, StringComparison.InvariantCultureIgnoreCase));
+                string.Equals(r.Token, token, StringComparison.InvariantCultureIgnoreCase) &&
+                this.clock.GetCurrentInstant() < r.ExpiryTime);
     }
 }
