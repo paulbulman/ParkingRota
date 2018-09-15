@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using AutoMapper;
     using Business.Model;
 
     public class RegistrationTokenRepository : IRegistrationTokenRepository
@@ -12,7 +13,7 @@
 
         public IReadOnlyList<Business.Model.RegistrationToken> RegistrationTokens =>
             this.context.RegistrationTokens
-                .Select(t => t.ToModel())
+                .Select(Mapper.Map<Business.Model.RegistrationToken>)
                 .ToArray();
     }
 }

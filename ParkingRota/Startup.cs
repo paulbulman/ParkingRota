@@ -1,5 +1,6 @@
 namespace ParkingRota
 {
+    using AutoMapper;
     using Business;
     using Business.Model;
     using Data;
@@ -38,6 +39,11 @@ namespace ParkingRota
 
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
+
+            Mapper.Initialize(cfg =>
+            {
+                cfg.CreateMap<Data.RegistrationToken, Business.Model.RegistrationToken>();
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
