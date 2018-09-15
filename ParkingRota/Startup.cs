@@ -1,5 +1,6 @@
 namespace ParkingRota
 {
+    using System;
     using AutoMapper;
     using Business;
     using Business.Model;
@@ -31,9 +32,11 @@ namespace ParkingRota
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    this.Configuration.GetConnectionString("DefaultConnection")));
+            var connectionString =
+                Environment.GetEnvironmentVariable("ParkingRotaConnectionString") ??
+                this.Configuration.GetConnectionString("DefaultConnection");
+
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();

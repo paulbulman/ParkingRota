@@ -10,7 +10,7 @@
     {
         private static async Task Main()
         {
-            var connectionString = Environment.GetEnvironmentVariable("AdminConnectionString");
+            var connectionString = Environment.GetEnvironmentVariable("ParkingRotaAdminConnectionString");
 
             if (string.IsNullOrEmpty(connectionString))
             {
