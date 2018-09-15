@@ -3,6 +3,7 @@
     using System.ComponentModel.DataAnnotations;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
+    using Business;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
@@ -15,16 +16,19 @@
     {
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
+        private readonly IRegistrationTokenValidator registrationTokenValidator;
         private readonly ILogger<RegisterModel> logger;
         private readonly IEmailSender emailSender;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
+            IRegistrationTokenValidator registrationTokenValidator,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
             this.userManager = userManager;
+            this.registrationTokenValidator = registrationTokenValidator;
             this.signInManager = signInManager;
             this.logger = logger;
             this.emailSender = emailSender;
@@ -52,6 +56,10 @@
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required]
+            [Display(Name = "Registration token")]
+            public string RegistrationToken { get; set; }
         }
 
         public void OnGet(string returnUrl = null) => this.ReturnUrl = returnUrl;
@@ -61,33 +69,42 @@
             returnUrl = returnUrl ?? this.Url.Content("~/");
             if (this.ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = this.Input.Email, Email = this.Input.Email };
-
-                var result = await this.userManager.CreateAsync(user, this.Input.Password);
-
-                if (result.Succeeded)
+                if (this.registrationTokenValidator.TokenIsValid(this.Input.RegistrationToken))
                 {
-                    this.logger.LogInformation($"Created user with Id {user.Id}.");
+                    var user = new IdentityUser { UserName = this.Input.Email, Email = this.Input.Email };
 
-                    var emailConfirmationToken = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = this.Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { userId = user.Id, code = emailConfirmationToken },
-                        protocol: this.Request.Scheme);
+                    var result = await this.userManager.CreateAsync(user, this.Input.Password);
 
-                    var encodedCallbackUrl = HtmlEncoder.Default.Encode(callbackUrl);
-                    var emailBody = $"Please confirm your account by <a href='{encodedCallbackUrl}'>clicking here</a>.";
+                    if (result.Succeeded)
+                    {
+                        this.logger.LogInformation($"Created user with Id {user.Id}.");
 
-                    await this.emailSender.SendEmailAsync(this.Input.Email, "Confirm your email", emailBody);
+                        var emailConfirmationToken = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var callbackUrl = this.Url.Page(
+                            "/Account/ConfirmEmail",
+                            pageHandler: null,
+                            values: new { userId = user.Id, code = emailConfirmationToken },
+                            protocol: this.Request.Scheme);
 
-                    await this.signInManager.SignInAsync(user, isPersistent: false);
+                        var encodedCallbackUrl = HtmlEncoder.Default.Encode(callbackUrl);
+                        var emailBody =
+                            $"Please confirm your account by <a href='{encodedCallbackUrl}'>clicking here</a>.";
 
-                    return this.LocalRedirect(returnUrl);
+                        await this.emailSender.SendEmailAsync(this.Input.Email, "Confirm your email", emailBody);
+
+                        await this.signInManager.SignInAsync(user, isPersistent: false);
+
+                        return this.LocalRedirect(returnUrl);
+                    }
+
+                    foreach (var error in result.Errors)
+                    {
+                        this.ModelState.AddModelError(string.Empty, error.Description);
+                    }
                 }
-                foreach (var error in result.Errors)
+                else
                 {
-                    this.ModelState.AddModelError(string.Empty, error.Description);
+                    this.ModelState.AddModelError(string.Empty, "Registration token not valid.");
                 }
             }
 
