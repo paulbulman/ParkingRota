@@ -2,7 +2,6 @@ namespace ParkingRota.UnitTests
 {
     using System.Threading.Tasks;
     using Areas.Identity.Pages.Account;
-    using Business;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
@@ -13,6 +12,7 @@ namespace ParkingRota.UnitTests
     using Microsoft.AspNetCore.Routing;
     using Microsoft.Extensions.Logging;
     using Moq;
+    using ParkingRota.Business;
     using Xunit;
 
     public class RegisterTests
