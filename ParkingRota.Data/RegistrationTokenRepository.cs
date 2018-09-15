@@ -8,12 +8,17 @@
     public class RegistrationTokenRepository : IRegistrationTokenRepository
     {
         private readonly ApplicationDbContext context;
+        private readonly IMapper mapper;
 
-        public RegistrationTokenRepository(ApplicationDbContext context) => this.context = context;
+        public RegistrationTokenRepository(ApplicationDbContext context, IMapper mapper)
+        {
+            this.context = context;
+            this.mapper = mapper;
+        }
 
         public IReadOnlyList<Business.Model.RegistrationToken> RegistrationTokens =>
             this.context.RegistrationTokens
-                .Select(Mapper.Map<Business.Model.RegistrationToken>)
+                .Select(this.mapper.Map<Business.Model.RegistrationToken>)
                 .ToArray();
     }
 }

@@ -40,10 +40,12 @@ namespace ParkingRota
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
 
-            Mapper.Initialize(cfg =>
+            var mapperConfiguration = new MapperConfiguration(c =>
             {
-                cfg.CreateMap<Data.RegistrationToken, Business.Model.RegistrationToken>();
+                c.CreateMap<Data.RegistrationToken, Business.Model.RegistrationToken>();
             });
+
+            services.AddSingleton<IMapper>(new Mapper(mapperConfiguration));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
