@@ -10,14 +10,16 @@ namespace ParkingRota.IntegrationTests
 
         public BasicTests(WebApplicationFactory<Program> factory) => this.factory = factory;
 
-        [Fact]
-        public async Task Get_EndpointReturnsSuccessAndCorrectContentType()
+        [Theory]
+        [InlineData("/")]
+        [InlineData("/Identity/Account/Register")]
+        public async Task Get_EndpointReturnsSuccessAndCorrectContentType(string requestUri)
         {
             // Arrange
             var client = this.factory.CreateClient();
 
             // Act
-            var response = await client.GetAsync("/");
+            var response = await client.GetAsync(requestUri);
 
             // Assert
             response.EnsureSuccessStatusCode();
