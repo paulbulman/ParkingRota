@@ -9,5 +9,7 @@
             : base(options)
         {
         }
+
+        public DbSet<RegistrationToken> RegistrationTokens { get; set; }
     }
 }

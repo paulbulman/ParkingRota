@@ -8,4 +8,8 @@
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ParkingRota.Business\ParkingRota.Business.csproj" />
+  </ItemGroup>
+
 </Project>
