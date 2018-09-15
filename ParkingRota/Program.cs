@@ -33,7 +33,7 @@
                     .Build()
                     .GetSection(EnvironmentVariablesSectionKey)
                     .GetChildren()
-                    .Select(section => section.Value.Split("="))
+                    .Select(section => section.Value.Split('=', 2))
                     .ToDictionary(kvp => kvp[0], kvp => kvp[1]);
 
             foreach (var environmentVariable in environmentVariables)
