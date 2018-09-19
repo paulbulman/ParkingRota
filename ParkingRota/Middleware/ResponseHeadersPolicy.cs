@@ -2,9 +2,9 @@
 {
     using System.Collections.Generic;
 
-    public class SecurityHeadersPolicy
+    public class ResponseHeadersPolicy
     {
-        public SecurityHeadersPolicy() => this.Headers = new Dictionary<string, string>();
+        public ResponseHeadersPolicy() => this.Headers = new Dictionary<string, string>();
 
         public IDictionary<string, string> Headers { get; }
 

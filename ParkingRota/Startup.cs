@@ -67,9 +67,9 @@ namespace ParkingRota
             }
             else
             {
-                app.UseSecurityHeadersMiddleware(
-                    new SecurityHeadersBuilder()
-                        .AddSecurityHeaders());
+                app.UseResponseHeadersMiddleware(
+                    new ResponseHeadersBuilder()
+                        .AddResponseHeaders());
 
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();

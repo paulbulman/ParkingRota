@@ -1,17 +1,17 @@
 ﻿namespace ParkingRota.Middleware
 {
-    public class SecurityHeadersBuilder
+    public class ResponseHeadersBuilder
     {
         private const string ReportUriSubdomain = "paulbulman.report-uri.com";
         private const string CloudflareSubdomain = "cdnjs.cloudflare.com";
 
-        private readonly SecurityHeadersPolicy policy;
+        private readonly ResponseHeadersPolicy policy;
 
-        public SecurityHeadersBuilder() => this.policy = new SecurityHeadersPolicy();
+        public ResponseHeadersBuilder() => this.policy = new ResponseHeadersPolicy();
 
-        public SecurityHeadersPolicy Build() => this.policy;
+        public ResponseHeadersPolicy Build() => this.policy;
 
-        public SecurityHeadersBuilder AddSecurityHeaders()
+        public ResponseHeadersBuilder AddResponseHeaders()
         {
             this.AddContentSecurityPolicy();
             this.AddContentTypeOptions();
@@ -19,6 +19,7 @@
             this.AddFeaturePolicy();
             this.AddFrameOptions();
             this.AddReferrerPolicy();
+            this.AddRobotsTag();
             this.AddXssProtection();
 
             return this;
@@ -58,6 +59,8 @@
         private void AddFrameOptions() => this.policy.AddHeader("x-frame-options", "DENY");
 
         private void AddReferrerPolicy() => this.policy.AddHeader("Referrer-Policy", "no-referrer");
+
+        private void AddRobotsTag() => this.policy.AddHeader("X-Robots-Tag", "none");
 
         private void AddXssProtection() =>
             this.policy.AddHeader(
