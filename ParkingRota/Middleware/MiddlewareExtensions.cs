@@ -4,11 +4,8 @@
 
     public static class MiddlewareExtensions
     {
-        public static IApplicationBuilder UseSecurityHeadersMiddleware(
+        public static IApplicationBuilder UseResponseHeadersMiddleware(
             this IApplicationBuilder app,
-            SecurityHeadersBuilder builder)
-        {
-            return app.UseMiddleware<SecurityHeadersMiddleware>(builder.Build());
-        }
+            ResponseHeadersBuilder builder) => app.UseMiddleware<ResponseHeadersMiddleware>(builder.Build());
     }
 }

@@ -4,11 +4,11 @@
     using System.Threading.Tasks;
     using Xunit;
 
-    public class SecurityHeadersMiddlewareTests : IClassFixture<ProductionWebApplicationFactory<Program>>
+    public class ResponseHeadersMiddlewareTests : IClassFixture<ProductionWebApplicationFactory<Program>>
     {
         private readonly ProductionWebApplicationFactory<Program> factory;
 
-        public SecurityHeadersMiddlewareTests(ProductionWebApplicationFactory<Program> factory) =>
+        public ResponseHeadersMiddlewareTests(ProductionWebApplicationFactory<Program> factory) =>
             this.factory = factory;
 
         [Fact]
@@ -49,6 +49,7 @@
                 { "Feature-Policy", ExpectedFeaturePolicy },
                 { "x-frame-options", "DENY" },
                 { "Referrer-Policy", "no-referrer" },
+                { "X-Robots-Tag", "none" },
                 { "X-Xss-Protection", "1; mode=block; report=https://paulbulman.report-uri.com/r/d/xss/enforce" }
             };
 

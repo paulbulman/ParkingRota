@@ -3,12 +3,12 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
 
-    public class SecurityHeadersMiddleware
+    public class ResponseHeadersMiddleware
     {
         private readonly RequestDelegate next;
-        private readonly SecurityHeadersPolicy policy;
+        private readonly ResponseHeadersPolicy policy;
 
-        public SecurityHeadersMiddleware(RequestDelegate next, SecurityHeadersPolicy policy)
+        public ResponseHeadersMiddleware(RequestDelegate next, ResponseHeadersPolicy policy)
         {
             this.next = next;
             this.policy = policy;
