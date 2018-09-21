@@ -17,18 +17,21 @@
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly IRegistrationTokenValidator registrationTokenValidator;
+        private readonly IPasswordBreachChecker passwordBreachChecker;
         private readonly ILogger<RegisterModel> logger;
         private readonly IEmailSender emailSender;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IRegistrationTokenValidator registrationTokenValidator,
+            IPasswordBreachChecker passwordBreachChecker,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.registrationTokenValidator = registrationTokenValidator;
+            this.passwordBreachChecker = passwordBreachChecker;
             this.signInManager = signInManager;
             this.logger = logger;
             this.emailSender = emailSender;
@@ -69,7 +72,26 @@
             returnUrl = returnUrl ?? this.Url.Content("~/");
             if (this.ModelState.IsValid)
             {
-                if (this.registrationTokenValidator.TokenIsValid(this.Input.RegistrationToken))
+                var registrationTokenIsValid =
+                    this.registrationTokenValidator.TokenIsValid(this.Input.RegistrationToken);
+
+                if (!registrationTokenIsValid)
+                {
+                    this.ModelState.AddModelError(
+                        $"{nameof(this.Input)}.{nameof(this.Input.RegistrationToken)}",
+                        "Registration token not valid.");
+                }
+
+                var passwordIsBreached = await this.passwordBreachChecker.PasswordIsBreached(this.Input.Password);
+
+                if (passwordIsBreached)
+                {
+                    this.ModelState.AddModelError(
+                        $"{nameof(this.Input)}.{nameof(this.Input.Password)}",
+                        "Password is known to have been compromised in a data breach.");
+                }
+
+                if (registrationTokenIsValid && !passwordIsBreached)
                 {
                     var user = new IdentityUser { UserName = this.Input.Email, Email = this.Input.Email };
 
@@ -101,12 +123,6 @@
                     {
                         this.ModelState.AddModelError(string.Empty, error.Description);
                     }
-                }
-                else
-                {
-                    this.ModelState.AddModelError(
-                        $"{nameof(this.Input)}.{nameof(this.Input.RegistrationToken)}",
-                        "Registration token not valid.");
                 }
             }
 

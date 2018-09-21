@@ -8,7 +8,12 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
 
-    public class PasswordBreachChecker
+    public interface IPasswordBreachChecker
+    {
+        Task<bool> PasswordIsBreached(string password);
+    }
+
+    public class PasswordBreachChecker : IPasswordBreachChecker
     {
         private readonly ILogger<PasswordBreachChecker> logger;
         private readonly HttpClient client;

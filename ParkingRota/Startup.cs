@@ -44,6 +44,7 @@ namespace ParkingRota
 
             services.AddSingleton<IClock>(SystemClock.Instance);
 
+            services.AddHttpClient<IPasswordBreachChecker, PasswordBreachChecker>();
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
 
