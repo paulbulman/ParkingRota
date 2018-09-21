@@ -2,6 +2,7 @@
 {
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
+    using Business;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -11,15 +12,18 @@
     {
         private readonly UserManager<IdentityUser> userManager;
         private readonly SignInManager<IdentityUser> signInManager;
+        private readonly IPasswordBreachChecker passwordBreachChecker;
         private readonly ILogger<ChangePasswordModel> logger;
 
         public ChangePasswordModel(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
+            IPasswordBreachChecker passwordBreachChecker,
             ILogger<ChangePasswordModel> logger)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
+            this.passwordBreachChecker = passwordBreachChecker;
             this.logger = logger;
         }
 
@@ -76,6 +80,15 @@
             if (user == null)
             {
                 return this.NotFound($"Unable to load user with ID '{this.userManager.GetUserId(this.User)}'.");
+            }
+
+            if (await this.passwordBreachChecker.PasswordIsBreached(this.Input.NewPassword))
+            {
+                this.ModelState.AddModelError(
+                    $"{nameof(this.Input)}.{nameof(this.Input.NewPassword)}",
+                    "Password is known to have been compromised in a data breach.");
+
+                return this.Page();
             }
 
             var changePasswordResult =
