@@ -12,6 +12,7 @@ namespace ParkingRota.IntegrationTests
 
         [Theory]
         [InlineData("/")]
+        [InlineData("/Identity/Account/Login")]
         [InlineData("/Identity/Account/Register")]
         [InlineData("/Identity/Account/ResetPassword?code=123")]
         public async Task Get_EndpointReturnsSuccessAndCorrectContentType(string requestUri)
