@@ -25,5 +25,10 @@
     <ProjectReference Include="..\ParkingRota.Business\ParkingRota.Business.csproj" />
     <ProjectReference Include="..\ParkingRota.Data\ParkingRota.Data.csproj" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Areas\Identity\Services\" />
+  </ItemGroup>
 </Project>
 
