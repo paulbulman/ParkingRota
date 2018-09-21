@@ -2,6 +2,7 @@
 {
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
+    using Business;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -11,8 +12,13 @@
     public class ResetPasswordModel : PageModel
     {
         private readonly UserManager<IdentityUser> userManager;
+        private readonly IPasswordBreachChecker passwordBreachChecker;
 
-        public ResetPasswordModel(UserManager<IdentityUser> userManager) => this.userManager = userManager;
+        public ResetPasswordModel(UserManager<IdentityUser> userManager, IPasswordBreachChecker passwordBreachChecker)
+        {
+            this.userManager = userManager;
+            this.passwordBreachChecker = passwordBreachChecker;
+        }
 
         [BindProperty]
         public InputModel Input { get; set; }
@@ -52,6 +58,15 @@
         {
             if (!this.ModelState.IsValid)
             {
+                return this.Page();
+            }
+
+            if (await this.passwordBreachChecker.PasswordIsBreached(this.Input.Password))
+            {
+                this.ModelState.AddModelError(
+                    $"{nameof(this.Input)}.{nameof(this.Input.Password)}",
+                    "Password is known to have been compromised in a data breach.");
+
                 return this.Page();
             }
 
