@@ -17,6 +17,8 @@
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<ApplicationUser>().Property(a => a.CommuteDistance).HasColumnType("decimal(18,2)");
+
             builder.Entity<RegistrationToken>().Property(t => t.DbExpiryTime).HasColumnName("ExpiryTime");
             builder.Entity<RegistrationToken>().Ignore(t => t.ExpiryTime);
         }
