@@ -39,12 +39,23 @@
         public class InputModel
         {
             [Required]
+            [StringLength(50)]
+            [Display(Name = "First name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [StringLength(50)]
+            [Display(Name = "Last name")]
+            public string LastName { get; set; }
+
+            [Required]
+            [StringLength(10)]
+            [Display(Name = "Car registration number")]
+            public string CarRegistrationNumber { get; set; }
+
+            [Required]
             [EmailAddress]
             public string Email { get; set; }
-
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -57,14 +68,15 @@
 
             var userName = await this.userManager.GetUserNameAsync(user);
             var email = await this.userManager.GetEmailAsync(user);
-            var phoneNumber = await this.userManager.GetPhoneNumberAsync(user);
 
             this.Username = userName;
 
             this.Input = new InputModel
             {
-                Email = email,
-                PhoneNumber = phoneNumber
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CarRegistrationNumber = user.CarRegistrationNumber,
+                Email = email
             };
 
             this.IsEmailConfirmed = await this.userManager.IsEmailConfirmedAsync(user);
@@ -96,14 +108,19 @@
                 }
             }
 
-            var phoneNumber = await this.userManager.GetPhoneNumberAsync(user);
-            if (this.Input.PhoneNumber != phoneNumber)
+            if (this.Input.FirstName != user.FirstName ||
+                this.Input.LastName != user.LastName ||
+                this.Input.CarRegistrationNumber != user.CarRegistrationNumber)
             {
-                var setPhoneResult = await this.userManager.SetPhoneNumberAsync(user, this.Input.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
+                user.FirstName = this.Input.FirstName;
+                user.LastName = this.Input.LastName;
+                user.CarRegistrationNumber = this.Input.CarRegistrationNumber;
+
+                var updateUserResult = await this.userManager.UpdateAsync(user);
+                if (!updateUserResult.Succeeded)
                 {
                     var userId = await this.userManager.GetUserIdAsync(user);
-                    throw new InvalidOperationException($"Unexpected error occurred setting phone number for user with ID '{userId}'.");
+                    throw new InvalidOperationException($"Unexpected error occurred updating user with ID '{userId}'.");
                 }
             }
 
