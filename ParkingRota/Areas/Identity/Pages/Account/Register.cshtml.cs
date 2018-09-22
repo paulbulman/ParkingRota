@@ -46,6 +46,21 @@
         public class InputModel
         {
             [Required]
+            [StringLength(50)]
+            [Display(Name = "First name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [StringLength(50)]
+            [Display(Name = "Last name")]
+            public string LastName { get; set; }
+
+            [Required]
+            [StringLength(10)]
+            [Display(Name = "Car registration number")]
+            public string CarRegistrationNumber { get; set; }
+
+            [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
@@ -94,7 +109,7 @@
 
                 if (registrationTokenIsValid && !passwordIsBreached)
                 {
-                    var user = new ApplicationUser { UserName = this.Input.Email, Email = this.Input.Email };
+                    var user = CreateApplicationUser(this.Input);
 
                     var result = await this.userManager.CreateAsync(user, this.Input.Password);
 
@@ -129,6 +144,21 @@
 
             // If we got this far, something failed, redisplay form
             return this.Page();
+        }
+
+        private static ApplicationUser CreateApplicationUser(InputModel input)
+        {
+            const decimal DefaultCommuteDistance = 9.99m;
+
+            return new ApplicationUser
+            {
+                FirstName = input.FirstName,
+                LastName = input.LastName,
+                CarRegistrationNumber = input.CarRegistrationNumber,
+                CommuteDistance = DefaultCommuteDistance,
+                UserName = input.Email,
+                Email = input.Email
+            };
         }
     }
 }
