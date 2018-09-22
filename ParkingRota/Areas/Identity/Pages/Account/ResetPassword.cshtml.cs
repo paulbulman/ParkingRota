@@ -3,6 +3,7 @@
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
     using Business;
+    using Business.Model;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,10 @@
     [AllowAnonymous]
     public class ResetPasswordModel : PageModel
     {
-        private readonly UserManager<IdentityUser> userManager;
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly IPasswordBreachChecker passwordBreachChecker;
 
-        public ResetPasswordModel(UserManager<IdentityUser> userManager, IPasswordBreachChecker passwordBreachChecker)
+        public ResetPasswordModel(UserManager<ApplicationUser> userManager, IPasswordBreachChecker passwordBreachChecker)
         {
             this.userManager = userManager;
             this.passwordBreachChecker = passwordBreachChecker;

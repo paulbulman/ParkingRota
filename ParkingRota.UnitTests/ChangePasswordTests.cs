@@ -10,6 +10,7 @@
     using Microsoft.Extensions.Logging;
     using Moq;
     using ParkingRota.Business;
+    using ParkingRota.Business.Model;
     using Xunit;
 
     public class ChangePasswordTests
@@ -21,11 +22,11 @@
         {
             // Arrange
             var user = new ClaimsPrincipal();
-            var identityUser = new IdentityUser();
+            var identityUser = new ApplicationUser();
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<IdentityUser>>(
-                Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
             mockUserManager
                 .Setup(u => u.GetUserAsync(user))
@@ -36,9 +37,9 @@
 
             // Set up sign in manager
             var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<IdentityUser>>();
+            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
 
-            var mockSigninManager = new Mock<SignInManager<IdentityUser>>(
+            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
                 mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
 
             // Set up password breach checker
@@ -73,11 +74,11 @@
         {
             // Arrange
             var user = new ClaimsPrincipal();
-            var identityUser = new IdentityUser();
+            var identityUser = new ApplicationUser();
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<IdentityUser>>(
-                Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
             mockUserManager
                 .Setup(u => u.GetUserAsync(user))
@@ -85,9 +86,9 @@
 
             // Set up sign in manager
             var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<IdentityUser>>();
+            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
 
-            var mockSigninManager = new Mock<SignInManager<IdentityUser>>(
+            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
                 mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
 
             // Set up password breach checker

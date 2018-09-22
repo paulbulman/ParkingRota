@@ -13,6 +13,7 @@ namespace ParkingRota.UnitTests
     using Microsoft.Extensions.Logging;
     using Moq;
     using ParkingRota.Business;
+    using ParkingRota.Business.Model;
     using Xunit;
 
     public class RegisterTests
@@ -24,14 +25,14 @@ namespace ParkingRota.UnitTests
         {
             // Arrange
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<IdentityUser>>(
-                Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
             mockUserManager
-                .Setup(f => f.CreateAsync(It.IsAny<IdentityUser>(), password))
+                .Setup(f => f.CreateAsync(It.IsAny<ApplicationUser>(), password))
                 .Returns(Task.FromResult(IdentityResult.Success))
-                .Callback<IdentityUser, string>((user, p) => user.Id = "[New user Id]");
+                .Callback<ApplicationUser, string>((user, p) => user.Id = "[New user Id]");
             mockUserManager
-                .Setup(u => u.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()))
+                .Setup(u => u.GenerateEmailConfirmationTokenAsync(It.IsAny<ApplicationUser>()))
                 .Returns(Task.FromResult("[Confirm email token]"));
 
             // Set up registration token validator
@@ -44,9 +45,9 @@ namespace ParkingRota.UnitTests
 
             // Set up sign in manager
             var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<IdentityUser>>();
+            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
 
-            var mockSigninManager = new Mock<SignInManager<IdentityUser>>(
+            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
                 mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
 
             // Set up model
@@ -88,8 +89,8 @@ namespace ParkingRota.UnitTests
         {
             // Arrange
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<IdentityUser>>(
-                Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
             // Set up registration token validator
             var mockRegistrationTokenValidator = new Mock<IRegistrationTokenValidator>(MockBehavior.Strict);
@@ -97,9 +98,9 @@ namespace ParkingRota.UnitTests
 
             // Set up sign in manager
             var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<IdentityUser>>();
+            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
 
-            var mockSigninManager = new Mock<SignInManager<IdentityUser>>(
+            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
                 mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
 
             // Set up model
@@ -128,8 +129,8 @@ namespace ParkingRota.UnitTests
         {
             // Arrange
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<IdentityUser>>(
-                Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
             // Set up registration token validator
             var mockRegistrationTokenValidator = new Mock<IRegistrationTokenValidator>(MockBehavior.Strict);
@@ -141,9 +142,9 @@ namespace ParkingRota.UnitTests
 
             // Set up sign in manager
             var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<IdentityUser>>();
+            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
 
-            var mockSigninManager = new Mock<SignInManager<IdentityUser>>(
+            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
                 mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
 
             // Set up model

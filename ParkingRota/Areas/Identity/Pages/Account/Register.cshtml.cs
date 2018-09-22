@@ -4,6 +4,7 @@
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
     using Business;
+    using Business.Model;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
@@ -14,18 +15,18 @@
     [AllowAnonymous]
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> signInManager;
-        private readonly UserManager<IdentityUser> userManager;
+        private readonly SignInManager<ApplicationUser> signInManager;
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly IRegistrationTokenValidator registrationTokenValidator;
         private readonly IPasswordBreachChecker passwordBreachChecker;
         private readonly ILogger<RegisterModel> logger;
         private readonly IEmailSender emailSender;
 
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
+            UserManager<ApplicationUser> userManager,
             IRegistrationTokenValidator registrationTokenValidator,
             IPasswordBreachChecker passwordBreachChecker,
-            SignInManager<IdentityUser> signInManager,
+            SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
@@ -93,7 +94,7 @@
 
                 if (registrationTokenIsValid && !passwordIsBreached)
                 {
-                    var user = new IdentityUser { UserName = this.Input.Email, Email = this.Input.Email };
+                    var user = new ApplicationUser { UserName = this.Input.Email, Email = this.Input.Email };
 
                     var result = await this.userManager.CreateAsync(user, this.Input.Password);
 

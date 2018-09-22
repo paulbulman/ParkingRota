@@ -7,6 +7,7 @@
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Moq;
     using ParkingRota.Business;
+    using ParkingRota.Business.Model;
     using Xunit;
 
     public class ResetPasswordTests
@@ -44,8 +45,8 @@
 
         private static ResetPasswordModel CreateModel(string password, bool passwordIsBreached)
         {
-            var mockUserManager = new Mock<UserManager<IdentityUser>>(
-                Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
             var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
             mockPasswordBreachChecker
