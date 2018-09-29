@@ -10,9 +10,11 @@
         TDb ToDb(TCode codeValue);
     }
 
-    public class DbConvert
+    public static class DbConvert
     {
         public static readonly IDbConverter<DateTime, Instant> Instant = new InstantConverter();
+
+        public static readonly IDbConverter<DateTime, LocalDate> LocalDate = new LocalDateConverter();
 
         private class InstantConverter : IDbConverter<DateTime, Instant>
         {
@@ -44,6 +46,15 @@
                     utcValue.Millisecond,
                     DateTimeKind.Utc);
             }
+        }
+
+        private class LocalDateConverter : IDbConverter<DateTime, LocalDate>
+        {
+            public LocalDate FromDb(DateTime dbValue) =>
+                new LocalDate(dbValue.Year, dbValue.Month, dbValue.Day);
+
+            public DateTime ToDb(LocalDate codeValue) =>
+                new DateTime(codeValue.Year, codeValue.Month, codeValue.Day, 0, 0, 0, DateTimeKind.Unspecified);
         }
     }
 }

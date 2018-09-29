@@ -90,6 +90,91 @@ namespace ParkingRota.UnitTests.Data
             Assert.Equal(expectedCodeValue, actualCodeValue);
         }
 
+        public static IEnumerable<object[]> LocalDate_ToDb_Data()
+        {
+            // Winter
+            yield return new object[]
+            {
+                new LocalDate(2090, 01, 22),
+                new DateTime(2090, 01, 22, 00, 00, 00, 00, DateTimeKind.Unspecified)
+            };
+
+            // Summer
+            yield return new object[]
+            {
+                new LocalDate(2079, 06, 24),
+                new DateTime(2079, 06, 24, 00, 00, 00, 00, DateTimeKind.Unspecified)
+            };
+        }
+
+        [Theory, MemberData(nameof(LocalDate_ToDb_Data))]
+        public static void Test_LocalDate_ToDb(LocalDate codeValue, DateTime expectedDbValue)
+        {
+            var actualDbValue = DbConvert.LocalDate.ToDb(codeValue);
+
+            CompareDateTimes(actualDbValue, expectedDbValue);
+        }
+
+        public static IEnumerable<object[]> LocalDate_FromDb_Data()
+        {
+            // Winter, UTC
+            yield return new object[]
+            {
+                new DateTime(2095, 01, 02, 00, 00, 00, 00, DateTimeKind.Utc),
+                new LocalDate(2095, 01, 02)
+            };
+
+            // Winter, local
+            yield return new object[]
+            {
+                new DateTime(2095, 01, 02, 00, 00, 00, 00, DateTimeKind.Local),
+                new LocalDate(2095, 01, 02)
+            };
+
+            // Winter, unspecified
+            yield return new object[]
+            {
+                new DateTime(2095, 01, 02, 00, 00, 00, 00, DateTimeKind.Unspecified),
+                new LocalDate(2095, 01, 02)
+            };
+
+            // Summer, UTC
+            yield return new object[]
+            {
+                new DateTime(2040, 08, 25, 00, 00, 00, 00, DateTimeKind.Utc),
+                new LocalDate(2040, 08, 25)
+            };
+
+            // Summer, local
+            yield return new object[]
+            {
+                new DateTime(2040, 08, 25, 00, 00, 00, 00, DateTimeKind.Local),
+                new LocalDate(2040, 08, 25)
+            };
+
+            // Summer, unspecified
+            yield return new object[]
+            {
+                new DateTime(2040, 08, 25, 00, 00, 00, 00, DateTimeKind.Unspecified),
+                new LocalDate(2040, 08, 25)
+            };
+
+            // With time portion
+            yield return new object[]
+            {
+                new DateTime(2080, 01, 19, 23, 59, 59, 999),
+                new LocalDate(2080, 01, 19)
+            };
+        }
+
+        [Theory, MemberData(nameof(LocalDate_FromDb_Data))]
+        public static void Test_LocalDate_FromDb(DateTime dbValue, LocalDate expectedCodeValue)
+        {
+            var actualCodeValue = DbConvert.LocalDate.FromDb(dbValue);
+
+            Assert.Equal(actualCodeValue, expectedCodeValue);
+        }
+
         private static void CompareDateTimes(DateTime actual, DateTime expected)
         {
             Assert.Equal(expected.Year, actual.Year);
