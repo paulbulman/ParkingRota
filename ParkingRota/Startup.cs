@@ -49,6 +49,7 @@ namespace ParkingRota
 
             var mapperConfiguration = new MapperConfiguration(c =>
             {
+                c.CreateMap<Data.BankHoliday, Business.Model.BankHoliday>();
                 c.CreateMap<Data.RegistrationToken, Business.Model.RegistrationToken>();
             });
 

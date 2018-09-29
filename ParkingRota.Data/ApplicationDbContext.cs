@@ -11,6 +11,8 @@
         {
         }
 
+        public DbSet<BankHoliday> BankHolidays { get; set; }
+
         public DbSet<RegistrationToken> RegistrationTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
