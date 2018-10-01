@@ -4,7 +4,7 @@ env:
   parameter-store:
     AWS_ACCESS_KEY_ID: "AccessKeyId"
     AWS_SECRET_ACCESS_KEY: "AccessKey"
-    ParkingRotaAdminConnectionString: "ParkingRotaDevelopmentAdminConnectionString"
+    ParkingRotaAdminConnectionString: "ParkingRotaDevelopAdminConnectionString"
 
 phases:
   build:
@@ -14,5 +14,5 @@ phases:
       - dotnet test ParkingRota.IntegrationTests
   post_build:
     commands:
-      - chmod +x deploy.development.sh
-      - ./deploy.development.sh
+      - chmod +x deploy.develop.sh
+      - ./deploy.develop.sh
