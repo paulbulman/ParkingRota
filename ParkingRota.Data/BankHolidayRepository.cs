@@ -7,10 +7,10 @@
 
     public class BankHolidayRepository : IBankHolidayRepository
     {
-        private readonly ApplicationDbContext context;
+        private readonly IApplicationDbContext context;
         private readonly IMapper mapper;
 
-        public BankHolidayRepository(ApplicationDbContext context, IMapper mapper)
+        public BankHolidayRepository(IApplicationDbContext context, IMapper mapper)
         {
             this.context = context;
             this.mapper = mapper;

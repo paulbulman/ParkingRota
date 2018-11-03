@@ -7,10 +7,10 @@
 
     public class RegistrationTokenRepository : IRegistrationTokenRepository
     {
-        private readonly ApplicationDbContext context;
+        private readonly IApplicationDbContext context;
         private readonly IMapper mapper;
 
-        public RegistrationTokenRepository(ApplicationDbContext context, IMapper mapper)
+        public RegistrationTokenRepository(IApplicationDbContext context, IMapper mapper)
         {
             this.context = context;
             this.mapper = mapper;
