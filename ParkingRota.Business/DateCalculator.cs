@@ -5,7 +5,12 @@
     using Model;
     using NodaTime;
 
-    public class DateCalculator
+    public interface IDateCalculator
+    {
+        IReadOnlyList<LocalDate> GetActiveDates();
+    }
+
+    public class DateCalculator : IDateCalculator
     {
         private readonly IBankHolidayRepository bankHolidayRepository;
 
@@ -17,18 +22,15 @@
             this.currentInstant = clock.GetCurrentInstant();
         }
 
-        public IReadOnlyList<LocalDate> ActiveDates
+        public IReadOnlyList<LocalDate> GetActiveDates()
         {
-            get
-            {
-                var currentDate = this.GetCurrentDate();
+            var currentDate = this.GetCurrentDate();
 
-                var firstDayOfThisMonth = new LocalDate(currentDate.Year, currentDate.Month, 1);
-                var firstDayOfSubsequentMonth = firstDayOfThisMonth.PlusMonths(2);
-                var lastDayOfNextMonth = firstDayOfSubsequentMonth.PlusDays(-1);
+            var firstDayOfThisMonth = new LocalDate(currentDate.Year, currentDate.Month, 1);
+            var firstDayOfSubsequentMonth = firstDayOfThisMonth.PlusMonths(2);
+            var lastDayOfNextMonth = firstDayOfSubsequentMonth.PlusDays(-1);
 
-                return this.DatesBetween(currentDate, lastDayOfNextMonth);
-            }
+            return this.DatesBetween(currentDate, lastDayOfNextMonth);
         }
 
         private LocalDate GetCurrentDate() => this.GetCurrentTime().Date;

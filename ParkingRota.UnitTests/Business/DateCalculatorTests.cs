@@ -17,31 +17,31 @@
         [Theory]
         [InlineData(1, 1, 42)]
         [InlineData(4, 5, 40)]
-        public static void Test_ActiveDates_NextMonthEndsOnWeekend(int currentDay, int expectedFirstDay, int expectedTotalDays)
+        public static void Test_GetActiveDates_NextMonthEndsOnWeekend(int currentDay, int expectedFirstDay, int expectedTotalDays)
         {
             var currentLocalDateTime = new LocalDateTime(2018, 2, currentDay, 0, 0);
 
             var expectedFirstLocalDate = expectedFirstDay.February(2018);
             var expectedLastLocalDate = 30.March(2018);
 
-            Check_ActiveDates(currentLocalDateTime, expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
+            Check_GetActiveDates(currentLocalDateTime, expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
         }
 
         [Theory]
         [InlineData(1, 1, 43)]
         [InlineData(4, 5, 41)]
-        public static void Test_ActiveDates_NextMonthEndsOnWeeday(int currentDay, int expectedFirstDay, int expectedTotalDays)
+        public static void Test_GetActiveDates_NextMonthEndsOnWeeday(int currentDay, int expectedFirstDay, int expectedTotalDays)
         {
             var currentLocalDateTime = new LocalDateTime(2018, 3, currentDay, 0, 0);
 
             var expectedFirstLocalDate = expectedFirstDay.March(2018);
             var expectedLastLocalDate = 30.April(2018);
 
-            Check_ActiveDates(currentLocalDateTime, expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
+            Check_GetActiveDates(currentLocalDateTime, expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
         }
 
         [Fact]
-        public static void Test_ActiveDates_BankHoliday()
+        public static void Test_GetActiveDates_BankHoliday()
         {
             var bankHolidayLocalDates = new[] { 30.March(2018), 2.April(2018) };
             var bankHolidays = bankHolidayLocalDates.Select(b => new BankHoliday { Date = b }).ToArray();
@@ -52,7 +52,7 @@
             var expectedFirstLocalDate = 19.March(2018);
             var expectedLastLocalDate = 30.April(2018);
 
-            var result = Check_ActiveDates(
+            var result = Check_GetActiveDates(
                 currentLocalDateTime, ExpectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate, bankHolidays);
 
             foreach (var bankHoliday in bankHolidayLocalDates)
@@ -62,7 +62,7 @@
         }
 
         [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
-        private static IReadOnlyList<LocalDate> Check_ActiveDates(
+        private static IReadOnlyList<LocalDate> Check_GetActiveDates(
             LocalDateTime currentLocalDateTime,
             int expectedTotalDays,
             LocalDate expectedFirstLocalDate,
@@ -71,7 +71,7 @@
         {
             var result = new DateCalculator(
                 CreateMockClock(currentLocalDateTime),
-                CreateMockBankHolidayRepository(bankHolidays)).ActiveDates;
+                CreateMockBankHolidayRepository(bankHolidays)).GetActiveDates();
 
             Assert.Equal(expectedTotalDays, result.Count);
             Assert.Equal(expectedFirstLocalDate, result.First());
