@@ -57,7 +57,12 @@ namespace ParkingRota
 
             services.AddSingleton<IMapper>(new Mapper(mapperConfiguration));
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc()
+                .AddRazorPagesOptions(options =>
+                {
+                    options.Conventions.AuthorizeFolder("/");
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
