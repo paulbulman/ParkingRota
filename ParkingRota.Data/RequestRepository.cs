@@ -4,6 +4,7 @@
     using System.Linq;
     using AutoMapper;
     using Business.Model;
+    using Microsoft.EntityFrameworkCore;
     using NodaTime;
 
     public class RequestRepository : IRequestRepository
@@ -23,6 +24,7 @@
             var lastDbDate = DbConvert.LocalDate.ToDb(lastDate);
 
             return this.context.Requests
+                .Include(r => r.ApplicationUser)
                 .Where(r => r.DbDate >= firstDbDate && r.DbDate <= lastDbDate)
                 .ToArray()
                 .Select(this.mapper.Map<Business.Model.Request>)

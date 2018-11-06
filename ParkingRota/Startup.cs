@@ -44,9 +44,12 @@ namespace ParkingRota
             services.AddSingleton<IClock>(SystemClock.Instance);
 
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+            services.AddScoped<IBankHolidayRepository, BankHolidayRepository>();
+            services.AddScoped<IDateCalculator, DateCalculator>();
             services.AddHttpClient<IPasswordBreachChecker, PasswordBreachChecker>();
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
+            services.AddScoped<IRequestRepository, RequestRepository>();
 
             var mapperConfiguration = new MapperConfiguration(c =>
             {
