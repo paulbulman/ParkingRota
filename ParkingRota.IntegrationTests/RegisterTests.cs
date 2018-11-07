@@ -12,7 +12,7 @@
     using NodaTime;
     using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.UnitTests;
+    using UnitTests;
     using Xunit;
 
     public class RegisterTests : IClassFixture<DatabaseWebApplicationFactory<Program>>

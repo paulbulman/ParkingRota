@@ -4,11 +4,11 @@
     using System.ComponentModel.DataAnnotations;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
+    using Business.Model;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
-    using ParkingRota.Business.Model;
 
     public partial class IndexModel : PageModel
     {
