@@ -21,5 +21,7 @@
         public string CarRegistrationNumber { get; set; }
 
         public decimal CommuteDistance { get; set; }
+
+        public string FullName => $"{this.FirstName} {this.LastName}";
     }
 }

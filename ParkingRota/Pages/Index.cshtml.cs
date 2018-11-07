@@ -43,9 +43,7 @@
                 var displayRequests = requests
                     .Where(r => r.Date == activeDate)
                     .OrderBy(r => r.ApplicationUser.LastName)
-                    .Select(r => new DisplayRequest(
-                        $"{r.ApplicationUser.FirstName} {r.ApplicationUser.LastName}",
-                        r.ApplicationUser.Id == currentUser.Id))
+                    .Select(r => new DisplayRequest(r.ApplicationUser.FullName, r.ApplicationUser.Id == currentUser.Id))
                     .ToArray();
 
                 this.DisplayRequests.Add(activeDate, displayRequests);
