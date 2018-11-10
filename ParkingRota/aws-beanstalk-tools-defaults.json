@@ -10,7 +10,7 @@
     "environment-type" : "LoadBalanced",
     "instance-profile" : "aws-elasticbeanstalk-ec2-role",
     "service-role"     : "aws-elasticbeanstalk-service-role",
-    "health-check-url" : "/",
+    "health-check-url" : "/Privacy",
     "instance-type"    : "t2.micro",
     "key-pair"         : "AWS",
     "iis-website"      : "Default Web Site",
