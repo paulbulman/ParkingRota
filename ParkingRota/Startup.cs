@@ -64,6 +64,7 @@ namespace ParkingRota
                 .AddRazorPagesOptions(options =>
                 {
                     options.Conventions.AuthorizeFolder("/");
+                    options.Conventions.AllowAnonymousToPage("/Privacy");
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
