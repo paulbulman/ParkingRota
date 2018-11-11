@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using AutoMapper;
+    using Business;
     using Business.Model;
     using Microsoft.EntityFrameworkCore;
     using NodaTime;
@@ -10,11 +11,13 @@
     public class RequestRepository : IRequestRepository
     {
         private readonly IApplicationDbContext context;
+        private readonly IDateCalculator dateCalculator;
         private readonly IMapper mapper;
 
-        public RequestRepository(IApplicationDbContext context, IMapper mapper)
+        public RequestRepository(IApplicationDbContext context, IDateCalculator dateCalculator, IMapper mapper)
         {
             this.context = context;
+            this.dateCalculator = dateCalculator;
             this.mapper = mapper;
         }
 
@@ -29,6 +32,37 @@
                 .ToArray()
                 .Select(this.mapper.Map<Business.Model.Request>)
                 .ToArray();
+        }
+
+        public void UpdateRequests(ApplicationUser user, IReadOnlyList<Business.Model.Request> requests)
+        {
+            var activeDates = this.dateCalculator.GetActiveDates();
+
+            var firstDbDate = DbConvert.LocalDate.ToDb(activeDates.First());
+            var lastDbDate = DbConvert.LocalDate.ToDb(activeDates.Last());
+
+            var existingUserActiveRequests = this.context.Requests
+                .Where(r => r.ApplicationUser == user && r.DbDate >= firstDbDate && r.DbDate <= lastDbDate)
+                .ToArray();
+
+            var requestsToRemove = existingUserActiveRequests
+                .Where(existing => requests.All(r => existing.Date != r.Date));
+
+            foreach (var request in requestsToRemove)
+            {
+                this.context.Requests.Remove(request);
+            }
+
+            var requestsToAdd = requests
+                .Where(r => existingUserActiveRequests.All(existing => existing.Date != r.Date))
+                .Select(r => new Request { ApplicationUserId = user.Id, Date = r.Date });
+
+            foreach (var request in requestsToAdd)
+            {
+                this.context.Requests.Add(request);
+            }
+
+            this.context.SaveChanges();
         }
     }
 }
