@@ -42,7 +42,7 @@
             var requests = this.requestRepository.GetRequests(activeDates.First(), activeDates.Last());
 
             this.DisplayRequests = activeDates
-                .ToDictionary(d => d, d => requests.Any(r => r.Date == d && r.ApplicationUser == currentUser));
+                .ToDictionary(d => d, d => requests.Any(r => r.Date == d && r.ApplicationUser.Id == currentUser.Id));
 
             return this.Page();
         }

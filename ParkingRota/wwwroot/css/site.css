@@ -16,6 +16,10 @@ body {
     vertical-align: top;
 }
 
+.label-calendar {
+    font-weight: normal;
+}
+
 /* QR code generator */
 #qrCode {
     margin: 15px;

@@ -15,5 +15,15 @@
 
             Assert.Equal(expectedText, localDate.ForDisplay());
         }
+
+        [Theory]
+        [InlineData(2018, 11, 7, "2018-11-07")]
+        [InlineData(2019, 3, 2, "2019-03-02")]
+        public static void Test_LocalDate_ForRoundTrip(int year, int month, int day, string expectedText)
+        {
+            var localDate = new LocalDate(year, month, day);
+
+            Assert.Equal(expectedText, localDate.ForRoundTrip());
+        }
     }
 }
