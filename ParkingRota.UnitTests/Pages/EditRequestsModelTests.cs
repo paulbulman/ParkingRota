@@ -7,7 +7,6 @@
     using System.Security.Claims;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Identity;
     using Moq;
     using NodaTime;
     using NodaTime.Testing.Extensions;
@@ -47,12 +46,7 @@
                 });
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-
-            mockUserManager
-                .Setup(u => u.GetUserAsync(principal))
-                .Returns(Task.FromResult(loggedInUser));
+            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
 
             // Act
             var model = new EditRequestsModel(mockDateCalculator.Object, mockRequestRepository.Object, mockUserManager.Object)
@@ -86,12 +80,7 @@
                 .Setup(r => r.UpdateRequests(loggedInUser, It.IsAny<IReadOnlyList<Request>>()));
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-
-            mockUserManager
-                .Setup(u => u.GetUserAsync(principal))
-                .Returns(Task.FromResult(loggedInUser));
+            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
 
             // Act
             var requestDates = new[] { 13.November(2018), 15.November(2018), 16.November(2018) };

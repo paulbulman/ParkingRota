@@ -21,26 +21,18 @@
         public async Task Test_ChangePassword_Succeeds(string oldPassword, string newPassword)
         {
             // Arrange
-            var user = new ClaimsPrincipal();
-            var identityUser = new ApplicationUser();
+            var principal = new ClaimsPrincipal();
+            var loggedInUser = new ApplicationUser();
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
 
             mockUserManager
-                .Setup(u => u.GetUserAsync(user))
-                .Returns(Task.FromResult(identityUser));
-            mockUserManager
-                .Setup(u => u.ChangePasswordAsync(identityUser, oldPassword, newPassword))
+                .Setup(u => u.ChangePasswordAsync(loggedInUser, oldPassword, newPassword))
                 .Returns(Task.FromResult(IdentityResult.Success));
 
             // Set up sign in manager
-            var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
-
-            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
-                mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
+            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
             // Set up password breach checker
             var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
@@ -55,7 +47,7 @@
                 mockPasswordBreachChecker.Object,
                 Mock.Of<ILogger<ChangePasswordModel>>())
             {
-                PageContext = { HttpContext = new DefaultHttpContext { User = user } },
+                PageContext = { HttpContext = new DefaultHttpContext { User = principal } },
                 Input = new ChangePasswordModel.InputModel { OldPassword = oldPassword, NewPassword = newPassword }
             };
 
@@ -73,23 +65,14 @@
         public async Task Test_ChangePassword_BreachedPassword(string password)
         {
             // Arrange
-            var user = new ClaimsPrincipal();
-            var identityUser = new ApplicationUser();
+            var principal = new ClaimsPrincipal();
+            var loggedInUser = new ApplicationUser();
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-
-            mockUserManager
-                .Setup(u => u.GetUserAsync(user))
-                .Returns(Task.FromResult(identityUser));
+            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
 
             // Set up sign in manager
-            var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
-
-            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
-                mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
+            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
             // Set up password breach checker
             var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
@@ -104,7 +87,7 @@
                 mockPasswordBreachChecker.Object,
                 Mock.Of<ILogger<ChangePasswordModel>>())
             {
-                PageContext = { HttpContext = new DefaultHttpContext { User = user } },
+                PageContext = { HttpContext = new DefaultHttpContext { User = principal } },
                 Input = new ChangePasswordModel.InputModel { NewPassword = password }
             };
 

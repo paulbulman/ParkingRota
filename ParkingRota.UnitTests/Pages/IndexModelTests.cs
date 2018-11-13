@@ -3,7 +3,6 @@
     using System.Security.Claims;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Identity;
     using Moq;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
@@ -42,12 +41,7 @@
                 });
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-
-            mockUserManager
-                .Setup(u => u.GetUserAsync(principal))
-                .Returns(Task.FromResult(loggedInUser));
+            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
 
             // Act
             var model = new IndexModel(mockDateCalculator.Object, mockRequestRepository.Object, mockUserManager.Object)

@@ -44,11 +44,7 @@ namespace ParkingRota.UnitTests
             mockPasswordBreachChecker.Setup(c => c.PasswordIsBreached(password)).Returns(Task.FromResult(false));
 
             // Set up sign in manager
-            var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
-
-            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
-                mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
+            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
             // Set up model
             var httpContext = new DefaultHttpContext();
@@ -97,11 +93,7 @@ namespace ParkingRota.UnitTests
             mockRegistrationTokenValidator.Setup(v => v.TokenIsValid(registrationToken)).Returns(false);
 
             // Set up sign in manager
-            var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
-
-            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
-                mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
+            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
             // Set up model
             var model = new RegisterModel(
@@ -141,11 +133,7 @@ namespace ParkingRota.UnitTests
             mockPasswordBreachChecker.Setup(c => c.PasswordIsBreached(password)).Returns(Task.FromResult(true));
 
             // Set up sign in manager
-            var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
-
-            var mockSigninManager = new Mock<SignInManager<ApplicationUser>>(
-                mockUserManager.Object, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
+            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
             // Set up model
             var model = new RegisterModel(
