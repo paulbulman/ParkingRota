@@ -10,6 +10,7 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using NodaTime;
+    using NodaTime.Text;
 
     public class EditRequestsModel : PageModel
     {
@@ -26,6 +27,9 @@
             this.requestRepository = requestRepository;
             this.userManager = userManager;
         }
+
+        [TempData]
+        public string StatusMessage { get; set; }
 
         public Calendar Calendar { get; private set; }
 
@@ -45,6 +49,23 @@
                 .ToDictionary(d => d, d => requests.Any(r => r.Date == d && r.ApplicationUser.Id == currentUser.Id));
 
             return this.Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync(IReadOnlyList<string> selectedDateStrings)
+        {
+            var currentUser = await this.userManager.GetUserAsync(this.User);
+
+            var requests = selectedDateStrings
+                .Select(text => LocalDatePattern.Iso.Parse(text))
+                .Where(result => result.Success)
+                .Select(result => new Request() { ApplicationUser = currentUser, Date = result.Value })
+                .ToArray();
+
+            this.requestRepository.UpdateRequests(currentUser, requests);
+
+            this.StatusMessage = "Requests updated.";
+
+            return this.RedirectToPage();
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿namespace ParkingRota.IntegrationTests.Pages
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -30,13 +32,52 @@
         [Fact]
         public async Task Test_EditRequests_Get()
         {
-            var indexResponse = await this.LoadEditRequestsPage();
+            var response = await this.LoadEditRequestsPage(this.CreateClient());
 
-            Assert.Equal(HttpStatusCode.OK, indexResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            var indexDocument = await HtmlHelpers.GetDocumentAsync(indexResponse);
+            var document = await HtmlHelpers.GetDocumentAsync(response);
 
-            var calendarTable = indexDocument.QuerySelector("table");
+            var table = CheckCalendarTable(document);
+
+            CheckCheckboxValue(table.Rows[1].Cells[2], expectIsChecked: true);
+            CheckCheckboxValue(table.Rows[1].Cells[3], expectIsChecked: false);
+        }
+
+        [Fact]
+        public async Task Test_EditRequests_Post()
+        {
+            var client = this.CreateClient();
+
+            var getResponse = await this.LoadEditRequestsPage(client);
+
+            var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
+
+            var form = getDocument.QuerySelectorAll("form")
+                .OfType<IHtmlFormElement>()
+                .Where(f => !(f.Action ?? string.Empty).Contains("logout", StringComparison.OrdinalIgnoreCase))
+                .Single();
+
+            var formValues = new Dictionary<string, string>
+            {
+                { "selectedDateStrings", "2018-11-12" }
+            };
+
+            var postResponse = await client.SendAsync(form, formValues);
+
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
+
+            var postDocument = await HtmlHelpers.GetDocumentAsync(postResponse);
+
+            var table = CheckCalendarTable(postDocument);
+
+            CheckCheckboxValue(table.Rows[2].Cells[0], expectIsChecked: true);
+            CheckCheckboxValue(table.Rows[2].Cells[1], expectIsChecked: false);
+        }
+
+        private static IHtmlTableElement CheckCalendarTable(IHtmlDocument document)
+        {
+            var calendarTable = document.QuerySelector("table");
 
             Assert.NotNull(calendarTable);
             Assert.IsAssignableFrom<IHtmlTableElement>(calendarTable);
@@ -47,8 +88,7 @@
 
             Assert.All(rows, r => Assert.Equal(5, r.Cells.Length));
 
-            CheckCheckboxValue(rows[1].Cells[2], expectIsChecked: true);
-            CheckCheckboxValue(rows[1].Cells[3], expectIsChecked: false);
+            return (IHtmlTableElement)calendarTable;
         }
 
         [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
@@ -63,10 +103,8 @@
             Assert.Equal(expectIsChecked, ((IHtmlInputElement)checkbox).IsChecked);
         }
 
-        private async Task<HttpResponseMessage> LoadEditRequestsPage()
+        private async Task<HttpResponseMessage> LoadEditRequestsPage(HttpClient client)
         {
-            var client = this.CreateClient();
-
             var loginResponse = await client.GetAsync("/EditRequests");
 
             var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
