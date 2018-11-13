@@ -31,7 +31,7 @@
                                     <label class="label-calendar">
                                         @Html.CheckBox(
                                             "selectedDateStrings",
-                                            Model.DisplayRequests[calendarDay.Date],
+                                            calendarDay.Data,
                                             new { @value = calendarDay.Date.ForRoundTrip() })
 
                                         @calendarDay.Date.ForDisplay()

@@ -57,27 +57,24 @@
 
             await model.OnGetAsync();
 
-            // Assert Calendar
+            // Assert
             Assert.NotNull(model.Calendar);
             Assert.Single(model.Calendar.Weeks);
             Assert.Equal(5.November(2018), model.Calendar.Weeks[0].Days[0].Date);
 
-            // Assert DisplayRequests
-            Assert.NotNull(model.DisplayRequests);
+            Assert.Equal(new[] { firstDate, lastDate }, model.Calendar.ActiveDates());
 
-            Assert.Equal(new[] { firstDate, lastDate }, model.DisplayRequests.Keys);
+            Assert.Equal(2, model.Calendar.Data(firstDate).Count);
 
-            Assert.Equal(2, model.DisplayRequests[firstDate].Count);
+            Assert.Equal("Philip Quast", model.Calendar.Data(firstDate)[0].FullName);
+            Assert.False(model.Calendar.Data(firstDate)[0].IsCurrentUser);
+            Assert.Equal("Colm Wilkinson", model.Calendar.Data(firstDate)[1].FullName);
+            Assert.True(model.Calendar.Data(firstDate)[1].IsCurrentUser);
 
-            Assert.Equal("Philip Quast", model.DisplayRequests[firstDate][0].FullName);
-            Assert.False(model.DisplayRequests[firstDate][0].IsCurrentUser);
-            Assert.Equal("Colm Wilkinson", model.DisplayRequests[firstDate][1].FullName);
-            Assert.True(model.DisplayRequests[firstDate][1].IsCurrentUser);
+            Assert.Equal(1, model.Calendar.Data(lastDate).Count);
 
-            Assert.Equal(1, model.DisplayRequests[lastDate].Count);
-
-            Assert.Equal("Philip Quast", model.DisplayRequests[firstDate][0].FullName);
-            Assert.False(model.DisplayRequests[firstDate][0].IsCurrentUser);
+            Assert.Equal("Philip Quast", model.Calendar.Data(lastDate)[0].FullName);
+            Assert.False(model.Calendar.Data(lastDate)[0].IsCurrentUser);
         }
     }
 }

@@ -2,10 +2,10 @@
 {
     using System.Collections.Generic;
 
-    public class Week
+    public class Week<T>
     {
-        internal Week(IReadOnlyList<Day> days) => this.Days = days;
+        internal Week(IReadOnlyList<Day<T>> days) => this.Days = days;
 
-        public IReadOnlyList<Day> Days { get; }
+        public IReadOnlyList<Day<T>> Days { get; }
     }
 }

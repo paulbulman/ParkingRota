@@ -1,17 +1,22 @@
 ﻿namespace ParkingRota.Calendar
 {
+    using System.Collections.Generic;
     using NodaTime;
 
-    public class Day
+    public class Day<T>
     {
-        internal Day(LocalDate date, bool isActive)
+        private readonly IReadOnlyDictionary<LocalDate, T> data;
+
+        internal Day(LocalDate date, IReadOnlyDictionary<LocalDate, T> data)
         {
+            this.data = data;
             this.Date = date;
-            this.IsActive = isActive;
         }
 
         public LocalDate Date { get; }
 
-        public bool IsActive { get; }
+        public bool IsActive => this.data.ContainsKey(this.Date);
+
+        public T Data => this.data.ContainsKey(this.Date) ? this.data[this.Date] : default(T);
     }
 }

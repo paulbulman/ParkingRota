@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using Moq;
     using NodaTime;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
@@ -12,18 +11,16 @@
 
     public static class CalendarTests
     {
-        [Fact]
-        public static void Test_Create_SingleActiveDay()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public static void Test_Create_SingleActiveDay(bool dataValue)
         {
             var fullWeek = new[] { 7.May(2018), 8.May(2018), 9.May(2018), 10.May(2018), 11.May(2018) };
 
             foreach (var date in fullWeek)
             {
-                var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-
-                mockDateCalculator.Setup(c => c.GetActiveDates()).Returns(new[] { date });
-
-                var result = Calendar.Create(mockDateCalculator.Object);
+                var result = Calendar<bool>.Create(new[] { date }.ToDictionary(d => d, d => dataValue));
 
                 Assert.Equal(1, result.Weeks.Count);
 
@@ -32,6 +29,7 @@
                 Assert.Equal(fullWeek, days.Select(d => d.Date));
 
                 Assert.All(days, d => Assert.Equal(d.Date == date, d.IsActive));
+                Assert.All(days.Where(d => d.IsActive), d => Assert.Equal(dataValue, d.Data));
             }
         }
 
@@ -47,13 +45,9 @@
             var misorderedActiveDates = allWeeks
                 .OrderByDescending(w => w.Length)
                 .SelectMany(w => w)
-                .ToArray();
+                .ToDictionary(d => d, d => d.ForRoundTrip());
 
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-
-            mockDateCalculator.Setup(c => c.GetActiveDates()).Returns(misorderedActiveDates);
-
-            var result = Calendar.Create(mockDateCalculator.Object);
+            var result = Calendar<string>.Create(misorderedActiveDates);
 
             Assert.Equal(allWeeks.Length, result.Weeks.Count);
 
@@ -70,10 +64,12 @@
         private static void Check_Week(
             IReadOnlyList<LocalDate> expectedDates,
             IReadOnlyList<LocalDate> expectedActiveDates,
-            Week actual)
+            Week<string> actual)
         {
             Assert.Equal(expectedDates, actual.Days.Select(d => d.Date));
             Assert.Equal(expectedActiveDates, actual.Days.Where(d => d.IsActive).Select(d => d.Date));
+
+            Assert.All(actual.Days.Where(d => d.IsActive), d => Assert.Equal(d.Date.ForRoundTrip(), d.Data));
         }
     }
 }

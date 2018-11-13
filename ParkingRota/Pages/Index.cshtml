@@ -28,7 +28,7 @@
                                 @calendarDay.Date.ForDisplay()
                             </p>
                             <p>
-                                @foreach (var displayRequest in Model.DisplayRequests[calendarDay.Date])
+                                @foreach (var displayRequest in calendarDay.Data)
                                 {
                                     if (displayRequest.IsCurrentUser)
                                     {

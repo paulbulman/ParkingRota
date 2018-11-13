@@ -62,18 +62,15 @@
 
             await model.OnGetAsync();
 
-            // Assert Calendar
+            // Assert
             Assert.NotNull(model.Calendar);
             Assert.Single(model.Calendar.Weeks);
             Assert.Equal(5.November(2018), model.Calendar.Weeks[0].Days[0].Date);
 
-            // Assert DisplayRequests
-            Assert.NotNull(model.DisplayRequests);
+            Assert.Equal(new[] { firstDate, lastDate }, model.Calendar.ActiveDates());
 
-            Assert.Equal(new[] { firstDate, lastDate }, model.DisplayRequests.Keys);
-
-            Assert.True(model.DisplayRequests[firstDate]);
-            Assert.False(model.DisplayRequests[lastDate]);
+            Assert.True(model.Calendar.Data(firstDate));
+            Assert.False(model.Calendar.Data(lastDate));
         }
 
         [Fact]

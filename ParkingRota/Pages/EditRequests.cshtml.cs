@@ -9,7 +9,6 @@
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
-    using NodaTime;
     using NodaTime.Text;
 
     public class EditRequestsModel : PageModel
@@ -31,22 +30,21 @@
         [TempData]
         public string StatusMessage { get; set; }
 
-        public Calendar Calendar { get; private set; }
-
-        public IDictionary<LocalDate, bool> DisplayRequests { get; private set; }
+        public Calendar<bool> Calendar { get; private set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
-            this.Calendar = Calendar.Create(this.dateCalculator);
-
-            var currentUser = await this.userManager.GetUserAsync(this.User);
-
             var activeDates = this.dateCalculator.GetActiveDates();
 
             var requests = this.requestRepository.GetRequests(activeDates.First(), activeDates.Last());
 
-            this.DisplayRequests = activeDates
-                .ToDictionary(d => d, d => requests.Any(r => r.Date == d && r.ApplicationUser.Id == currentUser.Id));
+            var currentUser = await this.userManager.GetUserAsync(this.User);
+
+            var calendarData = activeDates.ToDictionary(
+                d => d,
+                d => requests.Any(r => r.Date == d && r.ApplicationUser.Id == currentUser.Id));
+
+            this.Calendar = Calendar<bool>.Create(calendarData);
 
             return this.Page();
         }

@@ -2,42 +2,39 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Business;
     using NodaTime;
 
-    public class Calendar
+    public class Calendar<T>
     {
-        private Calendar(IReadOnlyList<Week> weeks) => this.Weeks = weeks;
+        private Calendar(IReadOnlyList<Week<T>> weeks) => this.Weeks = weeks;
 
-        public IReadOnlyList<Week> Weeks { get; }
+        public IReadOnlyList<Week<T>> Weeks { get; }
 
-        public static Calendar Create(IDateCalculator dateCalculator)
+        public static Calendar<T> Create(IReadOnlyDictionary<LocalDate, T> data)
         {
-            var activeDates = dateCalculator.GetActiveDates();
-
-            var weekStarts = activeDates
+            var weekStarts = data.Keys
                 .Select(d => d.Next(IsoDayOfWeek.Monday).PlusDays(-7))
                 .Distinct()
                 .OrderBy(d => d);
 
             var weeks = weekStarts
-                .Select(d => CalculateWeek(d, activeDates))
+                .Select(d => CalculateWeek(d, data))
                 .ToArray();
 
-            return new Calendar(weeks);
+            return new Calendar<T>(weeks);
         }
 
-        private static Week CalculateWeek(LocalDate firstDateOfWeek, IReadOnlyList<LocalDate> activeDates)
+        private static Week<T> CalculateWeek(LocalDate firstDateOfWeek, IReadOnlyDictionary<LocalDate, T> data)
         {
             var dates = Enumerable
                 .Range(0, 5)
                 .Select(firstDateOfWeek.PlusDays);
 
             var days = dates
-                .Select(d => new Day(d, isActive: activeDates.Contains(d)))
+                .Select(d => new Day<T>(d, data))
                 .ToArray();
 
-            return new Week(days);
+            return new Week<T>(days);
         }
     }
 }
