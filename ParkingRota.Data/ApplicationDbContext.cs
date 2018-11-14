@@ -6,6 +6,8 @@
 
     public interface IApplicationDbContext
     {
+        DbSet<Allocation> Allocations { get; set; }
+
         DbSet<BankHoliday> BankHolidays { get; set; }
 
         DbSet<RegistrationToken> RegistrationTokens { get; set; }
@@ -22,6 +24,8 @@
         {
         }
 
+        public DbSet<Allocation> Allocations { get; set; }
+
         public DbSet<BankHoliday> BankHolidays { get; set; }
 
         public DbSet<RegistrationToken> RegistrationTokens { get; set; }
@@ -31,6 +35,10 @@
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Allocation>().HasIndex(a => new { a.ApplicationUserId, a.DbDate }).IsUnique();
+            builder.Entity<Allocation>().Property(a => a.DbDate).HasColumnName("Date");
+            builder.Entity<Allocation>().Ignore(a => a.Date);
 
             builder.Entity<ApplicationUser>().Property(a => a.CommuteDistance).HasColumnType("decimal(18,2)");
 
