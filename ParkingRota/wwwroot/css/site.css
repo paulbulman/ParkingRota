@@ -16,6 +16,11 @@ body {
     vertical-align: top;
 }
 
+.interruption {
+    font-style: italic;
+    color: #aaa;
+}
+
 .label-calendar {
     font-weight: normal;
 }

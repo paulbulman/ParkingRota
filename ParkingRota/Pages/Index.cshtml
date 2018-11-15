@@ -28,7 +28,20 @@
                                 @calendarDay.Date.ForDisplay()
                             </p>
                             <p>
-                                @foreach (var displayRequest in calendarDay.Data)
+                                @foreach (var displayRequest in calendarDay.Data.AllocatedRequests)
+                                {
+                                    if (displayRequest.IsCurrentUser)
+                                    {
+                                        <strong>@displayRequest.FullName</strong><br />
+                                    }
+                                    else
+                                    {
+                                        @displayRequest.FullName<br />
+                                    }
+                                }
+                            </p>
+                            <p class="interruption">
+                                @foreach (var displayRequest in calendarDay.Data.UnallocatedRequests)
                                 {
                                     if (displayRequest.IsCurrentUser)
                                     {

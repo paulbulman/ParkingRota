@@ -15,6 +15,8 @@
     using ParkingRota.Business.Model;
     using UnitTests;
     using Xunit;
+    using Allocation = Data.Allocation;
+    using Request = Data.Request;
 
     public class IndexTests : IClassFixture<DatabaseWebApplicationFactory<Program>>
     {
@@ -46,6 +48,7 @@
             Assert.Equal(10, rows.Length);
             Assert.All(rows, r => Assert.Equal(5, r.Cells.Length));
             Assert.True(rows[1].Cells[2].InnerHtml.Contains("Anne Other", StringComparison.Ordinal));
+            Assert.True(rows[1].Cells[3].InnerHtml.Contains("Jane Smith", StringComparison.Ordinal));
         }
 
         private async Task<HttpResponseMessage> LoadIndexPage()
@@ -96,15 +99,35 @@
                             LastName = "Other"
                         };
 
-                        var request = new Data.Request
+                        var otherUser = new ApplicationUser
+                        {
+                            FirstName = "Jane",
+                            LastName = "Smith"
+                        };
+
+                        context.Users.Add(applicationUser);
+                        context.Users.Add(otherUser);
+
+                        context.Requests.Add(new Request
                         {
                             Id = 1,
                             ApplicationUser = applicationUser,
                             Date = 7.November(2018)
-                        };
+                        });
 
-                        context.Users.Add(applicationUser);
-                        context.Requests.Add(request);
+                        context.Requests.Add(new Request
+                        {
+                            Id = 2,
+                            ApplicationUser = otherUser,
+                            Date = 8.November(2018)
+                        });
+
+                        context.Allocations.Add(new Allocation
+                        {
+                            Id = 1,
+                            ApplicationUser = applicationUser,
+                            Date = 7.November(2018)
+                        });
 
                         context.SaveChanges();
                     }

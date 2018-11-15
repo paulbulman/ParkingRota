@@ -43,6 +43,7 @@ namespace ParkingRota
 
             services.AddSingleton<IClock>(SystemClock.Instance);
 
+            services.AddScoped<IAllocationRepository, AllocationRepository>();
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
             services.AddScoped<IBankHolidayRepository, BankHolidayRepository>();
             services.AddScoped<IDateCalculator, DateCalculator>();
