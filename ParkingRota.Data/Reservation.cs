@@ -5,7 +5,7 @@
     using Business.Model;
     using NodaTime;
 
-    public class Allocation
+    public class Reservation
     {
         public int Id { get; set; }
 
@@ -22,5 +22,7 @@
 
         [Required]
         public DateTime DbDate { get; set; }
+
+        public int Order { get; set; }
     }
 }

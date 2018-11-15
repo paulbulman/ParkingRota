@@ -20,6 +20,7 @@
             set => this.DbDate = DbConvert.LocalDate.ToDb(value);
         }
 
+        [Required]
         public DateTime DbDate { get; set; }
     }
 }

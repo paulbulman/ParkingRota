@@ -14,6 +14,8 @@
 
         DbSet<Request> Requests { get; set; }
 
+        DbSet<Reservation> Reservations { get; set; }
+
         int SaveChanges();
     }
 
@@ -31,6 +33,8 @@
         public DbSet<RegistrationToken> RegistrationTokens { get; set; }
 
         public DbSet<Request> Requests { get; set; }
+
+        public DbSet<Reservation> Reservations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -52,6 +56,10 @@
             builder.Entity<Request>().HasIndex(r => new { r.ApplicationUserId, r.DbDate }).IsUnique();
             builder.Entity<Request>().Property(r => r.DbDate).HasColumnName("Date");
             builder.Entity<Request>().Ignore(r => r.Date);
+
+            builder.Entity<Reservation>().HasIndex(r => new { r.ApplicationUserId, r.DbDate, r.Order }).IsUnique();
+            builder.Entity<Reservation>().Property(r => r.DbDate).HasColumnName("Date");
+            builder.Entity<Reservation>().Ignore(r => r.Date);
         }
     }
 }
