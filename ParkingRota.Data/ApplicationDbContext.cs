@@ -16,6 +16,8 @@
 
         DbSet<Reservation> Reservations { get; set; }
 
+        DbSet<SystemParameterList> SystemParameterLists { get; set; }
+
         int SaveChanges();
     }
 
@@ -35,6 +37,8 @@
         public DbSet<Request> Requests { get; set; }
 
         public DbSet<Reservation> Reservations { get; set; }
+
+        public DbSet<SystemParameterList> SystemParameterLists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
