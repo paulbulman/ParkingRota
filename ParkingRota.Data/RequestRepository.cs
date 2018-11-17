@@ -48,19 +48,12 @@
             var requestsToRemove = existingUserActiveRequests
                 .Where(existing => requests.All(r => existing.Date != r.Date));
 
-            foreach (var request in requestsToRemove)
-            {
-                this.context.Requests.Remove(request);
-            }
-
             var requestsToAdd = requests
                 .Where(r => existingUserActiveRequests.All(existing => existing.Date != r.Date))
                 .Select(r => new Request { ApplicationUserId = user.Id, Date = r.Date });
 
-            foreach (var request in requestsToAdd)
-            {
-                this.context.Requests.Add(request);
-            }
+            this.context.Requests.RemoveRange(requestsToRemove);
+            this.context.Requests.AddRange(requestsToAdd);
 
             this.context.SaveChanges();
         }

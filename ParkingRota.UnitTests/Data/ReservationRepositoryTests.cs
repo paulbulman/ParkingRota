@@ -1,11 +1,12 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using AutoMapper;
     using Microsoft.EntityFrameworkCore;
+    using Moq;
     using NodaTime.Testing.Extensions;
+    using ParkingRota.Business;
     using ParkingRota.Business.Model;
     using ParkingRota.Data;
     using Xunit;
@@ -46,140 +47,27 @@
 
             this.SeedDatabase(matchingReservations.Concat(filteredOutReservations).ToArray());
 
-            // Act
-            IReadOnlyList<ModelReservation> result;
-            using (var context = this.CreateContext())
+            var mapperConfiguration = new MapperConfiguration(c =>
             {
-                result = CreateRepository(context).GetReservations(firstDate, lastDate);
-            }
-
-            // Assert
-            Assert.Equal(matchingReservations.Length, result.Count);
-
-            foreach (var expectedReservation in matchingReservations)
-            {
-                Assert.Single(result.Where(r =>
-                    r.ApplicationUser.Id == expectedReservation.ApplicationUser.Id &&
-                    r.Date == expectedReservation.Date &&
-                    r.Order == expectedReservation.Order));
-            }
-        }
-
-        [Fact]
-        public void Test_DeleteReservations()
-        {
-            // Arrange
-            var user1 = new ApplicationUser();
-            var user2 = new ApplicationUser();
-
-            this.SeedDatabase(user1, user2);
-
-            var firstDate = 3.November(2018);
-            var lastDate = 5.November(2018);
-
-            var existingReservation = new ModelReservation { ApplicationUser = user1, Date = firstDate, Order = 0 };
-            var alreadyDeletedReservation = new ModelReservation { ApplicationUser = user1, Date = lastDate, Order = 0 };
-
-            var matchingReservation = new DataReservation
-            {
-                ApplicationUserId = existingReservation.ApplicationUser.Id,
-                Date = existingReservation.Date,
-                Order = existingReservation.Order
-            };
-
-            var otherReservations = new[]
-            {
-                new DataReservation
-                {
-                    ApplicationUserId = user2.Id,
-                    Date = existingReservation.Date,
-                    Order = existingReservation.Order
-                },
-                new DataReservation
-                {
-                    ApplicationUserId = existingReservation.ApplicationUser.Id,
-                    Date = existingReservation.Date.PlusDays(-1),
-                    Order = existingReservation.Order
-                },
-                new DataReservation
-                {
-                    ApplicationUserId = existingReservation.ApplicationUser.Id,
-                    Date = existingReservation.Date,
-                    Order = existingReservation.Order - 1
-                }
-            };
-
-            this.SeedDatabase(matchingReservation);
-            this.SeedDatabase(otherReservations);
-
-            // Act
-            using (var context = this.CreateContext())
-            {
-                CreateRepository(context).RemoveReservations(new[] { existingReservation, alreadyDeletedReservation });
-            }
-
-            // Assert
-            using (var context = this.CreateContext())
-            {
-                var remainingReservations = context.Reservations.Include(r => r.ApplicationUser).ToArray();
-
-                Assert.Equal(otherReservations.Length, remainingReservations.Length);
-
-                foreach (var expectedReservation in otherReservations)
-                {
-                    Assert.Single(remainingReservations.Where(r =>
-                        r.ApplicationUserId == expectedReservation.ApplicationUserId &&
-                        r.Date == expectedReservation.Date &&
-                        r.Order == expectedReservation.Order));
-                }
-            }
-        }
-
-        [Fact]
-        public void Test_AddReservations()
-        {
-            // Arrange
-            var user1 = new ApplicationUser();
-            var user2 = new ApplicationUser();
-
-            this.SeedDatabase(user1, user2);
-
-            var firstDate = 3.November(2018);
-            var lastDate = 5.November(2018);
-
-            var existingReservation = new ModelReservation { ApplicationUser = user1, Date = firstDate, Order = 0 };
-
-            this.SeedDatabase(new DataReservation
-            {
-                ApplicationUserId = existingReservation.ApplicationUser.Id,
-                Date = existingReservation.Date,
-                Order = existingReservation.Order
+                c.CreateMap<DataReservation, ModelReservation>();
             });
 
-            var allReservations = new[]
-            {
-                existingReservation,
-                new ModelReservation { ApplicationUser = user1, Date = firstDate, Order = 1 },
-                new ModelReservation { ApplicationUser = user2, Date = firstDate, Order = 2 },
-                new ModelReservation { ApplicationUser = user2, Date = lastDate, Order = 0 }
-            };
-
             // Act
             using (var context = this.CreateContext())
             {
-                CreateRepository(context).AddReservations(allReservations);
-            }
+                var repository = new ReservationRepository(
+                    context,
+                    Mock.Of<IDateCalculator>(),
+                    new Mapper(mapperConfiguration));
 
-            // Assert
-            using (var context = this.CreateContext())
-            {
-                var savedReservations = context.Reservations.Include(r => r.ApplicationUser).ToArray();
+                var result = repository.GetReservations(firstDate, lastDate);
 
-                Assert.Equal(allReservations.Length, savedReservations.Length);
+                // Assert
+                Assert.Equal(matchingReservations.Length, result.Count);
 
-                foreach (var expectedReservation in allReservations)
+                foreach (var expectedReservation in matchingReservations)
                 {
-                    Assert.Single(savedReservations.Where(r =>
+                    Assert.Single(result.Where(r =>
                         r.ApplicationUser.Id == expectedReservation.ApplicationUser.Id &&
                         r.Date == expectedReservation.Date &&
                         r.Order == expectedReservation.Order));
@@ -187,10 +75,77 @@
             }
         }
 
-        private static ReservationRepository CreateRepository(IApplicationDbContext context) =>
-            new ReservationRepository(
-                context,
-                new Mapper(new MapperConfiguration(c => { c.CreateMap<DataReservation, ModelReservation>(); })));
+        [Fact]
+        public void Test_UpdateReservations()
+        {
+            // Arrange
+            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
+
+            mockDateCalculator
+                .Setup(d => d.GetActiveDates())
+                .Returns(new[] { 3.November(2018), 4.November(2018), 5.November(2018) });
+
+            var user1 = new ApplicationUser();
+            var user2 = new ApplicationUser();
+
+            var existingReservationToRemove = new DataReservation { ApplicationUser = user1, Date = 3.November(2018), Order = 0 };
+            var existingReservationToKeep = new DataReservation { ApplicationUser = user2, Date = 4.November(2018), Order = 1 };
+
+            var existingReservationOutsideActivePeriod = new DataReservation { ApplicationUser = user1, Date = 6.November(2018), Order = 0 };
+
+            this.SeedDatabase(existingReservationToRemove, existingReservationToKeep, existingReservationOutsideActivePeriod);
+
+            // Act
+            var existingReservation = new ModelReservation
+            {
+                ApplicationUser = existingReservationToKeep.ApplicationUser,
+                Date = existingReservationToKeep.Date,
+                Order = existingReservationToKeep.Order
+            };
+
+            var newReservation = new ModelReservation
+            {
+                ApplicationUser = existingReservationToRemove.ApplicationUser,
+                Date = existingReservationToRemove.Date,
+                Order = existingReservationToRemove.Order + 1
+            };
+
+            using (var context = this.CreateContext())
+            {
+                new ReservationRepository(context, mockDateCalculator.Object, Mock.Of<IMapper>())
+                    .UpdateReservations(new[] { existingReservation, newReservation });
+            }
+
+            // Assert
+            var expectedNewReservation = new DataReservation
+            {
+                ApplicationUser = newReservation.ApplicationUser,
+                Date = newReservation.Date,
+                Order = newReservation.Order
+            };
+
+            var expectedReservations = new[]
+            {
+                existingReservationToKeep,
+                existingReservationOutsideActivePeriod,
+                expectedNewReservation
+            };
+
+            using (var context = this.CreateContext())
+            {
+                var result = context.Reservations
+                    .Include(r => r.ApplicationUser)
+                    .ToArray();
+
+                Assert.Equal(expectedReservations.Length, result.Length);
+
+                Assert.All(
+                    expectedReservations,
+                    e => Assert.Contains(
+                        result,
+                        r => r.ApplicationUser.Id == e.ApplicationUser.Id && r.Date == e.Date && r.Order == e.Order));
+            }
+        }
 
         private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
 
@@ -199,15 +154,6 @@
             using (var context = this.CreateContext())
             {
                 context.Reservations.AddRange(reservations);
-                context.SaveChanges();
-            }
-        }
-
-        private void SeedDatabase(params ApplicationUser[] applicationUsers)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.Users.AddRange(applicationUsers);
                 context.SaveChanges();
             }
         }

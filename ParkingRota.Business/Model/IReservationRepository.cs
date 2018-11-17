@@ -7,8 +7,6 @@
     {
         IReadOnlyList<Reservation> GetReservations(LocalDate firstDate, LocalDate lastDate);
 
-        void AddReservations(IReadOnlyList<Reservation> reservations);
-
-        void RemoveReservations(IReadOnlyList<Reservation> reservations);
+        void UpdateReservations(IReadOnlyList<Reservation> reservations);
     }
 }
