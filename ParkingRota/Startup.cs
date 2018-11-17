@@ -51,12 +51,16 @@ namespace ParkingRota
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
             services.AddScoped<IRequestRepository, RequestRepository>();
+            services.AddScoped<IReservationRepository, ReservationRepository>();
+            services.AddScoped<ISystemParameterListRepository, SystemParameterListRepository>();
 
             var mapperConfiguration = new MapperConfiguration(c =>
             {
                 c.CreateMap<Data.BankHoliday, Business.Model.BankHoliday>();
                 c.CreateMap<Data.RegistrationToken, Business.Model.RegistrationToken>();
                 c.CreateMap<Data.Request, Business.Model.Request>();
+                c.CreateMap<Data.Reservation, Business.Model.Reservation>();
+                c.CreateMap<Data.SystemParameterList, Business.Model.SystemParameterList>();
             });
 
             services.AddSingleton<IMapper>(new Mapper(mapperConfiguration));

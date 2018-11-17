@@ -2,8 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -18,21 +16,23 @@
     using UnitTests;
     using Xunit;
 
-    public class EditRequestsTests : IClassFixture<DatabaseWebApplicationFactory<Program>>
+    public class EditReservationsTests : IClassFixture<DatabaseWebApplicationFactory<Program>>
     {
         private readonly DatabaseWebApplicationFactory<Program> factory;
+
+        private const int ReservableSpaces = 4;
 
         private const string EmailAddress = "anneother@gmail.com";
         private const string Password = "9Ft6M%";
         private const string PasswordHash =
             "AQAAAAEAACcQAAAAEGe/qgvKfGP5QOeQnC2YF5Fzphi2AvOD71xUXnzfW4yQfuuEGJ4qrdzt9bwESjN4Mw==";
 
-        public EditRequestsTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
+        public EditReservationsTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Fact]
         public async Task Test_EditRequests_Get()
         {
-            var response = await this.LoadEditRequestsPage(this.CreateClient());
+            var response = await this.LoadEditReservationsPage(this.CreateClient());
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -40,39 +40,16 @@
 
             var table = CheckCalendarTable(document);
 
-            CheckCheckboxValue(table.Rows[1].Cells[2], expectIsChecked: true);
-            CheckCheckboxValue(table.Rows[1].Cells[3], expectIsChecked: false);
-        }
+            var dropdownLists = table.Rows[1].Cells[2].QuerySelectorAll("select");
 
-        [Fact]
-        public async Task Test_EditRequests_Post()
-        {
-            var client = this.CreateClient();
+            Assert.Equal(ReservableSpaces, dropdownLists.Length);
 
-            var getResponse = await this.LoadEditRequestsPage(client);
+            Assert.All(dropdownLists, d => Assert.Equal(2, d.ChildElementCount));
 
-            var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
+            Assert.All(dropdownLists, d => Assert.True(d.Children[0].InnerHtml.Contains("Space", StringComparison.OrdinalIgnoreCase)));
+            Assert.All(dropdownLists, d => Assert.True(d.Children[1].InnerHtml.Contains("Anne Other", StringComparison.OrdinalIgnoreCase)));
 
-            var form = getDocument
-                .QuerySelectorAll("form")
-                .OfType<IHtmlFormElement>()
-                .Single(f => !(f.Action ?? string.Empty).Contains("logout", StringComparison.OrdinalIgnoreCase));
-
-            var formValues = new Dictionary<string, string>
-            {
-                { "selectedDateStrings", "2018-11-12" }
-            };
-
-            var postResponse = await client.SendAsync(form, formValues);
-
-            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
-
-            var postDocument = await HtmlHelpers.GetDocumentAsync(postResponse);
-
-            var table = CheckCalendarTable(postDocument);
-
-            CheckCheckboxValue(table.Rows[2].Cells[0], expectIsChecked: true);
-            CheckCheckboxValue(table.Rows[2].Cells[1], expectIsChecked: false);
+            Assert.True(((IHtmlOptionElement)dropdownLists[2].Children[1]).IsSelected);
         }
 
         private static IHtmlTableElement CheckCalendarTable(IHtmlDocument document)
@@ -91,21 +68,9 @@
             return (IHtmlTableElement)calendarTable;
         }
 
-        [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
-        private static void CheckCheckboxValue(IHtmlTableCellElement cell, bool expectIsChecked)
+        private async Task<HttpResponseMessage> LoadEditReservationsPage(HttpClient client)
         {
-            var checkbox = cell.QuerySelector("input");
-
-            Assert.NotNull(checkbox);
-
-            Assert.IsAssignableFrom<IHtmlInputElement>(checkbox);
-
-            Assert.Equal(expectIsChecked, ((IHtmlInputElement)checkbox).IsChecked);
-        }
-
-        private async Task<HttpResponseMessage> LoadEditRequestsPage(HttpClient client)
-        {
-            var loginResponse = await client.GetAsync("/EditRequests");
+            var loginResponse = await client.GetAsync("/EditReservations");
 
             var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
 
@@ -149,15 +114,23 @@
                             LastName = "Other"
                         };
 
-                        var request = new Data.Request
+                        var reservation = new Data.Reservation
                         {
                             Id = 1,
                             ApplicationUser = applicationUser,
-                            Date = 7.November(2018)
+                            Date = 7.November(2018),
+                            Order = 2
+                        };
+
+                        var systemParameterList = new Data.SystemParameterList
+                        {
+                            Id = 1,
+                            ReservableSpaces = ReservableSpaces
                         };
 
                         context.Users.Add(applicationUser);
-                        context.Requests.Add(request);
+                        context.Reservations.Add(reservation);
+                        context.SystemParameterLists.Add(systemParameterList);
 
                         context.SaveChanges();
                     }
