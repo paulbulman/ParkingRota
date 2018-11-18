@@ -7,7 +7,9 @@ namespace ParkingRota.Pages
     using Business;
     using Business.Model;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
     using NodaTime;
+    using NodaTime.Text;
     using ParkingRota.Calendar;
 
     public class EditReservationsModel : PageModel
@@ -28,6 +30,11 @@ namespace ParkingRota.Pages
             this.reservationRepository = reservationRepository;
             this.userManager = userManager;
         }
+
+        [TempData]
+        public string StatusMessage { get; set; }
+
+        public Calendar<DayReservations> Calendar { get; private set; }
 
         public void OnGet()
         {
@@ -64,7 +71,40 @@ namespace ParkingRota.Pages
             this.Calendar = Calendar<DayReservations>.Create(calendarData);
         }
 
-        public Calendar<DayReservations> Calendar { get; private set; }
+        public IActionResult OnPost(IReadOnlyList<string> selectedReservationStrings)
+        {
+            var validUsers = this.userManager.Users.ToArray();
+
+            var reservations = selectedReservationStrings
+                .Select(r => CreateReservation(r, validUsers))
+                .Where(r => r != null)
+                .ToArray();
+
+            this.reservationRepository.UpdateReservations(reservations);
+
+            this.StatusMessage = "Reservations updated.";
+
+            return this.RedirectToPage();
+        }
+
+        private static Reservation CreateReservation(string reservationString, IReadOnlyList<ApplicationUser> validUsers)
+        {
+            var data = reservationString.Split('|');
+
+            if (data.Length == 3)
+            {
+                var dateParseResult = LocalDatePattern.Iso.Parse(data[0]);
+                var orderParseResult = int.TryParse(data[1], out var order);
+                var user = validUsers.SingleOrDefault(u => u.Id == data[2]);
+
+                if (dateParseResult.Success && orderParseResult && user != null)
+                {
+                    return new Reservation { ApplicationUser = user, Date = dateParseResult.Value, Order = order };
+                }
+            }
+
+            return null;
+        }
 
         public class DayReservations
         {

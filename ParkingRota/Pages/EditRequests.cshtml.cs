@@ -56,7 +56,7 @@
             var requests = selectedDateStrings
                 .Select(text => LocalDatePattern.Iso.Parse(text))
                 .Where(result => result.Success)
-                .Select(result => new Request() { ApplicationUser = currentUser, Date = result.Value })
+                .Select(result => new Request { ApplicationUser = currentUser, Date = result.Value })
                 .ToArray();
 
             this.requestRepository.UpdateRequests(currentUser, requests);

@@ -1,7 +1,9 @@
 ﻿namespace ParkingRota.UnitTests.Pages
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Security.Claims;
     using Microsoft.AspNetCore.Http;
     using Moq;
@@ -24,8 +26,8 @@
             var activeDates = new[] { firstDate, lastDate };
 
             var principal = new ClaimsPrincipal();
-            var loggedInUser = new ApplicationUser { Id = "loggedInUser", FirstName = "Colm", LastName = "Wilkinson" };
-            var otherUser = new ApplicationUser { Id = "otherUser", FirstName = "Philip", LastName = "Quast" };
+            var loggedInUser = new ApplicationUser { FirstName = "Colm", LastName = "Wilkinson" };
+            var otherUser = new ApplicationUser { FirstName = "Philip", LastName = "Quast" };
 
             var applicationUsers = new[] { loggedInUser, otherUser };
 
@@ -110,7 +112,6 @@
                     var expectedSelectedUserId = expectedSelectedUserIds[activeDate][order];
                     foreach (var displayReservation in spaceReservation.Options)
                     {
-
                         var expectedIsSelected =
                             expectedSelectedUserId != null &&
                             displayReservation.Key.EndsWith(expectedSelectedUserId);
@@ -120,5 +121,74 @@
                 }
             }
         }
+
+        [Fact]
+        public void Test_Post()
+        {
+            // Arrange
+            var principal = new ClaimsPrincipal();
+            var loggedInUser = new ApplicationUser { FirstName = "Colm", LastName = "Wilkinson" };
+            var otherUser = new ApplicationUser { FirstName = "Philip", LastName = "Quast" };
+
+            var applicationUsers = new[] { loggedInUser, otherUser };
+
+            // Set up reservation repository
+            var mockReservationRepository = new Mock<IReservationRepository>(MockBehavior.Strict);
+            mockReservationRepository
+                .Setup(r => r.UpdateReservations(It.IsAny<IReadOnlyList<Reservation>>()));
+
+            // Set up user manager
+            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
+            mockUserManager
+                .SetupGet(u => u.Users)
+                .Returns(applicationUsers.AsQueryable());
+
+            // Act
+            var expectedReservation = new Reservation { ApplicationUser = loggedInUser, Date = 19.November(2018), Order = 0 };
+            var otherExpectedReservation = new Reservation { ApplicationUser = otherUser, Date = 20.November(2018), Order = 2 };
+
+            var invalidDate = $"invalid|0|{loggedInUser.Id}";
+            var invalidOrder = $"{19.November(2018).ForRoundTrip()}|invalid|{loggedInUser.Id}";
+            var invalidDataLength = GetReservationString(expectedReservation) + "|";
+
+            var requestStrings = new[]
+            {
+                GetReservationString(expectedReservation),
+                GetReservationString(otherExpectedReservation),
+                invalidDate,
+                invalidOrder,
+                invalidDataLength
+            };
+
+            var model = new EditReservationsModel(
+                Mock.Of<IDateCalculator>(),
+                Mock.Of<ISystemParameterListRepository>(),
+                mockReservationRepository.Object,
+                mockUserManager.Object)
+            {
+                PageContext = { HttpContext = new DefaultHttpContext { User = principal } }
+            };
+
+            model.OnPost(requestStrings);
+
+            var expectedReservations = new[] { expectedReservation, otherExpectedReservation };
+
+            mockReservationRepository.Verify(
+                r => r.UpdateReservations(It.Is(Match(expectedReservations))),
+                Times.Once);
+        }
+
+        private static Expression<Func<IReadOnlyList<Reservation>, bool>> Match(IReadOnlyList<Reservation> expectedReservations) =>
+            list =>
+                list != null &&
+                list.Count == expectedReservations.Count &&
+                expectedReservations.All(expected =>
+                    list.Any(actual =>
+                        actual.ApplicationUser.Id == expected.ApplicationUser.Id &&
+                        actual.Date == expected.Date &&
+                        actual.Order == expected.Order));
+
+        private static string GetReservationString(Reservation reservation) =>
+            $"{reservation.Date.ForRoundTrip()}|{reservation.Order}|{reservation.ApplicationUser.Id}";
     }
 }

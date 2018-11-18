@@ -30,7 +30,7 @@
         public EditReservationsTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Fact]
-        public async Task Test_EditRequests_Get()
+        public async Task Test_EditReservations_Get()
         {
             var response = await this.LoadEditReservationsPage(this.CreateClient());
 
