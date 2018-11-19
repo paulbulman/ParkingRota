@@ -110,21 +110,18 @@
 
                         context.Requests.Add(new Request
                         {
-                            Id = 1,
                             ApplicationUser = applicationUser,
                             Date = 7.November(2018)
                         });
 
                         context.Requests.Add(new Request
                         {
-                            Id = 2,
                             ApplicationUser = otherUser,
                             Date = 8.November(2018)
                         });
 
                         context.Allocations.Add(new Allocation
                         {
-                            Id = 1,
                             ApplicationUser = applicationUser,
                             Date = 7.November(2018)
                         });

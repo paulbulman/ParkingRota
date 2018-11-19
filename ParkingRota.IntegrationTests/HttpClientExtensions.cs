@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using AngleSharp.Dom;
@@ -27,9 +28,21 @@
         {
             foreach (var formValue in formValues)
             {
-                var element = Assert.IsAssignableFrom<IHtmlInputElement>(form[formValue.Key]);
+                if (form[formValue.Key] is IHtmlInputElement elementAsInput)
+                {
+                    elementAsInput.Value = formValue.Value;
+                }
+                else if (form[formValue.Key] is IHtmlSelectElement)
+                {
+                    var matchingSelect = form.QuerySelectorAll("select")
+                        .OfType<IHtmlSelectElement>()
+                        .FirstOrDefault(s => s.Children.OfType<IHtmlOptionElement>().Any(o => o.Value == formValue.Value));
 
-                element.Value = formValue.Value;
+                    if (matchingSelect != null)
+                    {
+                        matchingSelect.Value = formValue.Value;
+                    }
+                }
             }
 
             var documentRequest = form.GetSubmission(submitButton);

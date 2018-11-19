@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -22,6 +23,7 @@
 
         private const int ReservableSpaces = 4;
 
+        private const string UserId = "b35d8fae-6e76-486d-9255-4ea5b68527b1";
         private const string EmailAddress = "anneother@gmail.com";
         private const string Password = "9Ft6M%";
         private const string PasswordHash =
@@ -50,6 +52,40 @@
             Assert.All(dropdownLists, d => Assert.True(d.Children[1].InnerHtml.Contains("Anne Other", StringComparison.OrdinalIgnoreCase)));
 
             Assert.True(((IHtmlOptionElement)dropdownLists[2].Children[1]).IsSelected);
+        }
+
+        [Fact]
+        public async Task Test_EditReservations_Post()
+        {
+            const int NewOrder = 3;
+
+            var client = this.CreateClient();
+
+            var getResponse = await this.LoadEditReservationsPage(client);
+
+            var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
+
+            var form = getDocument
+                .QuerySelectorAll("form")
+                .OfType<IHtmlFormElement>()
+                .Single(f => !(f.Action ?? string.Empty).Contains("logout", StringComparison.OrdinalIgnoreCase));
+
+            var formValues = new Dictionary<string, string>
+            {
+                { "selectedReservationStrings", $"2018-11-08|{NewOrder}|{UserId}" }
+            };
+
+            var postResponse = await client.SendAsync(form, formValues);
+
+            Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
+
+            var postDocument = await HtmlHelpers.GetDocumentAsync(postResponse);
+
+            var table = CheckCalendarTable(postDocument);
+
+            var dropdownLists = table.Rows[1].Cells[NewOrder].QuerySelectorAll("select");
+
+            Assert.True(((IHtmlOptionElement)dropdownLists[3].Children[1]).IsSelected);
         }
 
         private static IHtmlTableElement CheckCalendarTable(IHtmlDocument document)
@@ -100,7 +136,7 @@
 
                         var applicationUser = new ApplicationUser
                         {
-                            Id = "b35d8fae-6e76-486d-9255-4ea5b68527b1",
+                            Id = UserId,
                             UserName = EmailAddress,
                             NormalizedUserName = EmailAddress.ToUpper(),
                             Email = EmailAddress,
@@ -116,7 +152,6 @@
 
                         var reservation = new Data.Reservation
                         {
-                            Id = 1,
                             ApplicationUser = applicationUser,
                             Date = 7.November(2018),
                             Order = 2
@@ -124,7 +159,6 @@
 
                         var systemParameterList = new Data.SystemParameterList
                         {
-                            Id = 1,
                             ReservableSpaces = ReservableSpaces
                         };
 

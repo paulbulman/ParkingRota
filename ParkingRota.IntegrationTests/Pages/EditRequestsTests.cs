@@ -151,7 +151,6 @@
 
                         var request = new Data.Request
                         {
-                            Id = 1,
                             ApplicationUser = applicationUser,
                             Date = 7.November(2018)
                         };
