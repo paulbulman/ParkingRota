@@ -70,6 +70,7 @@ namespace ParkingRota
                 {
                     options.Conventions.AuthorizeFolder("/");
                     options.Conventions.AllowAnonymousToPage("/Privacy");
+                    options.Conventions.AddPageRoute("/OverrideRequests", "OverrideRequests/{id}");
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }

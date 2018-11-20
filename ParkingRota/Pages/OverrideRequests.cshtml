@@ -1,0 +1,27 @@
+﻿@page
+@model ParkingRota.Pages.OverrideRequestsModel
+@{
+    ViewData["Title"] = "Override Requests";
+}
+
+<h2>Override Requests</h2>
+
+<p>
+    @Html.DropDownListFor(m => m.SelectedUserId, Model.Users, "Select user")
+</p>
+
+@if (!string.IsNullOrEmpty(Model.SelectedUserId))
+{
+    <vc:edit-requests user-id="@Model.SelectedUserId"></vc:edit-requests>
+}
+
+@section Scripts
+    {
+    <script>
+        $(document).ready(function () {
+            $("#SelectedUserId").change(function () {
+                window.location.href = '/OverrideRequests/' + $("#SelectedUserId option:selected").val();
+            });
+        });
+    </script>
+}
