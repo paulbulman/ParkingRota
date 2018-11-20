@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Business;
     using Business.Model;
-    using Calendar;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -29,25 +28,6 @@
 
         [TempData]
         public string StatusMessage { get; set; }
-
-        public Calendar<bool> Calendar { get; private set; }
-
-        public async Task<IActionResult> OnGetAsync()
-        {
-            var activeDates = this.dateCalculator.GetActiveDates();
-
-            var requests = this.requestRepository.GetRequests(activeDates.First(), activeDates.Last());
-
-            var currentUser = await this.userManager.GetUserAsync(this.User);
-
-            var calendarData = activeDates.ToDictionary(
-                d => d,
-                d => requests.Any(r => r.Date == d && r.ApplicationUser.Id == currentUser.Id));
-
-            this.Calendar = Calendar<bool>.Create(calendarData);
-
-            return this.Page();
-        }
 
         public async Task<IActionResult> OnPostAsync(IReadOnlyList<string> selectedDateStrings)
         {

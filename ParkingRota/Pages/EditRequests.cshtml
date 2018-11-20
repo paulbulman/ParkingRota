@@ -1,5 +1,6 @@
 ﻿@page
-@using ParkingRota.Business
+@using ParkingRota.Business.Model
+@inject UserManager<ApplicationUser> UserManager
 @model EditRequestsModel
 @{
     ViewData["Title"] = "Edit Requests";
@@ -11,69 +12,4 @@
 <h4>Edit requests up to the end of next month:</h4>
 <hr />
 
-<form method="post">
-    <div class="form-group">
-        <table class="table table-striped table-responsive table-bordered">
-            <thead>
-                <tr>
-                    @(Html.Raw(string.Join(string.Empty, new[] { "Mon", "Tue", "Wed", "Thu", "Fri" }.Select(d => $"<th>{d}</th>"))))
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var calendarWeek in Model.Calendar.Weeks)
-                {
-                    <tr>
-                        @foreach (var calendarDay in calendarWeek.Days)
-                        {
-                            <td>
-                                @if (calendarDay.IsActive)
-                                {
-                                    <label class="label-calendar">
-                                        @Html.CheckBox(
-                                            "selectedDateStrings",
-                                            calendarDay.Data,
-                                            new { @value = calendarDay.Date.ForRoundTrip() })
-
-                                        @calendarDay.Date.ForDisplay()
-                                    </label>
-                                }
-                                else
-                                {
-                                    @Html.Raw("&nbsp;")
-                                }
-                            </td>
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <div class="form-group">
-            <button id="selectAll" type="button" class="btn btn-default" onclick="">Select all</button>
-            <button id="selectNone" type="button" class="btn btn-default" onclick="">Select none</button>
-        </div>
-
-        <div class="form-group">
-            <input type="submit" value="Save" class="btn btn-default" />
-        </div>
-    </div>
-</form>
-
-@section Scripts
-    {
-    <script>
-        $(document).ready(function () {
-            $("#selectAll").click(function () {
-                $("input:checkbox").each(function () {
-                    this.checked = true;
-                });
-            });
-
-            $("#selectNone").click(function () {
-                $("input:checkbox").each(function () {
-                    this.checked = false;
-                });
-            });
-        });
-    </script>
-}
+<vc:edit-requests user-id="@UserManager.GetUserId(this.User)"></vc:edit-requests>
