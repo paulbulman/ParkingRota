@@ -1,8 +1,9 @@
 ﻿@using ParkingRota.Business
 
-@model Calendar.Calendar<bool>
+@model ParkingRota.ViewComponents.EditRequestsViewComponent.EditRequestsViewModel
 
 <form method="post">
+    <input type="hidden" name="selectedUserId" value="@Model.SelectedUserId" />
     <div class="form-group">
         <table class="table table-striped table-responsive table-bordered">
             <thead>
@@ -11,7 +12,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var calendarWeek in Model.Weeks)
+                @foreach (var calendarWeek in Model.Calendar.Weeks)
                 {
                     <tr>
                         @foreach (var calendarDay in calendarWeek.Days)
@@ -52,15 +53,15 @@
 
 <script>
     document.addEventListener('DOMContentLoaded',
-        function() {
-            $("#selectAll").click(function() {
-                $("input:checkbox").each(function() {
+        function () {
+            $("#selectAll").click(function () {
+                $("input:checkbox").each(function () {
                     this.checked = true;
                 });
             });
 
-            $("#selectNone").click(function() {
-                $("input:checkbox").each(function() {
+            $("#selectNone").click(function () {
+                $("input:checkbox").each(function () {
                     this.checked = false;
                 });
             });

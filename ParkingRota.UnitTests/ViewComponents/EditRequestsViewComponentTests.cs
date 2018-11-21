@@ -1,5 +1,6 @@
 ﻿namespace ParkingRota.UnitTests.ViewComponents
 {
+    using Microsoft.AspNetCore.Mvc.ViewComponents;
     using Moq;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
@@ -37,19 +38,23 @@
                 });
 
             // Act
-            var model = new EditRequestsViewComponent(mockDateCalculator.Object, mockRequestRepository.Object);
+            var viewComponent = new EditRequestsViewComponent(mockDateCalculator.Object, mockRequestRepository.Object);
 
-            model.Invoke(loggedInUser.Id);
+            var result = (ViewViewComponentResult)viewComponent.Invoke(loggedInUser.Id);
+
+            var viewModel = (EditRequestsViewComponent.EditRequestsViewModel)result.ViewData.Model;
 
             // Assert
-            Assert.NotNull(model.Calendar);
-            Assert.Single(model.Calendar.Weeks);
-            Assert.Equal(5.November(2018), model.Calendar.Weeks[0].Days[0].Date);
+            Assert.Equal(loggedInUser.Id, viewModel.SelectedUserId);
 
-            Assert.Equal(new[] { firstDate, lastDate }, model.Calendar.ActiveDates());
+            Assert.NotNull(viewModel.Calendar);
+            Assert.Single(viewModel.Calendar.Weeks);
+            Assert.Equal(5.November(2018), viewModel.Calendar.Weeks[0].Days[0].Date);
 
-            Assert.True(model.Calendar.Data(firstDate));
-            Assert.False(model.Calendar.Data(lastDate));
+            Assert.Equal(new[] { firstDate, lastDate }, viewModel.Calendar.ActiveDates());
+
+            Assert.True(viewModel.Calendar.Data(firstDate));
+            Assert.False(viewModel.Calendar.Data(lastDate));
         }
     }
 }

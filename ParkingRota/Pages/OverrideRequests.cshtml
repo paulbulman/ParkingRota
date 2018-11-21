@@ -4,6 +4,8 @@
     ViewData["Title"] = "Override Requests";
 }
 
+<partial name="_StatusMessage" for="StatusMessage" />
+
 <h2>Override Requests</h2>
 
 <p>
@@ -12,7 +14,7 @@
 
 @if (!string.IsNullOrEmpty(Model.SelectedUserId))
 {
-    <vc:edit-requests user-id="@Model.SelectedUserId"></vc:edit-requests>
+    <vc:edit-requests selected-user-id="@Model.SelectedUserId"></vc:edit-requests>
 }
 
 @section Scripts

@@ -34,8 +34,7 @@
         public static Mock<UserManager<ApplicationUser>> CreateMockUserManager(
             ClaimsPrincipal principal, ApplicationUser loggedInUser)
         {
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = CreateMockUserManager();
 
             mockUserManager
                 .Setup(u => u.GetUserAsync(principal))
@@ -43,6 +42,10 @@
 
             return mockUserManager;
         }
+
+        public static Mock<UserManager<ApplicationUser>> CreateMockUserManager() =>
+            new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
         public static Mock<SignInManager<ApplicationUser>> CreateMockSigninManager(UserManager<ApplicationUser> userManager)
         {

@@ -11,15 +11,13 @@
         private readonly IDateCalculator dateCalculator;
         private readonly IRequestRepository requestRepository;
 
-        public Calendar<bool> Calendar { get; private set; }
-
         public EditRequestsViewComponent(IDateCalculator dateCalculator, IRequestRepository requestRepository)
         {
             this.dateCalculator = dateCalculator;
             this.requestRepository = requestRepository;
         }
 
-        public IViewComponentResult Invoke(string userId)
+        public IViewComponentResult Invoke(string selectedUserId)
         {
             var activeDates = this.dateCalculator.GetActiveDates();
 
@@ -27,11 +25,24 @@
 
             var calendarData = activeDates.ToDictionary(
                 d => d,
-                d => requests.Any(r => r.Date == d && r.ApplicationUser.Id == userId));
+                d => requests.Any(r => r.Date == d && r.ApplicationUser.Id == selectedUserId));
 
-            this.Calendar = Calendar<bool>.Create(calendarData);
+            var calendar = Calendar<bool>.Create(calendarData);
 
-            return this.View(this.Calendar);
+            return this.View(new EditRequestsViewModel(selectedUserId, calendar));
+        }
+
+        public class EditRequestsViewModel
+        {
+            public EditRequestsViewModel(string selectedUserId, Calendar<bool> calendar)
+            {
+                this.SelectedUserId = selectedUserId;
+                this.Calendar = calendar;
+            }
+
+            public string SelectedUserId { get; }
+
+            public Calendar<bool> Calendar { get; }
         }
     }
 }

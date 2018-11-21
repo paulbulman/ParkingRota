@@ -35,7 +35,7 @@
             // Act
             var requestDates = new[] { 13.November(2018), 15.November(2018), 16.November(2018) };
 
-            var model = new EditRequestsModel(Mock.Of<IDateCalculator>(), mockRequestRepository.Object, mockUserManager.Object)
+            var model = new EditRequestsModel(mockRequestRepository.Object, mockUserManager.Object)
             {
                 PageContext = { HttpContext = new DefaultHttpContext { User = principal } }
             };

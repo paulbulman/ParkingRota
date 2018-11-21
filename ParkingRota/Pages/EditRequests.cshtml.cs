@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Business;
     using Business.Model;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -12,16 +11,11 @@
 
     public class EditRequestsModel : PageModel
     {
-        private readonly IDateCalculator dateCalculator;
         private readonly IRequestRepository requestRepository;
         private readonly UserManager<ApplicationUser> userManager;
 
-        public EditRequestsModel(
-            IDateCalculator dateCalculator,
-            IRequestRepository requestRepository,
-            UserManager<ApplicationUser> userManager)
+        public EditRequestsModel(IRequestRepository requestRepository, UserManager<ApplicationUser> userManager)
         {
-            this.dateCalculator = dateCalculator;
             this.requestRepository = requestRepository;
             this.userManager = userManager;
         }
