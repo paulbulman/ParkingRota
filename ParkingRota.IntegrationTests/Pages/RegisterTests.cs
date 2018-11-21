@@ -1,4 +1,4 @@
-﻿namespace ParkingRota.IntegrationTests
+﻿namespace ParkingRota.IntegrationTests.Pages
 {
     using System.Collections.Generic;
     using System.Net;

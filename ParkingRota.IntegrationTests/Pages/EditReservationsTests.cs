@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using AngleSharp.Dom.Html;
     using Data;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using NodaTime;
@@ -162,7 +163,17 @@
                             ReservableSpaces = ReservableSpaces
                         };
 
+                        var teamLeaderRole = new IdentityRole("TeamLeader");
+
+                        var userRole = new IdentityUserRole<string>
+                        {
+                            RoleId = teamLeaderRole.Id,
+                            UserId = applicationUser.Id
+                        };
+
+                        context.Roles.Add(teamLeaderRole);
                         context.Users.Add(applicationUser);
+                        context.UserRoles.Add(userRole);
                         context.Reservations.Add(reservation);
                         context.SystemParameterLists.Add(systemParameterList);
 

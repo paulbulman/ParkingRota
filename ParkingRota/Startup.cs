@@ -8,6 +8,7 @@ namespace ParkingRota
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
@@ -38,8 +39,15 @@ namespace ParkingRota
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
-            services.AddDefaultIdentity<ApplicationUser>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(UserRole.TeamLeader, policy => policy.RequireRole(UserRole.TeamLeader));
+            });
+
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultUI()
+                .AddDefaultTokenProviders();
 
             services.AddSingleton<IClock>(SystemClock.Instance);
 
@@ -68,9 +76,12 @@ namespace ParkingRota
             services.AddMvc()
                 .AddRazorPagesOptions(options =>
                 {
+                    options.Conventions.AuthorizePage("/EditReservations", UserRole.TeamLeader);
+                    options.Conventions.AuthorizePage("/OverrideRequests", UserRole.TeamLeader);
                     options.Conventions.AuthorizeFolder("/");
                     options.Conventions.AllowAnonymousToPage("/Privacy");
-                    options.Conventions.AddPageRoute("/OverrideRequests", "OverrideRequests/{id}");
+                    options.Conventions.AllowAnonymousToPage("/Error");
+                    options.Conventions.AddPageRoute("/OverrideRequests", "OverrideRequests/{id?}");
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }

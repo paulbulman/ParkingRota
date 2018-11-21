@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using ParkingRota.Business
+@using ParkingRota.Business.Model
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -30,7 +34,18 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a asp-page="/EditRequests">Edit Requests</a></li>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li><a asp-page="/EditRequests">Edit Requests</a></li>
+
+                        var applicationUser = await UserManager.GetUserAsync(User);
+
+                        if (await UserManager.IsInRoleAsync(applicationUser, UserRole.TeamLeader))
+                        {
+                            <li><a asp-page="/EditReservations">Edit reservations</a></li>
+                            <li><a asp-page="/OverrideRequests">Override requests</a></li>
+                        }
+                    }
                 </ul>
                 <partial name="_LoginPartial" />
             </div>
