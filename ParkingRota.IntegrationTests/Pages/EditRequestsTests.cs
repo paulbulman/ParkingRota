@@ -146,7 +146,8 @@
                             CarRegistrationNumber = "AB12CDE",
                             CommuteDistance = 9.99m,
                             FirstName = "Anne",
-                            LastName = "Other"
+                            LastName = "Other",
+                            EmailConfirmed = true
                         };
 
                         var request = new Data.Request

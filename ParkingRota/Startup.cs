@@ -44,7 +44,19 @@ namespace ParkingRota
                 options.AddPolicy(UserRole.TeamLeader, policy => policy.RequireRole(UserRole.TeamLeader));
             });
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>(c =>
+                {
+                    c.Password.RequireDigit = false;
+                    c.Password.RequireLowercase = false;
+                    c.Password.RequireNonAlphanumeric = false;
+                    c.Password.RequireUppercase = false;
+                    c.Password.RequiredLength = 10;
+                    c.Password.RequiredUniqueChars = 5;
+
+                    c.SignIn.RequireConfirmedEmail = true;
+
+                    c.User.RequireUniqueEmail = true;
+                })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultUI()
                 .AddDefaultTokenProviders();
