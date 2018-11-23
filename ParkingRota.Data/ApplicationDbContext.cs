@@ -10,6 +10,8 @@
 
         DbSet<BankHoliday> BankHolidays { get; set; }
 
+        DbSet<EmailQueueItem> EmailQueueItems { get; set; }
+
         DbSet<RegistrationToken> RegistrationTokens { get; set; }
 
         DbSet<Request> Requests { get; set; }
@@ -32,6 +34,8 @@
 
         public DbSet<BankHoliday> BankHolidays { get; set; }
 
+        public DbSet<EmailQueueItem> EmailQueueItems { get; set; }
+
         public DbSet<RegistrationToken> RegistrationTokens { get; set; }
 
         public DbSet<Request> Requests { get; set; }
@@ -53,6 +57,11 @@
             builder.Entity<BankHoliday>().HasIndex(b => b.DbDate).IsUnique();
             builder.Entity<BankHoliday>().Property(b => b.DbDate).HasColumnName("Date");
             builder.Entity<BankHoliday>().Ignore(b => b.Date);
+
+            builder.Entity<EmailQueueItem>().Property(t => t.DbAddedTime).HasColumnName("AddedTime");
+            builder.Entity<EmailQueueItem>().Ignore(t => t.AddedTime);
+            builder.Entity<EmailQueueItem>().Property(t => t.DbSentTime).HasColumnName("SentTime");
+            builder.Entity<EmailQueueItem>().Ignore(t => t.SentTime);
 
             builder.Entity<RegistrationToken>().Property(t => t.DbExpiryTime).HasColumnName("ExpiryTime");
             builder.Entity<RegistrationToken>().Ignore(t => t.ExpiryTime);
