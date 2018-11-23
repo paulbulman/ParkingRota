@@ -18,6 +18,7 @@
         [InlineData("/EditRequests")]
         [InlineData("/EditReservations")]
         [InlineData("/OverrideRequests")]
+        [InlineData("/RegistrationNumbers")]
         public async Task Test_AuthenticatedPage(string requestUri)
         {
             var response = await this.GetResponse(requestUri);

@@ -1,0 +1,29 @@
+﻿@page
+@model ParkingRota.Pages.RegistrationNumbersModel
+@{
+    ViewData["Title"] = "Registration Numbers";
+}
+
+<h2>Registration Numbers</h2>
+<h4>Also known as, "Who's parked behind me?"</h4>
+<hr />
+
+<table class="table table-top table-striped table-responsive table-bordered">
+    <thead>
+        <tr>
+            <th>Registration number</th>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            foreach (var applicationUser in Model.ApplicationUsers)
+            {
+                <tr>
+                    <td>@applicationUser.CarRegistrationNumber.ToUpper().Replace(" ", string.Empty)</td>
+                    <td>@applicationUser.FullName</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

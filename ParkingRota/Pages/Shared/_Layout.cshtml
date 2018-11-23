@@ -36,7 +36,8 @@
                 <ul class="nav navbar-nav">
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        <li><a asp-page="/EditRequests">Edit Requests</a></li>
+                        <li><a asp-page="/EditRequests">Edit requests</a></li>
+                        <li><a asp-page="/RegistrationNumbers">Registration numbers</a></li>
 
                         var applicationUser = await UserManager.GetUserAsync(User);
 
