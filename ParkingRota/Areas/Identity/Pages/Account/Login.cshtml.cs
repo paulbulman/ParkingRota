@@ -74,15 +74,7 @@
                         "./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = this.Input.RememberMe });
                 }
 
-                if (result.IsLockedOut)
-                {
-                    this.logger.LogWarning("User account locked out.");
-                    return this.RedirectToPage("./Lockout");
-                }
-
                 this.ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-
-                return this.Page();
             }
 
             // If we got this far, something failed, redisplay form
