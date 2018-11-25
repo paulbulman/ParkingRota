@@ -9,6 +9,7 @@ namespace ParkingRota
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
@@ -67,6 +68,8 @@ namespace ParkingRota
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
             services.AddScoped<IBankHolidayRepository, BankHolidayRepository>();
             services.AddScoped<IDateCalculator, DateCalculator>();
+            services.AddScoped<IEmailRepository, EmailRepository>();
+            services.AddScoped<IEmailSender, EmailSender>();
             services.AddHttpClient<IPasswordBreachChecker, PasswordBreachChecker>();
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
@@ -96,6 +99,8 @@ namespace ParkingRota
                     options.Conventions.AddPageRoute("/OverrideRequests", "OverrideRequests/{id?}");
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.AddHttpContextAccessor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

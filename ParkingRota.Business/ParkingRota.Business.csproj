@@ -11,4 +11,10 @@
     <PackageReference Include="NodaTime" Version="2.4.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Identity.UI">
+      <HintPath>..\..\..\..\.nuget\packages\microsoft.aspnetcore.identity.ui\2.1.2\lib\netstandard2.0\Microsoft.AspNetCore.Identity.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

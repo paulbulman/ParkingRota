@@ -1,5 +1,7 @@
 namespace ParkingRota.UnitTests
 {
+    using System;
+    using System.Net;
     using System.Threading.Tasks;
     using Areas.Identity.Pages.Account;
     using Microsoft.AspNetCore.Http;
@@ -18,12 +20,30 @@ namespace ParkingRota.UnitTests
 
     public class RegisterTests
     {
+        private const string EmailAddress = "a@b.c";
+
         [Theory]
         [InlineData("A return URL", "A valid registration token", "An unbreached password")]
         [InlineData("Another return URL", "Another valid registration token", "Another unbreached password")]
         public async Task Test_Register_Succeeds(string returnUrl, string registrationToken, string password)
         {
+            const int IpAddressInt = 0x2414188f;
+            const string IpAddressString = "143.24.20.36";
+
+            const string ConfirmEmailUrl = "[Confirm email URL]";
+
+            const string ExpectedSubject = "[Parking Rota] Confirm your email";
+
             // Arrange
+            // Set up HTTP context accessor
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
+            mockHttpContextAccessor
+                .SetupGet(a => a.HttpContext.Request.Headers)
+                .Returns(new HeaderDictionary());
+            mockHttpContextAccessor
+                .SetupGet(a => a.HttpContext.Connection.RemoteIpAddress)
+                .Returns(new IPAddress(IpAddressInt));
+
             // Set up user manager
             var mockUserManager = new Mock<UserManager<ApplicationUser>>(
                 Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
@@ -46,6 +66,12 @@ namespace ParkingRota.UnitTests
             // Set up sign in manager
             var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
+            // Set up email sender
+            var mockEmailSender = new Mock<IEmailSender>(MockBehavior.Strict);
+            mockEmailSender
+                .Setup(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(default(object)));
+
             // Set up model
             var httpContext = new DefaultHttpContext();
 
@@ -55,15 +81,16 @@ namespace ParkingRota.UnitTests
             var mockUrlHelper = new Mock<UrlHelper>(actionContext);
             mockUrlHelper
                 .Setup(u => u.RouteUrl(It.IsAny<UrlRouteContext>()))
-                .Returns("[Confirm email URL]");
+                .Returns(ConfirmEmailUrl);
 
             var model = new RegisterModel(
+                mockHttpContextAccessor.Object,
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
                 mockPasswordBreachChecker.Object,
                 mockSigninManager.Object,
                 Mock.Of<ILogger<RegisterModel>>(),
-                Mock.Of<IEmailSender>())
+                mockEmailSender.Object)
             {
                 PageContext = { HttpContext = httpContext },
                 Input = CreateInputModel(registrationToken, password),
@@ -76,6 +103,14 @@ namespace ParkingRota.UnitTests
             // Assert
             Assert.IsType<LocalRedirectResult>(result);
             Assert.Equal(returnUrl, ((LocalRedirectResult)result).Url);
+
+            mockEmailSender.Verify(e => e.SendEmailAsync(
+                    EmailAddress,
+                    ExpectedSubject,
+                    It.Is<string>(s =>
+                        s.Contains(ConfirmEmailUrl, StringComparison.Ordinal) &&
+                        s.Contains(IpAddressString, StringComparison.OrdinalIgnoreCase))),
+                Times.Once);
         }
 
         [Theory]
@@ -97,6 +132,7 @@ namespace ParkingRota.UnitTests
 
             // Set up model
             var model = new RegisterModel(
+                Mock.Of<IHttpContextAccessor>(),
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
                 Mock.Of<IPasswordBreachChecker>(),
@@ -137,6 +173,7 @@ namespace ParkingRota.UnitTests
 
             // Set up model
             var model = new RegisterModel(
+                Mock.Of<IHttpContextAccessor>(),
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
                 mockPasswordBreachChecker.Object,
@@ -157,7 +194,7 @@ namespace ParkingRota.UnitTests
         private static RegisterModel.InputModel CreateInputModel(string registrationToken, string password) =>
             new RegisterModel.InputModel
             {
-                Email = "a@b.c",
+                Email = EmailAddress,
                 Password = password,
                 RegistrationToken = registrationToken
             };

@@ -6,6 +6,7 @@
     using Business;
     using Business.Model;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> signInManager;
+        private readonly IHttpContextAccessor httpContextAccessor;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IRegistrationTokenValidator registrationTokenValidator;
         private readonly IPasswordBreachChecker passwordBreachChecker;
@@ -23,6 +25,7 @@
         private readonly IEmailSender emailSender;
 
         public RegisterModel(
+            IHttpContextAccessor httpContextAccessor,
             UserManager<ApplicationUser> userManager,
             IRegistrationTokenValidator registrationTokenValidator,
             IPasswordBreachChecker passwordBreachChecker,
@@ -30,6 +33,7 @@
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
+            this.httpContextAccessor = httpContextAccessor;
             this.userManager = userManager;
             this.registrationTokenValidator = registrationTokenValidator;
             this.passwordBreachChecker = passwordBreachChecker;
@@ -126,9 +130,11 @@
 
                         var encodedCallbackUrl = HtmlEncoder.Default.Encode(callbackUrl);
                         var emailBody =
-                            $"Please confirm your account by <a href='{encodedCallbackUrl}'>clicking here</a>.";
+                            "<p>Someone - hopefully you - registered this email address on the Parking Rota website.<p>" +
+                            $"<p>If this was you, please confirm your account by <a href='{encodedCallbackUrl}'>clicking here</a>. If not, you can disregard this email.</p>" +
+                            $"<p>The request originated from IP address {this.httpContextAccessor.GetOriginatingIpAddress()}</p>";
 
-                        await this.emailSender.SendEmailAsync(this.Input.Email, "Confirm your email", emailBody);
+                        await this.emailSender.SendEmailAsync(this.Input.Email, "[Parking Rota] Confirm your email", emailBody);
 
                         await this.signInManager.SignInAsync(user, isPersistent: false);
 
