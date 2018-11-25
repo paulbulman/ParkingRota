@@ -60,8 +60,6 @@
 
             builder.Entity<EmailQueueItem>().Property(t => t.DbAddedTime).HasColumnName("AddedTime");
             builder.Entity<EmailQueueItem>().Ignore(t => t.AddedTime);
-            builder.Entity<EmailQueueItem>().Property(t => t.DbSentTime).HasColumnName("SentTime");
-            builder.Entity<EmailQueueItem>().Ignore(t => t.SentTime);
 
             builder.Entity<RegistrationToken>().Property(t => t.DbExpiryTime).HasColumnName("ExpiryTime");
             builder.Entity<RegistrationToken>().Ignore(t => t.ExpiryTime);
