@@ -93,9 +93,13 @@ namespace ParkingRota
                 {
                     options.Conventions.AuthorizePage("/EditReservations", UserRole.TeamLeader);
                     options.Conventions.AuthorizePage("/OverrideRequests", UserRole.TeamLeader);
+
                     options.Conventions.AuthorizeFolder("/");
-                    options.Conventions.AllowAnonymousToPage("/Privacy");
+
                     options.Conventions.AllowAnonymousToPage("/Error");
+                    options.Conventions.AllowAnonymousToPage("/Privacy");
+                    options.Conventions.AllowAnonymousToPage("/RegisterSuccess");
+
                     options.Conventions.AddPageRoute("/OverrideRequests", "OverrideRequests/{id?}");
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);

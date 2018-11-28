@@ -45,8 +45,6 @@
         [BindProperty]
         public InputModel Input { get; set; }
 
-        public string ReturnUrl { get; set; }
-
         public class InputModel
         {
             [Required]
@@ -85,11 +83,8 @@
             public string RegistrationToken { get; set; }
         }
 
-        public void OnGet(string returnUrl = null) => this.ReturnUrl = returnUrl;
-
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync()
         {
-            returnUrl = returnUrl ?? this.Url.Content("~/");
             if (this.ModelState.IsValid)
             {
                 var registrationTokenIsValid =
@@ -136,9 +131,7 @@
 
                         await this.emailSender.SendEmailAsync(this.Input.Email, "[Parking Rota] Confirm your email", emailBody);
 
-                        await this.signInManager.SignInAsync(user, isPersistent: false);
-
-                        return this.LocalRedirect(returnUrl);
+                        return this.RedirectToPage("/RegisterSuccess");
                     }
 
                     foreach (var error in result.Errors)

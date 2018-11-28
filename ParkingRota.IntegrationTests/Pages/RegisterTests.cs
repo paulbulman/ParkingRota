@@ -39,7 +39,7 @@
             var result = await client.SendAsync(form, CreateFormValues(Password, RegistrationToken));
 
             Assert.Equal(HttpStatusCode.Redirect, result.StatusCode);
-            Assert.Equal("/", result.Headers.Location.OriginalString);
+            Assert.Equal("/RegisterSuccess", result.Headers.Location.OriginalString);
         }
 
         private HttpClient CreateClient(string registrationToken) =>

@@ -23,9 +23,9 @@ namespace ParkingRota.UnitTests
         private const string EmailAddress = "a@b.c";
 
         [Theory]
-        [InlineData("A return URL", "A valid registration token", "An unbreached password")]
-        [InlineData("Another return URL", "Another valid registration token", "Another unbreached password")]
-        public async Task Test_Register_Succeeds(string returnUrl, string registrationToken, string password)
+        [InlineData("A valid registration token", "An unbreached password")]
+        [InlineData("Another valid registration token", "Another unbreached password")]
+        public async Task Test_Register_Succeeds(string registrationToken, string password)
         {
             const int IpAddressInt = 0x2414188f;
             const string IpAddressString = "143.24.20.36";
@@ -33,6 +33,8 @@ namespace ParkingRota.UnitTests
             const string ConfirmEmailUrl = "[Confirm email URL]";
 
             const string ExpectedSubject = "[Parking Rota] Confirm your email";
+
+            const string RegistersuccessPageName = "/RegisterSuccess";
 
             // Arrange
             // Set up HTTP context accessor
@@ -98,11 +100,11 @@ namespace ParkingRota.UnitTests
             };
 
             // Act
-            var result = await model.OnPostAsync(returnUrl);
+            var result = await model.OnPostAsync();
 
             // Assert
-            Assert.IsType<LocalRedirectResult>(result);
-            Assert.Equal(returnUrl, ((LocalRedirectResult)result).Url);
+            Assert.IsType<RedirectToPageResult>(result);
+            Assert.Equal(RegistersuccessPageName, ((RedirectToPageResult)result).PageName);
 
             mockEmailSender.Verify(e => e.SendEmailAsync(
                     EmailAddress,
@@ -144,7 +146,7 @@ namespace ParkingRota.UnitTests
             };
 
             // Act
-            var result = await model.OnPostAsync("Return URL");
+            var result = await model.OnPostAsync();
 
             // Assert
             Assert.IsType<PageResult>(result);
@@ -185,7 +187,7 @@ namespace ParkingRota.UnitTests
             };
 
             // Act
-            var result = await model.OnPostAsync("Return URL");
+            var result = await model.OnPostAsync();
 
             // Assert
             Assert.IsType<PageResult>(result);
