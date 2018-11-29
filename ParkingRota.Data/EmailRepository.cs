@@ -1,5 +1,6 @@
 ﻿namespace ParkingRota.Data
 {
+    using Business.Emails;
     using Business.Model;
     using NodaTime;
 
@@ -14,14 +15,14 @@
             this.clock = clock;
         }
 
-        public void AddToQueue(string to, string subject, string htmlBody, string plainTextBody)
+        public void AddToQueue(IEmail email)
         {
             var emailQueueItem = new EmailQueueItem
             {
-                To = to,
-                Subject = subject,
-                HtmlBody = htmlBody,
-                PlainTextBody = plainTextBody,
+                To = email.To,
+                Subject = email.Subject,
+                HtmlBody = email.HtmlBody,
+                PlainTextBody = email.PlainTextBody,
                 AddedTime = this.clock.GetCurrentInstant()
             };
 

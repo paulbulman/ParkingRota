@@ -3,8 +3,10 @@
     using System;
     using System.Linq;
     using Microsoft.EntityFrameworkCore;
+    using Moq;
     using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
+    using ParkingRota.Business.Emails;
     using ParkingRota.Data;
     using Xunit;
 
@@ -25,6 +27,12 @@
             const string HtmlBody = "<p>Test body</p>";
             const string PlainTextBody = "Test body";
 
+            var email = Mock.Of<IEmail>(e =>
+                e.To == EmailAddress &&
+                e.Subject == Subject &&
+                e.HtmlBody == HtmlBody &&
+                e.PlainTextBody == PlainTextBody);
+
             var instant = 25.November(2018).At(12, 37, 12).Utc();
 
             var fakeClock = new FakeClock(instant);
@@ -32,7 +40,7 @@
             // Act
             using (var context = this.CreateContext())
             {
-                new EmailRepository(context, fakeClock).AddToQueue(EmailAddress, Subject, HtmlBody, PlainTextBody);
+                new EmailRepository(context, fakeClock).AddToQueue(email);
             }
 
             using (var context = this.CreateContext())
@@ -41,13 +49,13 @@
 
                 Assert.Single(emails);
 
-                var email = emails[0];
+                var actual = emails[0];
 
-                Assert.Equal(EmailAddress, email.To);
-                Assert.Equal(Subject, email.Subject);
-                Assert.Equal(PlainTextBody, email.PlainTextBody);
-                Assert.Equal(HtmlBody, email.HtmlBody);
-                Assert.Equal(instant, email.AddedTime);
+                Assert.Equal(EmailAddress, actual.To);
+                Assert.Equal(Subject, actual.Subject);
+                Assert.Equal(PlainTextBody, actual.PlainTextBody);
+                Assert.Equal(HtmlBody, actual.HtmlBody);
+                Assert.Equal(instant, actual.AddedTime);
             }
         }
 

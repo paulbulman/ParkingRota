@@ -6,7 +6,6 @@ namespace ParkingRota.UnitTests
     using Areas.Identity.Pages.Account;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -15,6 +14,7 @@ namespace ParkingRota.UnitTests
     using Microsoft.Extensions.Logging;
     using Moq;
     using ParkingRota.Business;
+    using ParkingRota.Business.Emails;
     using ParkingRota.Business.Model;
     using Xunit;
 
@@ -31,8 +31,6 @@ namespace ParkingRota.UnitTests
             const string IpAddressString = "143.24.20.36";
 
             const string ConfirmEmailUrl = "[Confirm email URL]";
-
-            const string ExpectedSubject = "[Parking Rota] Confirm your email";
 
             const string RegistersuccessPageName = "/RegisterSuccess";
 
@@ -65,14 +63,9 @@ namespace ParkingRota.UnitTests
             var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
             mockPasswordBreachChecker.Setup(c => c.PasswordIsBreached(password)).Returns(Task.FromResult(false));
 
-            // Set up sign in manager
-            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
-
-            // Set up email sender
-            var mockEmailSender = new Mock<IEmailSender>(MockBehavior.Strict);
-            mockEmailSender
-                .Setup(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.FromResult(default(object)));
+            // Set up email repository
+            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
+            mockEmailRepository.Setup(e => e.AddToQueue(It.IsAny<ConfirmEmailAddress>()));
 
             // Set up model
             var httpContext = new DefaultHttpContext();
@@ -90,9 +83,8 @@ namespace ParkingRota.UnitTests
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
                 mockPasswordBreachChecker.Object,
-                mockSigninManager.Object,
                 Mock.Of<ILogger<RegisterModel>>(),
-                mockEmailSender.Object)
+                mockEmailRepository.Object)
             {
                 PageContext = { HttpContext = httpContext },
                 Input = CreateInputModel(registrationToken, password),
@@ -106,12 +98,11 @@ namespace ParkingRota.UnitTests
             Assert.IsType<RedirectToPageResult>(result);
             Assert.Equal(RegistersuccessPageName, ((RedirectToPageResult)result).PageName);
 
-            mockEmailSender.Verify(e => e.SendEmailAsync(
-                    EmailAddress,
-                    ExpectedSubject,
-                    It.Is<string>(s =>
-                        s.Contains(ConfirmEmailUrl, StringComparison.Ordinal) &&
-                        s.Contains(IpAddressString, StringComparison.OrdinalIgnoreCase))),
+            mockEmailRepository.Verify(p => p.AddToQueue(
+                    It.Is<ConfirmEmailAddress>(e =>
+                        e.To == EmailAddress &&
+                        e.HtmlBody.Contains(ConfirmEmailUrl, StringComparison.Ordinal) &&
+                        e.HtmlBody.Contains(IpAddressString, StringComparison.OrdinalIgnoreCase))),
                 Times.Once);
         }
 
@@ -129,18 +120,14 @@ namespace ParkingRota.UnitTests
             var mockRegistrationTokenValidator = new Mock<IRegistrationTokenValidator>(MockBehavior.Strict);
             mockRegistrationTokenValidator.Setup(v => v.TokenIsValid(registrationToken)).Returns(false);
 
-            // Set up sign in manager
-            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
-
             // Set up model
             var model = new RegisterModel(
                 Mock.Of<IHttpContextAccessor>(),
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
                 Mock.Of<IPasswordBreachChecker>(),
-                mockSigninManager.Object,
                 Mock.Of<ILogger<RegisterModel>>(),
-                Mock.Of<IEmailSender>())
+                Mock.Of<IEmailRepository>())
             {
                 Input = CreateInputModel(registrationToken, "password")
             };
@@ -170,18 +157,14 @@ namespace ParkingRota.UnitTests
             var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
             mockPasswordBreachChecker.Setup(c => c.PasswordIsBreached(password)).Returns(Task.FromResult(true));
 
-            // Set up sign in manager
-            var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
-
             // Set up model
             var model = new RegisterModel(
                 Mock.Of<IHttpContextAccessor>(),
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
                 mockPasswordBreachChecker.Object,
-                mockSigninManager.Object,
                 Mock.Of<ILogger<RegisterModel>>(),
-                Mock.Of<IEmailSender>())
+                Mock.Of<IEmailRepository>())
             {
                 Input = CreateInputModel("token", password),
             };

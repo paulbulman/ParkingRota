@@ -1,7 +1,9 @@
 ﻿namespace ParkingRota.Business.Model
 {
+    using Emails;
+
     public interface IEmailRepository
     {
-        void AddToQueue(string to, string subject, string htmlBody, string plainTextBody);
+        void AddToQueue(IEmail email);
     }
 }

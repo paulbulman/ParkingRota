@@ -1,14 +1,13 @@
 ﻿namespace ParkingRota.Areas.Identity.Pages.Account
 {
     using System.ComponentModel.DataAnnotations;
-    using System.Text.Encodings.Web;
     using System.Threading.Tasks;
     using Business;
+    using Business.Emails;
     using Business.Model;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.Extensions.Logging;
@@ -16,30 +15,27 @@
     [AllowAnonymous]
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<ApplicationUser> signInManager;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IRegistrationTokenValidator registrationTokenValidator;
         private readonly IPasswordBreachChecker passwordBreachChecker;
         private readonly ILogger<RegisterModel> logger;
-        private readonly IEmailSender emailSender;
+        private readonly IEmailRepository emailRepository;
 
         public RegisterModel(
             IHttpContextAccessor httpContextAccessor,
             UserManager<ApplicationUser> userManager,
             IRegistrationTokenValidator registrationTokenValidator,
             IPasswordBreachChecker passwordBreachChecker,
-            SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailRepository emailRepository)
         {
             this.httpContextAccessor = httpContextAccessor;
             this.userManager = userManager;
             this.registrationTokenValidator = registrationTokenValidator;
             this.passwordBreachChecker = passwordBreachChecker;
-            this.signInManager = signInManager;
             this.logger = logger;
-            this.emailSender = emailSender;
+            this.emailRepository = emailRepository;
         }
 
         [BindProperty]
@@ -123,13 +119,11 @@
                             values: new { userId = user.Id, code = emailConfirmationToken },
                             protocol: this.Request.Scheme);
 
-                        var encodedCallbackUrl = HtmlEncoder.Default.Encode(callbackUrl);
-                        var emailBody =
-                            "<p>Someone - hopefully you - registered this email address on the Parking Rota website.<p>" +
-                            $"<p>If this was you, please confirm your account by <a href='{encodedCallbackUrl}'>clicking here</a>. If not, you can disregard this email.</p>" +
-                            $"<p>The request originated from IP address {this.httpContextAccessor.GetOriginatingIpAddress()}</p>";
+                        var ipAddress = this.httpContextAccessor.GetOriginatingIpAddress();
 
-                        await this.emailSender.SendEmailAsync(this.Input.Email, "[Parking Rota] Confirm your email", emailBody);
+                        var confirmationEmail = new ConfirmEmailAddress(this.Input.Email, callbackUrl, ipAddress);
+
+                        this.emailRepository.AddToQueue(confirmationEmail);
 
                         return this.RedirectToPage("/RegisterSuccess");
                     }
