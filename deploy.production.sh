@@ -4,7 +4,7 @@ then
   dotnet run --project ParkingRota.DatabaseUpgrader
   
   cd ParkingRota.Service
-  dotnet lambda deploy-serverless
+  dotnet lambda deploy-function
   
   cd ../ParkingRota
   dotnet eb deploy-environment
