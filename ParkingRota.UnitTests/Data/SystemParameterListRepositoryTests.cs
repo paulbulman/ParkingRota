@@ -20,7 +20,13 @@
         [Fact]
         public void Test_GetSystemParameterList()
         {
-            var systemParameterList = new DataSystemParameterList { Id = 1, ReservableSpaces = 4, NearbyDistance = 3.99m };
+            var systemParameterList = new DataSystemParameterList
+            {
+                Id = 1,
+                TotalSpaces = 19,
+                ReservableSpaces = 4,
+                NearbyDistance = 3.99m
+            };
 
             // Arrange
             using (var context = this.CreateContext())
@@ -46,6 +52,7 @@
                 // Assert
                 Assert.NotNull(result);
 
+                Assert.Equal(systemParameterList.TotalSpaces, result.TotalSpaces);
                 Assert.Equal(systemParameterList.ReservableSpaces, result.ReservableSpaces);
                 Assert.Equal(systemParameterList.NearbyDistance, result.NearbyDistance);
             }
