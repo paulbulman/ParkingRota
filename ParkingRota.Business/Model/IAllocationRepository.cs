@@ -6,5 +6,7 @@
     public interface IAllocationRepository
     {
         IReadOnlyList<Allocation> GetAllocations(LocalDate firstDate, LocalDate lastDate);
+
+        void AddAllocations(IReadOnlyList<Allocation> allocations);
     }
 }

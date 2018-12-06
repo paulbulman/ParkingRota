@@ -30,5 +30,13 @@
                 .Select(this.mapper.Map<Business.Model.Allocation>)
                 .ToArray();
         }
+
+        public void AddAllocations(IReadOnlyList<Business.Model.Allocation> allocations)
+        {
+            this.context.Allocations.AddRange(
+                allocations.Select(a => new Allocation { ApplicationUserId = a.ApplicationUser.Id, Date = a.Date }));
+
+            this.context.SaveChanges();
+        }
     }
 }

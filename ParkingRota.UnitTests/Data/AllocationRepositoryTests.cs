@@ -4,6 +4,7 @@
     using System.Linq;
     using AutoMapper;
     using Microsoft.EntityFrameworkCore;
+    using Moq;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Model;
     using ParkingRota.Data;
@@ -63,6 +64,58 @@
                 Assert.Equal(matchingAllocations.Length, result.Count);
 
                 foreach (var expectedAllocation in matchingAllocations)
+                {
+                    Assert.Single(result.Where(a =>
+                        a.ApplicationUser.Id == expectedAllocation.ApplicationUser.Id &&
+                        a.Date == expectedAllocation.Date));
+                }
+            }
+        }
+
+        [Fact]
+        public void Test_AddAllocations()
+        {
+            // Arrange
+            var user1 = new ApplicationUser();
+            var user2 = new ApplicationUser();
+
+            var date = 3.November(2018);
+            var otherDate = 5.November(2018);
+
+            var existingAllocation = new DataAllocation { ApplicationUser = user1, Date = date };
+            var otherExistingAllocation = new DataAllocation { ApplicationUser = user2, Date = otherDate };
+
+            this.SeedDatabase(existingAllocation, otherExistingAllocation);
+
+            var newAllocation = new ModelAllocation { ApplicationUser = user1, Date = otherDate };
+            var otherNewAllocation = new ModelAllocation { ApplicationUser = user2, Date = date };
+
+            var newAllocations = new[] { newAllocation, otherNewAllocation };
+
+            // Act
+            using (var context = this.CreateContext())
+            {
+                new AllocationRepository(context, Mock.Of<IMapper>()).AddAllocations(newAllocations);
+            }
+
+            // Assert
+            var expectedAllocations = new[]
+            {
+                existingAllocation,
+                otherExistingAllocation,
+                new DataAllocation { ApplicationUser = newAllocation.ApplicationUser, Date = newAllocation.Date},
+                new DataAllocation { ApplicationUser = otherNewAllocation.ApplicationUser, Date = otherNewAllocation.Date}
+            };
+
+            using (var context = this.CreateContext())
+            {
+                var result = context.Allocations
+                    .Include(a => a.ApplicationUser)
+                    .ToArray();
+
+                Assert.Equal(expectedAllocations.Length, result.Length);
+
+                foreach (var expectedAllocation in expectedAllocations)
                 {
                     Assert.Single(result.Where(a =>
                         a.ApplicationUser.Id == expectedAllocation.ApplicationUser.Id &&
