@@ -6,7 +6,18 @@
     using Model;
     using NodaTime;
 
-    public class SingleDayAllocationCreator
+    public interface ISingleDayAllocationCreator
+    {
+        IReadOnlyList<Allocation> Create(
+            LocalDate date,
+            IReadOnlyList<Request> requests,
+            IReadOnlyList<Reservation> reservations,
+            IReadOnlyList<Allocation> existingAllocations,
+            SystemParameterList systemParameterList,
+            bool shortLeadTime);
+    }
+
+    public class SingleDayAllocationCreator : ISingleDayAllocationCreator
     {
         private readonly IRequestSorter sorter;
 
