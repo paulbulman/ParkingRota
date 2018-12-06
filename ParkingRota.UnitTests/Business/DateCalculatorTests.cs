@@ -61,6 +61,54 @@
             }
         }
 
+        [Theory]
+        [InlineData(7, 10, 8, 16, 7)]
+        [InlineData(7, 11, 9, 16, 6)]
+        [InlineData(7, 23, 9, 16, 6)]
+        [InlineData(8, 0, 9, 23, 11)]
+        [InlineData(8, 10, 9, 23, 11)]
+        [InlineData(8, 11, 12, 23, 10)]
+        public static void Test_LongLeadTimeAllocationDates(
+            int currentDay,
+            int currentHour,
+            int expectedFirstDay,
+            int expectedLastDay,
+            int expectedTotalDays)
+        {
+            var currentLocalDateTime = new LocalDateTime(2018, 2, currentDay, currentHour, 0);
+
+            var result = new DateCalculator(CreateMockClock(currentLocalDateTime), CreateMockBankHolidayRepository())
+                .GetLongLeadTimeAllocationDates();
+
+            Assert.Equal(expectedTotalDays, result.Count);
+            Assert.Equal(expectedFirstDay.February(2018), result.First());
+            Assert.Equal(expectedLastDay.February(2018), result.Last());
+        }
+
+        [Theory]
+        [InlineData(8, 10, 8, 8, 1)]
+        [InlineData(8, 11, 8, 9, 2)]
+        [InlineData(9, 10, 9, 9, 1)]
+        [InlineData(9, 11, 9, 12, 2)]
+        [InlineData(10, 10, 12, 12, 1)]
+        [InlineData(10, 11, 12, 12, 1)]
+        public static void Test_ShortLeadTimeAllocationDates(
+            int currentDay,
+            int currentHour,
+            int expectedFirstDay,
+            int expectedLastDay,
+            int expectedTotalDays)
+        {
+            var currentLocalDateTime = new LocalDateTime(2018, 2, currentDay, currentHour, 0);
+
+            var result = new DateCalculator(CreateMockClock(currentLocalDateTime), CreateMockBankHolidayRepository())
+                .GetShortLeadTimeAllocationDates();
+
+            Assert.Equal(expectedTotalDays, result.Count);
+            Assert.Equal(expectedFirstDay.February(2018), result.First());
+            Assert.Equal(expectedLastDay.February(2018), result.Last());
+        }
+
         [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
         private static IReadOnlyList<LocalDate> Check_GetActiveDates(
             LocalDateTime currentLocalDateTime,
