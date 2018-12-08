@@ -55,6 +55,15 @@
             this.context.Requests.RemoveRange(requestsToRemove);
             this.context.Requests.AddRange(requestsToAdd);
 
+            var existingUserActiveAllocations = this.context.Allocations
+                .Where(a => a.ApplicationUser == user && a.DbDate >= firstDbDate && a.DbDate <= lastDbDate)
+                .ToArray();
+
+            var allocationsToRemove = existingUserActiveAllocations
+                .Where(existing => requests.All(r => existing.Date != r.Date));
+
+            this.context.Allocations.RemoveRange(allocationsToRemove);
+
             this.context.SaveChanges();
         }
     }

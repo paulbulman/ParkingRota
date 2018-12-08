@@ -1,6 +1,7 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using AutoMapper;
     using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@
     using ParkingRota.Business.Model;
     using ParkingRota.Data;
     using Xunit;
+    using DataAllocation = ParkingRota.Data.Allocation;
     using DataRequest = ParkingRota.Data.Request;
     using ModelRequest = ParkingRota.Business.Model.Request;
 
@@ -45,7 +47,7 @@
                 new DataRequest { ApplicationUser = user2, Date = lastDate.PlusDays(1) }
             };
 
-            this.SeedDatabase(matchingRequests.Concat(filteredOutRequests).ToArray());
+            this.SeedDatabase(matchingRequests.Concat(filteredOutRequests).ToArray(), new List<DataAllocation>());
 
             var mapperConfiguration = new MapperConfiguration(c =>
             {
@@ -93,11 +95,19 @@
 
             var otherUserRequest = new DataRequest { ApplicationUser = new ApplicationUser(), Date = 3.November(2018) };
 
-            this.SeedDatabase(
+            var requests = new[]
+            {
                 existingRequestToRemove,
                 existingRequestToKeep,
                 existingRequestOutsideActivePeriod,
-                otherUserRequest);
+                otherUserRequest
+            };
+
+            var allocations = requests
+                .Select(r => new DataAllocation { ApplicationUser = r.ApplicationUser, Date = r.Date })
+                .ToArray();
+
+            this.SeedDatabase(requests, allocations);
 
             // Act
             var existingRequest = new ModelRequest { ApplicationUser = user, Date = existingRequestToKeep.Date };
@@ -118,27 +128,48 @@
                 new DataRequest { ApplicationUser = user, Date = newRequest.Date }
             };
 
+            var expectedAllocations = expectedRequests
+                .Take(3)
+                .Select(r => new DataAllocation { ApplicationUser = r.ApplicationUser, Date = r.Date })
+                .ToArray();
+
             using (var context = this.CreateContext())
             {
-                var result = context.Requests
+                var requestsResult = context.Requests
                     .Include(r => r.ApplicationUser)
                     .ToArray();
 
-                Assert.Equal(expectedRequests.Length, result.Length);
+                Assert.Equal(expectedRequests.Length, requestsResult.Length);
 
                 Assert.All(
                     expectedRequests,
-                    e => Assert.Contains(result, r => r.ApplicationUser.Id == e.ApplicationUser.Id && r.Date == e.Date));
+                    e => Assert.Contains(
+                        requestsResult,
+                        r => r.ApplicationUser.Id == e.ApplicationUser.Id && r.Date == e.Date));
+
+                var allocationsResult = context.Allocations
+                    .Include(r => r.ApplicationUser)
+                    .ToArray();
+
+                Assert.Equal(expectedAllocations.Length, allocationsResult.Length);
+
+                Assert.All(
+                    expectedAllocations,
+                    e => Assert.Contains(
+                        allocationsResult,
+                        a => a.ApplicationUser.Id == e.ApplicationUser.Id && a.Date == e.Date));
             }
         }
 
         private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
 
-        private void SeedDatabase(params DataRequest[] requests)
+        private void SeedDatabase(IReadOnlyList<DataRequest> requests, IReadOnlyList<DataAllocation> allocations)
         {
             using (var context = this.CreateContext())
             {
                 context.Requests.AddRange(requests);
+                context.Allocations.AddRange(allocations);
+
                 context.SaveChanges();
             }
         }
