@@ -18,6 +18,8 @@
 
         DbSet<Reservation> Reservations { get; set; }
 
+        DbSet<ScheduledTask> ScheduledTasks { get; set; }
+
         DbSet<SystemParameterList> SystemParameterLists { get; set; }
 
         int SaveChanges();
@@ -41,6 +43,8 @@
         public DbSet<Request> Requests { get; set; }
 
         public DbSet<Reservation> Reservations { get; set; }
+
+        public DbSet<ScheduledTask> ScheduledTasks { get; set; }
 
         public DbSet<SystemParameterList> SystemParameterLists { get; set; }
 
@@ -71,6 +75,10 @@
             builder.Entity<Reservation>().HasIndex(r => new { r.ApplicationUserId, r.DbDate, r.Order }).IsUnique();
             builder.Entity<Reservation>().Property(r => r.DbDate).HasColumnName("Date");
             builder.Entity<Reservation>().Ignore(r => r.Date);
+
+            builder.Entity<ScheduledTask>().HasIndex(a => a.ScheduledTaskType).IsUnique();
+            builder.Entity<ScheduledTask>().Property(a => a.DbNextRunTime).HasColumnName("NextRunTime");
+            builder.Entity<ScheduledTask>().Ignore(a => a.NextRunTime);
         }
     }
 }
