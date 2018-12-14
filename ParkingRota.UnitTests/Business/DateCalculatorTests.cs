@@ -44,7 +44,6 @@
         public static void Test_GetActiveDates_BankHoliday()
         {
             var bankHolidayLocalDates = new[] { 30.March(2018), 2.April(2018) };
-            var bankHolidays = bankHolidayLocalDates.Select(b => new BankHoliday { Date = b }).ToArray();
 
             var currentLocalDateTime = new LocalDateTime(2018, 3, 17, 0, 0);
 
@@ -53,11 +52,15 @@
             var expectedLastLocalDate = 30.April(2018);
 
             var result = Check_GetActiveDates(
-                currentLocalDateTime, ExpectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate, bankHolidays);
+                currentLocalDateTime,
+                ExpectedTotalDays,
+                expectedFirstLocalDate,
+                expectedLastLocalDate,
+                bankHolidayLocalDates);
 
-            foreach (var bankHoliday in bankHolidayLocalDates)
+            foreach (var bankHolidayLocalDate in bankHolidayLocalDates)
             {
-                Assert.DoesNotContain(bankHoliday, result);
+                Assert.DoesNotContain(bankHolidayLocalDate, result);
             }
         }
 
@@ -68,7 +71,7 @@
         [InlineData(8, 0, 9, 23, 11)]
         [InlineData(8, 10, 9, 23, 11)]
         [InlineData(8, 11, 12, 23, 10)]
-        public static void Test_LongLeadTimeAllocationDates(
+        public static void Test_GetLongLeadTimeAllocationDates(
             int currentDay,
             int currentHour,
             int expectedFirstDay,
@@ -92,7 +95,7 @@
         [InlineData(9, 11, 9, 12, 2)]
         [InlineData(10, 10, 12, 12, 1)]
         [InlineData(10, 11, 12, 12, 1)]
-        public static void Test_ShortLeadTimeAllocationDates(
+        public static void Test_GetShortLeadTimeAllocationDates(
             int currentDay,
             int currentHour,
             int expectedFirstDay,
@@ -109,17 +112,37 @@
             Assert.Equal(expectedLastDay.February(2018), result.Last());
         }
 
+        [Theory]
+        [InlineData(14, 15)]
+        [InlineData(15, 18)]
+        [InlineData(22, 27)]
+        public static void Test_GetNextWorkingDay(int currentDay, int expectedNextDay)
+        {
+            var currentLocalDateTime = new LocalDateTime(2017, 12, currentDay, 11, 0);
+
+            var bankHolidayLocalDates = new[] { 25.December(2017), 26.December(2017) };
+
+            var result = new DateCalculator(
+                    CreateMockClock(currentLocalDateTime),
+                    CreateMockBankHolidayRepository(bankHolidayLocalDates))
+                .GetNextWorkingDate();
+
+            var expectedNextWorkingDay = new LocalDate(2017, 12, expectedNextDay);
+
+            Assert.Equal(expectedNextWorkingDay, result);
+        }
+
         [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
         private static IReadOnlyList<LocalDate> Check_GetActiveDates(
             LocalDateTime currentLocalDateTime,
             int expectedTotalDays,
             LocalDate expectedFirstLocalDate,
             LocalDate expectedLastLocalDate,
-            params BankHoliday[] bankHolidays)
+            params LocalDate[] bankHolidayLocalDates)
         {
             var result = new DateCalculator(
                 CreateMockClock(currentLocalDateTime),
-                CreateMockBankHolidayRepository(bankHolidays)).GetActiveDates();
+                CreateMockBankHolidayRepository(bankHolidayLocalDates)).GetActiveDates();
 
             Assert.Equal(expectedTotalDays, result.Count);
             Assert.Equal(expectedFirstLocalDate, result.First());
@@ -139,13 +162,13 @@
             return mockClock.Object;
         }
 
-        private static IBankHolidayRepository CreateMockBankHolidayRepository(params BankHoliday[] bankHolidays)
+        private static IBankHolidayRepository CreateMockBankHolidayRepository(params LocalDate[] bankHolidayDates)
         {
             var mockBankHolidayRepository = new Mock<IBankHolidayRepository>(MockBehavior.Strict);
 
             mockBankHolidayRepository
                 .SetupGet(r => r.BankHolidays)
-                .Returns(bankHolidays);
+                .Returns(bankHolidayDates.Select(b => new BankHoliday { Date = b }).ToArray());
 
             return mockBankHolidayRepository.Object;
         }

@@ -12,6 +12,8 @@
         IReadOnlyList<LocalDate> GetShortLeadTimeAllocationDates();
 
         IReadOnlyList<LocalDate> GetLongLeadTimeAllocationDates();
+
+        LocalDate GetNextWorkingDate();
     }
 
     public class DateCalculator : IDateCalculator
@@ -42,7 +44,7 @@
 
         private IReadOnlyList<LocalDate> GetShortLeadTimeAllocationDates(ZonedDateTime currentTime)
         {
-            var firstDate = this.GetWorkingDay(currentTime.Date);
+            var firstDate = this.GetNextWorkingDayIncluding(currentTime.Date);
 
             var lastDate = firstDate;
 
@@ -51,7 +53,7 @@
                 lastDate = lastDate.PlusDays(1);
             }
 
-            lastDate = this.GetWorkingDay(lastDate);
+            lastDate = this.GetNextWorkingDayIncluding(lastDate);
 
             return new[] { firstDate, lastDate }.Distinct().ToList();
         }
@@ -62,19 +64,24 @@
 
             var lastShortLeadTimeAllocationDate = this.GetShortLeadTimeAllocationDates(currentTime).Last();
 
-            var firstDate = this.GetWorkingDay(lastShortLeadTimeAllocationDate.PlusDays(1));
+            var firstDate = this.GetNextWorkingDayAfter(lastShortLeadTimeAllocationDate);
 
             var lastDate = GetLastLongLeadTimeAllocationDate(currentTime.Date);
 
             return this.DatesBetween(firstDate, lastDate);
         }
 
+        public LocalDate GetNextWorkingDate() => this.GetNextWorkingDayAfter(this.GetCurrentDate());
+
         private LocalDate GetCurrentDate() => this.GetCurrentTime().Date;
 
         private ZonedDateTime GetCurrentTime() =>
             this.currentInstant.InZone(DateTimeZoneProviders.Tzdb["Europe/London"]);
 
-        private LocalDate GetWorkingDay(LocalDate localDate)
+        private LocalDate GetNextWorkingDayAfter(LocalDate localDate) =>
+            this.GetNextWorkingDayIncluding(localDate.PlusDays(1));
+
+        private LocalDate GetNextWorkingDayIncluding(LocalDate localDate)
         {
             while (!this.IsWorkingDay(localDate))
             {
