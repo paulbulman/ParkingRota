@@ -7,6 +7,10 @@
 
     public interface IDateCalculator
     {
+        Instant CurrentInstant { get; }
+
+        DateTimeZone TimeZone { get; }
+
         IReadOnlyList<LocalDate> GetActiveDates();
 
         IReadOnlyList<LocalDate> GetShortLeadTimeAllocationDates();
@@ -20,13 +24,15 @@
     {
         private readonly IBankHolidayRepository bankHolidayRepository;
 
-        private readonly Instant currentInstant;
-
         public DateCalculator(IClock clock, IBankHolidayRepository bankHolidayRepository)
         {
             this.bankHolidayRepository = bankHolidayRepository;
-            this.currentInstant = clock.GetCurrentInstant();
+            this.CurrentInstant = clock.GetCurrentInstant();
         }
+
+        public Instant CurrentInstant { get; }
+
+        public DateTimeZone TimeZone => DateTimeZoneProviders.Tzdb["Europe/London"];
 
         public IReadOnlyList<LocalDate> GetActiveDates()
         {
@@ -75,8 +81,7 @@
 
         private LocalDate GetCurrentDate() => this.GetCurrentTime().Date;
 
-        private ZonedDateTime GetCurrentTime() =>
-            this.currentInstant.InZone(DateTimeZoneProviders.Tzdb["Europe/London"]);
+        private ZonedDateTime GetCurrentTime() => this.CurrentInstant.InZone(this.TimeZone);
 
         private LocalDate GetNextWorkingDayAfter(LocalDate localDate) =>
             this.GetNextWorkingDayIncluding(localDate.PlusDays(1));

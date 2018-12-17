@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Moq;
+    using NodaTime;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
@@ -87,6 +88,35 @@
                 TestHelpers.CreateMockUserManager().Object);
 
             await reservationReminder.Run();
+        }
+
+        [Theory]
+        [InlineData(22, 10, 23, 10)]
+        [InlineData(23, 10, 26, 9)]
+        public static void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
+        {
+            // Arrange
+            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
+            mockDateCalculator
+                .SetupGet(d => d.TimeZone)
+                .Returns(DateTimeZoneProviders.Tzdb["Europe/London"]);
+            mockDateCalculator
+                .Setup(d => d.GetNextWorkingDate())
+                .Returns(expectedDay.March(2018));
+
+            var reservationReminder = new ReservationsReminder(
+                mockDateCalculator.Object,
+                Mock.Of<IEmailRepository>(),
+                Mock.Of<IReservationRepository>(),
+                TestHelpers.CreateMockUserManager().Object);
+
+            // Act
+            var result = reservationReminder.GetNextRunTime(currentDay.March(2018).At(currentHour, 00, 00).Utc());
+
+            // Assert
+            var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
+
+            Assert.Equal(expected, result);
         }
     }
 }

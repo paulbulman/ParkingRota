@@ -4,8 +4,9 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Identity;
     using Model;
+    using NodaTime;
 
-    public class ReservationsReminder
+    public class ReservationsReminder : IScheduledTask
     {
         private readonly IDateCalculator dateCalculator;
         private readonly IEmailRepository emailRepository;
@@ -24,6 +25,8 @@
             this.userManager = userManager;
         }
 
+        public ScheduledTaskType ScheduledTaskType => ScheduledTaskType.ReservationReminder;
+
         public async Task Run()
         {
             var nextWorkingDate = this.dateCalculator.GetNextWorkingDate();
@@ -41,5 +44,11 @@
                 }
             }
         }
+
+        public Instant GetNextRunTime(Instant currentInstant) =>
+            this.dateCalculator.GetNextWorkingDate()
+                .At(new LocalTime(10, 0, 0))
+                .InZoneStrictly(this.dateCalculator.TimeZone)
+                .ToInstant();
     }
 }
