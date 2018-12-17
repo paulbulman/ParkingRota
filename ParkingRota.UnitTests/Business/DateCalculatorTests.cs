@@ -116,7 +116,7 @@
         [InlineData(14, 15)]
         [InlineData(15, 18)]
         [InlineData(22, 27)]
-        public static void Test_GetNextWorkingDay(int currentDay, int expectedNextDay)
+        public static void Test_GetNextWorkingDate(int currentDay, int expectedNextDay)
         {
             var currentLocalDateTime = new LocalDateTime(2017, 12, currentDay, 11, 0);
 
@@ -127,9 +127,47 @@
                     CreateMockBankHolidayRepository(bankHolidayLocalDates))
                 .GetNextWorkingDate();
 
-            var expectedNextWorkingDay = new LocalDate(2017, 12, expectedNextDay);
+            var expectedNextWorkingDate = new LocalDate(2017, 12, expectedNextDay);
 
-            Assert.Equal(expectedNextWorkingDay, result);
+            Assert.Equal(expectedNextWorkingDate, result);
+        }
+
+        [Theory]
+        [InlineData(15, 14)]
+        [InlineData(18, 15)]
+        [InlineData(27, 22)]
+        public static void Test_GetPreviousWorkingDate(int day, int expectedPreviousday)
+        {
+            var bankHolidayLocalDates = new[] { 25.December(2017), 26.December(2017) };
+
+            var localDate = day.December(2017);
+
+            var result = new DateCalculator(
+                    Mock.Of<IClock>(),
+                    CreateMockBankHolidayRepository(bankHolidayLocalDates))
+                .GetPreviousWorkingDate(localDate);
+
+            var expectedPreviousWorkingDate = new LocalDate(2017, 12, expectedPreviousday);
+
+            Assert.Equal(expectedPreviousWorkingDate, result);
+        }
+
+        [Theory]
+        [InlineData(6, 12, 16)]
+        [InlineData(7, 19, 23)]
+        public static void Test_GetUpcomingLongLeadTimeDates(int currentDay, int expectedFirstDay, int expectedLastDay)
+        {
+            var currentLocalDateTime = new LocalDateTime(2018, 11, currentDay, 0, 0);
+
+            var result = new DateCalculator(
+                    CreateMockClock(currentLocalDateTime),
+                    CreateMockBankHolidayRepository())
+                .GetUpcomingLongLeadTimeAllocationDates();
+
+            Assert.Equal(5, result.Count);
+
+            Assert.Equal(expectedFirstDay, result.First().Day);
+            Assert.Equal(expectedLastDay, result.Last().Day);
         }
 
         [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]

@@ -13,6 +13,18 @@
     public static class ReservationReminderTests
     {
         [Fact]
+        public static void Test_ScheduledTaskType()
+        {
+            var result = new ReservationsReminder(
+                Mock.Of<IDateCalculator>(),
+                Mock.Of<IEmailRepository>(),
+                Mock.Of<IReservationRepository>(),
+                TestHelpers.CreateMockUserManager().Object).ScheduledTaskType;
+
+            Assert.Equal(ScheduledTaskType.ReservationReminder, result);
+        }
+
+        [Fact]
         public static async Task Test_Run_NoReservationsEntered()
         {
             // Arrange

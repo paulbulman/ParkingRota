@@ -17,7 +17,13 @@
 
         IReadOnlyList<LocalDate> GetLongLeadTimeAllocationDates();
 
+        LocalDate GetCurrentDate();
+
         LocalDate GetNextWorkingDate();
+
+        LocalDate GetPreviousWorkingDate(LocalDate localDate);
+
+        IReadOnlyList<LocalDate> GetUpcomingLongLeadTimeAllocationDates();
     }
 
     public class DateCalculator : IDateCalculator
@@ -77,9 +83,29 @@
             return this.DatesBetween(firstDate, lastDate);
         }
 
+        public LocalDate GetCurrentDate() => this.GetCurrentTime().Date;
+
         public LocalDate GetNextWorkingDate() => this.GetNextWorkingDayAfter(this.GetCurrentDate());
 
-        private LocalDate GetCurrentDate() => this.GetCurrentTime().Date;
+        public LocalDate GetPreviousWorkingDate(LocalDate localDate)
+        {
+            localDate = localDate.PlusDays(-1);
+
+            while (!this.IsWorkingDay(localDate))
+            {
+                localDate = localDate.PlusDays(-1);
+            }
+
+            return localDate;
+        }
+
+        public IReadOnlyList<LocalDate> GetUpcomingLongLeadTimeAllocationDates()
+        {
+            var lastDate = GetLastLongLeadTimeAllocationDate(this.GetNextWorkingDate());
+            var firstDate = lastDate.PlusDays(-4);
+
+            return this.DatesBetween(firstDate, lastDate);
+        }
 
         private ZonedDateTime GetCurrentTime() => this.CurrentInstant.InZone(this.TimeZone);
 
@@ -107,7 +133,7 @@
             date.DayOfWeek != IsoDayOfWeek.Sunday &&
             this.bankHolidayRepository.BankHolidays.All(b => b.Date != date);
 
-        private static LocalDate GetLastLongLeadTimeAllocationDate(LocalDate currentDate) =>
-            currentDate.Next(IsoDayOfWeek.Thursday).PlusWeeks(1).PlusDays(1);
+        private static LocalDate GetLastLongLeadTimeAllocationDate(LocalDate localDate) =>
+            localDate.Next(IsoDayOfWeek.Thursday).PlusWeeks(1).PlusDays(1);
     }
 }
