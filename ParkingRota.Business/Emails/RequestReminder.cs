@@ -2,12 +2,12 @@
 {
     using NodaTime;
 
-    public class RequestsReminder : IEmail
+    public class RequestReminder : IEmail
     {
         private readonly LocalDate firstDate;
         private readonly LocalDate lastDate;
 
-        public RequestsReminder(string to, LocalDate firstDate, LocalDate lastDate)
+        public RequestReminder(string to, LocalDate firstDate, LocalDate lastDate)
         {
             this.To = to;
 

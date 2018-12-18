@@ -21,8 +21,6 @@
 
         LocalDate GetNextWorkingDate();
 
-        LocalDate GetPreviousWorkingDate(LocalDate localDate);
-
         IReadOnlyList<LocalDate> GetUpcomingLongLeadTimeAllocationDates();
     }
 
@@ -54,29 +52,25 @@
         public IReadOnlyList<LocalDate> GetShortLeadTimeAllocationDates() =>
             this.GetShortLeadTimeAllocationDates(this.GetCurrentTime());
 
+        public IReadOnlyList<LocalDate> GetLongLeadTimeAllocationDates() =>
+            this.GetLongLeadTimeAllocationDates(this.GetCurrentTime());
+
         private IReadOnlyList<LocalDate> GetShortLeadTimeAllocationDates(ZonedDateTime currentTime)
         {
             var firstDate = this.GetNextWorkingDayIncluding(currentTime.Date);
 
-            var lastDate = firstDate;
-
-            if (firstDate == currentTime.Date && currentTime.Hour >= 11)
-            {
-                lastDate = lastDate.PlusDays(1);
-            }
-
-            lastDate = this.GetNextWorkingDayIncluding(lastDate);
+            var lastDate = firstDate == currentTime.Date && currentTime.Hour >= 11 ?
+                this.GetNextWorkingDayStrictlyAfter(firstDate) :
+                firstDate;
 
             return new[] { firstDate, lastDate }.Distinct().ToList();
         }
 
-        public IReadOnlyList<LocalDate> GetLongLeadTimeAllocationDates()
+        private IReadOnlyList<LocalDate> GetLongLeadTimeAllocationDates(ZonedDateTime currentTime)
         {
-            var currentTime = this.GetCurrentTime();
-
             var lastShortLeadTimeAllocationDate = this.GetShortLeadTimeAllocationDates(currentTime).Last();
 
-            var firstDate = this.GetNextWorkingDayAfter(lastShortLeadTimeAllocationDate);
+            var firstDate = this.GetNextWorkingDayStrictlyAfter(lastShortLeadTimeAllocationDate);
 
             var lastDate = GetLastLongLeadTimeAllocationDate(currentTime.Date);
 
@@ -85,31 +79,21 @@
 
         public LocalDate GetCurrentDate() => this.GetCurrentTime().Date;
 
-        public LocalDate GetNextWorkingDate() => this.GetNextWorkingDayAfter(this.GetCurrentDate());
-
-        public LocalDate GetPreviousWorkingDate(LocalDate localDate)
-        {
-            localDate = localDate.PlusDays(-1);
-
-            while (!this.IsWorkingDay(localDate))
-            {
-                localDate = localDate.PlusDays(-1);
-            }
-
-            return localDate;
-        }
+        public LocalDate GetNextWorkingDate() => this.GetNextWorkingDayStrictlyAfter(this.GetCurrentDate());
 
         public IReadOnlyList<LocalDate> GetUpcomingLongLeadTimeAllocationDates()
         {
-            var lastDate = GetLastLongLeadTimeAllocationDate(this.GetNextWorkingDate());
-            var firstDate = lastDate.PlusDays(-4);
+            var todayStart = this.GetCurrentTime().Date.AtStartOfDayInZone(this.TimeZone);
+            var tomorrowStart = this.GetCurrentTime().Date.PlusDays(1).AtStartOfDayInZone(this.TimeZone);
 
-            return this.DatesBetween(firstDate, lastDate);
+            return this.GetLongLeadTimeAllocationDates(tomorrowStart)
+                .Except(this.GetLongLeadTimeAllocationDates(todayStart))
+                .ToArray();
         }
 
         private ZonedDateTime GetCurrentTime() => this.CurrentInstant.InZone(this.TimeZone);
 
-        private LocalDate GetNextWorkingDayAfter(LocalDate localDate) =>
+        private LocalDate GetNextWorkingDayStrictlyAfter(LocalDate localDate) =>
             this.GetNextWorkingDayIncluding(localDate.PlusDays(1));
 
         private LocalDate GetNextWorkingDayIncluding(LocalDate localDate)

@@ -4,19 +4,20 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Moq;
+    using NodaTime;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Emails;
     using ParkingRota.Business.Model;
     using Xunit;
-    using RequestsReminder = ParkingRota.Business.ScheduledTasks.RequestsReminder;
+    using RequestReminder = ParkingRota.Business.ScheduledTasks.RequestReminder;
 
-    public static class RequestsReminderTests
+    public static class RequestReminderTests
     {
         [Fact]
         public static void Test_ScheduledTaskType()
         {
-            var result = new RequestsReminder(
+            var result = new RequestReminder(
                 Mock.Of<IDateCalculator>(),
                 Mock.Of<IEmailRepository>(),
                 Mock.Of<IRequestRepository>(),
@@ -67,20 +68,20 @@
             mockUserManager.SetupGet(m => m.Users).Returns(users.AsQueryable);
 
             // Act
-            var requestsReminder = new RequestsReminder(
+            var requestReminder = new RequestReminder(
                 mockDateCalculator.Object,
                 mockEmailRepository.Object,
                 mockRequestRepository.Object,
                 mockUserManager.Object);
 
-            await requestsReminder.Run();
+            await requestReminder.Run();
 
             // Assert
             foreach (var expectedApplicationUser in new[] { userWithoutRequests, otherUserWithoutRequests })
             {
                 mockEmailRepository.Verify(
                     r => r.AddToQueue(
-                        It.Is<ParkingRota.Business.Emails.RequestsReminder>(e => e.To == expectedApplicationUser.Email)),
+                        It.Is<ParkingRota.Business.Emails.RequestReminder>(e => e.To == expectedApplicationUser.Email)),
                     Times.Once);
             }
         }
@@ -110,13 +111,13 @@
                 .Returns(new[] { new Request { ApplicationUser = new ApplicationUser(), Date = 28.December(2018) } });
 
             // Act and assert: mock strict on email repository ensures nothing has been done.
-            var requestsReminder = new RequestsReminder(
+            var requestReminder = new RequestReminder(
                 mockDateCalculator.Object,
                 mockEmailRepository.Object,
                 mockRequestRepository.Object,
                 TestHelpers.CreateMockUserManager().Object);
 
-            await requestsReminder.Run();
+            await requestReminder.Run();
         }
 
         [Fact]
@@ -144,13 +145,39 @@
                 .Returns(new List<Request>());
 
             // Act and assert: mock strict on email repository ensures nothing has been done.
-            var requestsReminder = new RequestsReminder(
+            var requestReminder = new RequestReminder(
                 mockDateCalculator.Object,
                 mockEmailRepository.Object,
                 mockRequestRepository.Object,
                 TestHelpers.CreateMockUserManager().Object);
 
-            await requestsReminder.Run();
+            await requestReminder.Run();
+        }
+
+        [Theory]
+        [InlineData(14, 0, 21, 0)]
+        [InlineData(21, 0, 27, 23)]
+        public static void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
+        {
+            // Arrange
+            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
+            mockDateCalculator
+                .SetupGet(d => d.TimeZone)
+                .Returns(DateTimeZoneProviders.Tzdb["Europe/London"]);
+
+            var requestReminder = new RequestReminder(
+                mockDateCalculator.Object,
+                Mock.Of<IEmailRepository>(),
+                Mock.Of<IRequestRepository>(),
+                TestHelpers.CreateMockUserManager().Object);
+
+            // Act
+            var result = requestReminder.GetNextRunTime(currentDay.March(2018).At(currentHour, 00, 00).Utc());
+
+            // Assert
+            var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
+
+            Assert.Equal(expected, result);
         }
     }
 }

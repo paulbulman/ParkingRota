@@ -6,14 +6,14 @@
     using Model;
     using NodaTime;
 
-    public class RequestsReminder : IScheduledTask
+    public class RequestReminder : IScheduledTask
     {
         private readonly IDateCalculator dateCalculator;
         private readonly IEmailRepository emailRepository;
         private readonly IRequestRepository requestRepository;
         private readonly UserManager<ApplicationUser> userManager;
 
-        public RequestsReminder(
+        public RequestReminder(
             IDateCalculator dateCalculator,
             IEmailRepository emailRepository,
             IRequestRepository requestRepository,
@@ -45,7 +45,7 @@
             foreach (var user in activeUsersWithoutUpcomingRequests)
             {
                 this.emailRepository.AddToQueue(
-                    new Emails.RequestsReminder(
+                    new Emails.RequestReminder(
                         user.Email,
                         upcomingLongLeadTimeAllocationDates.First(),
                         upcomingLongLeadTimeAllocationDates.Last()));
@@ -58,9 +58,8 @@
             currentInstant
                 .InZone(this.dateCalculator.TimeZone)
                 .Date
-                .Next(IsoDayOfWeek.Thursday)
-                .PlusDays(6)
-                .At(new LocalTime(0, 0, 0))
+                .PlusDays(7)
+                .AtMidnight()
                 .InZoneStrictly(this.dateCalculator.TimeZone)
                 .ToInstant();
     }

@@ -15,7 +15,7 @@
         [Fact]
         public static void Test_ScheduledTaskType()
         {
-            var result = new ReservationsReminder(
+            var result = new ReservationReminder(
                 Mock.Of<IDateCalculator>(),
                 Mock.Of<IEmailRepository>(),
                 Mock.Of<IReservationRepository>(),
@@ -42,7 +42,7 @@
 
             var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
             mockEmailRepository
-                .Setup(e => e.AddToQueue(It.IsAny<ParkingRota.Business.Emails.ReservationsReminder>()));
+                .Setup(e => e.AddToQueue(It.IsAny<ParkingRota.Business.Emails.ReservationReminder>()));
 
             IList<ApplicationUser> teamLeaderUsers = new[]
             {
@@ -56,7 +56,7 @@
                 .Returns(Task.FromResult(teamLeaderUsers));
 
             // Act
-            var reservationReminder = new ReservationsReminder(
+            var reservationReminder = new ReservationReminder(
                 mockDateCalculator.Object,
                 mockEmailRepository.Object,
                 mockReservationRepository.Object,
@@ -69,7 +69,7 @@
             {
                 mockEmailRepository.Verify(
                     r => r.AddToQueue(
-                        It.Is<ParkingRota.Business.Emails.ReservationsReminder>(e => e.To == teamLeaderUser.Email)),
+                        It.Is<ParkingRota.Business.Emails.ReservationReminder>(e => e.To == teamLeaderUser.Email)),
                     Times.Once);
             }
         }
@@ -93,7 +93,7 @@
             var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict).Object;
 
             // Act and assert: mock strict on email repository ensures nothing has been done.
-            var reservationReminder = new ReservationsReminder(
+            var reservationReminder = new ReservationReminder(
                 mockDateCalculator.Object,
                 mockEmailRepository,
                 mockReservationRepository.Object,
@@ -116,7 +116,7 @@
                 .Setup(d => d.GetNextWorkingDate())
                 .Returns(expectedDay.March(2018));
 
-            var reservationReminder = new ReservationsReminder(
+            var reservationReminder = new ReservationReminder(
                 mockDateCalculator.Object,
                 Mock.Of<IEmailRepository>(),
                 Mock.Of<IReservationRepository>(),

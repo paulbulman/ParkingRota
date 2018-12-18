@@ -6,14 +6,14 @@
     using Model;
     using NodaTime;
 
-    public class ReservationsReminder : IScheduledTask
+    public class ReservationReminder : IScheduledTask
     {
         private readonly IDateCalculator dateCalculator;
         private readonly IEmailRepository emailRepository;
         private readonly IReservationRepository reservationRepository;
         private readonly UserManager<ApplicationUser> userManager;
 
-        public ReservationsReminder(
+        public ReservationReminder(
             IDateCalculator dateCalculator,
             IEmailRepository emailRepository,
             IReservationRepository reservationRepository,
@@ -40,7 +40,7 @@
                 foreach (var teamLeaderUser in teamLeaderUsers)
                 {
                     this.emailRepository.AddToQueue(
-                        new Emails.ReservationsReminder(teamLeaderUser.Email, nextWorkingDate));
+                        new Emails.ReservationReminder(teamLeaderUser.Email, nextWorkingDate));
                 }
             }
         }

@@ -2,11 +2,11 @@
 {
     using NodaTime;
 
-    public class ReservationsReminder : IEmail
+    public class ReservationReminder : IEmail
     {
         private readonly LocalDate localDate;
 
-        public ReservationsReminder(string to, LocalDate localDate)
+        public ReservationReminder(string to, LocalDate localDate)
         {
             this.localDate = localDate;
             this.To = to;

@@ -6,14 +6,14 @@
     using ParkingRota.Business.Emails;
     using Xunit;
 
-    public static class RequestsReminderTests
+    public static class RequestReminderTests
     {
         [Theory]
         [InlineData("a@b.c")]
         [InlineData("x@y.z")]
         public static void TestTo(string to)
         {
-            var email = new RequestsReminder(to, default(LocalDate), default(LocalDate));
+            var email = new RequestReminder(to, default(LocalDate), default(LocalDate));
 
             Assert.Equal(to, email.To);
         }
@@ -23,7 +23,7 @@
         {
             const string ExpectedSubject = "No requests entered for 17 Dec - 21 Dec";
 
-            var email = new RequestsReminder(default(string), 17.December(2018), 21.December(2018));
+            var email = new RequestReminder(default(string), 17.December(2018), 21.December(2018));
 
             Assert.Equal(ExpectedSubject, email.Subject);
         }
@@ -33,7 +33,7 @@
         {
             const string ExpectedText = "No requests have yet been entered for 17 Dec - 21 Dec";
 
-            var email = new RequestsReminder(default(string), 17.December(2018), 21.December(2018));
+            var email = new RequestReminder(default(string), 17.December(2018), 21.December(2018));
 
             Assert.True(email.HtmlBody.Contains(ExpectedText, StringComparison.InvariantCultureIgnoreCase));
             Assert.True(email.PlainTextBody.Contains(ExpectedText, StringComparison.InvariantCultureIgnoreCase));
