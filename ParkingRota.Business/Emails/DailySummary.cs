@@ -29,12 +29,7 @@
 
                 body.Append($"<p>{this.Header}</p>");
 
-                body.Append($"<p>{string.Join("<br/>", this.AllocatedNames)}</p>");
-
-                if (this.InterruptedNames.Any())
-                {
-                    body.Append($"<p>(Interrupted: {string.Join(", ", this.InterruptedNames)})</p>");
-                }
+                body.Append(GetHtmlSummary(this.allocations, this.requests));
 
                 body.Append($"<p>{Footer}</p>");
 
@@ -51,14 +46,7 @@
                 lines.Add(this.Header);
                 lines.Add(string.Empty);
 
-                lines.AddRange(this.AllocatedNames);
-                lines.Add(string.Empty);
-
-                if (this.InterruptedNames.Any())
-                {
-                    lines.Add($"(Interrupted: {string.Join(", ", this.InterruptedNames)})");
-                    lines.Add(string.Empty);
-                }
+                lines.AddRange(GetPlainTextSummary(this.allocations, this.requests));
 
                 lines.Add(Footer);
 
@@ -66,14 +54,53 @@
             }
         }
 
-        private IEnumerable<string> AllocatedNames => this.allocations
-            .OrderBy(a => a.ApplicationUser.LastName)
-            .Select(a => a.ApplicationUser.FullName);
+        public static string GetHtmlSummary(IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests)
+        {
+            var summary = new StringBuilder();
 
-        private IEnumerable<string> InterruptedNames => this.requests
-            .Where(r => this.allocations.All(a => a.ApplicationUser.Id != r.ApplicationUser.Id))
+            summary.Append($"<p>{string.Join("<br/>", GetAllocatedNames(allocations))}</p>");
+
+            var interruptedNames = GetInterruptedNames(allocations, requests);
+
+            if (interruptedNames.Any())
+            {
+                summary.Append($"<p>(Interrupted: {string.Join(", ", interruptedNames)})</p>");
+            }
+
+            return summary.ToString();
+        }
+
+        public static IReadOnlyList<string> GetPlainTextSummary(
+            IReadOnlyList<Allocation> allocations,
+            IReadOnlyList<Request> requests)
+        {
+            var summary = new List<string>();
+
+            summary.AddRange(GetAllocatedNames(allocations));
+            summary.Add(string.Empty);
+
+            var interruptedNames = GetInterruptedNames(allocations, requests);
+
+            if (interruptedNames.Any())
+            {
+                summary.Add($"(Interrupted: {string.Join(", ", interruptedNames)})");
+                summary.Add(string.Empty);
+            }
+
+            return summary;
+        }
+
+        private static IReadOnlyList<string> GetAllocatedNames(IReadOnlyList<Allocation> allocations) => allocations
+            .OrderBy(a => a.ApplicationUser.LastName)
+            .Select(a => a.ApplicationUser.FullName)
+            .ToArray();
+
+        private static IReadOnlyList<string> GetInterruptedNames(
+                IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests) => requests
+            .Where(r => allocations.All(a => a.ApplicationUser.Id != r.ApplicationUser.Id))
             .OrderBy(i => i.ApplicationUser.LastName)
-            .Select(i => i.ApplicationUser.FullName);
+            .Select(i => i.ApplicationUser.FullName)
+            .ToArray();
 
         private string FormattedDate => this.allocations.First().Date.ForDisplay();
 
