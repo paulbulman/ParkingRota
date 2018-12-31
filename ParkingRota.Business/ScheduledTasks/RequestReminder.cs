@@ -58,7 +58,7 @@
             currentInstant
                 .InZone(this.dateCalculator.TimeZone)
                 .Date
-                .PlusDays(7)
+                .Next(IsoDayOfWeek.Wednesday)
                 .AtMidnight()
                 .InZoneStrictly(this.dateCalculator.TimeZone)
                 .ToInstant();

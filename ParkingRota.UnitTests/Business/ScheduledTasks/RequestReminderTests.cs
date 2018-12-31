@@ -156,6 +156,7 @@
 
         [Theory]
         [InlineData(14, 0, 21, 0)]
+        [InlineData(15, 0, 21, 0)]
         [InlineData(21, 0, 27, 23)]
         public static void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
         {
