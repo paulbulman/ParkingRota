@@ -17,6 +17,8 @@
 
         IReadOnlyList<LocalDate> GetLongLeadTimeAllocationDates();
 
+        IReadOnlyList<LocalDate> GetWeeklySummaryDates();
+
         LocalDate GetCurrentDate();
 
         LocalDate GetNextWorkingDate();
@@ -54,6 +56,14 @@
 
         public IReadOnlyList<LocalDate> GetLongLeadTimeAllocationDates() =>
             this.GetLongLeadTimeAllocationDates(this.GetCurrentTime());
+
+        public IReadOnlyList<LocalDate> GetWeeklySummaryDates()
+        {
+            var lastDate = GetLastLongLeadTimeAllocationDate(this.GetCurrentDate());
+            var firstDate = lastDate.PlusDays(-4);
+
+            return this.DatesBetween(firstDate, lastDate);
+        }
 
         private IReadOnlyList<LocalDate> GetShortLeadTimeAllocationDates(ZonedDateTime currentTime)
         {

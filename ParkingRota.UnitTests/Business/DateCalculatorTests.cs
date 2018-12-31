@@ -113,6 +113,28 @@
         }
 
         [Theory]
+        [InlineData(11, 17, 21, 5)]
+        [InlineData(12, 17, 21, 5)]
+        [InlineData(13, 24, 28, 3)]
+        public static void Test_GetWeeklySummaryDates(
+            int currentDay,
+            int expectedFirstDay,
+            int expectedLastDay,
+            int expectedTotalDays)
+        {
+            var currentLocalDateTime = new LocalDateTime(2018, 12, currentDay, 0, 0);
+
+            var result = new DateCalculator(
+                    CreateMockClock(currentLocalDateTime),
+                    CreateMockBankHolidayRepository(25.December(2018), 26.December(2018)))
+                .GetWeeklySummaryDates();
+
+            Assert.Equal(expectedTotalDays, result.Count);
+            Assert.Equal(expectedFirstDay.December(2018), result.First());
+            Assert.Equal(expectedLastDay.December(2018), result.Last());
+        }
+
+        [Theory]
         [InlineData(14, 15)]
         [InlineData(15, 18)]
         [InlineData(22, 27)]
