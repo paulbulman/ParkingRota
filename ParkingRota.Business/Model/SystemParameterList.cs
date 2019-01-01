@@ -9,5 +9,7 @@
         public int ReservableSpaces { get; set; }
 
         public decimal NearbyDistance { get; set; }
+
+        public string FromEmailAddress { get; set; }
     }
 }

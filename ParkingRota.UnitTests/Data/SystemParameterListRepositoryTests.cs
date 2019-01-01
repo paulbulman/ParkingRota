@@ -25,7 +25,8 @@
                 Id = 1,
                 TotalSpaces = 19,
                 ReservableSpaces = 4,
-                NearbyDistance = 3.99m
+                NearbyDistance = 3.99m,
+                FromEmailAddress = "noreply@parkingrota"
             };
 
             // Arrange
@@ -55,6 +56,7 @@
                 Assert.Equal(systemParameterList.TotalSpaces, result.TotalSpaces);
                 Assert.Equal(systemParameterList.ReservableSpaces, result.ReservableSpaces);
                 Assert.Equal(systemParameterList.NearbyDistance, result.NearbyDistance);
+                Assert.Equal(systemParameterList.FromEmailAddress, result.FromEmailAddress);
             }
         }
 
