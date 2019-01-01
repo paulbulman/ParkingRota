@@ -12,12 +12,12 @@
 
         private readonly IScheduledTaskRepository scheduledTaskRepository;
 
-        private readonly IReadOnlyList<IScheduledTask> scheduledTasks;
+        private readonly IEnumerable<IScheduledTask> scheduledTasks;
 
         public ScheduledTaskRunner(
             IDateCalculator dateCalculator,
             IScheduledTaskRepository scheduledTaskRepository,
-            IReadOnlyList<IScheduledTask> scheduledTasks)
+            IEnumerable<IScheduledTask> scheduledTasks)
         {
             this.dateCalculator = dateCalculator;
             this.scheduledTaskRepository = scheduledTaskRepository;
