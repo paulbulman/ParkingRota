@@ -2,13 +2,17 @@
 {
     using System;
     using System.Linq;
+    using AutoMapper;
     using Microsoft.EntityFrameworkCore;
     using Moq;
+    using NodaTime;
     using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Emails;
     using ParkingRota.Data;
     using Xunit;
+    using DataQueueItem = ParkingRota.Data.EmailQueueItem;
+    using ModelQueueItem = ParkingRota.Business.Model.EmailQueueItem;
 
     public class EmailRepositoryTests
     {
@@ -40,7 +44,7 @@
             // Act
             using (var context = this.CreateContext())
             {
-                new EmailRepository(context, fakeClock).AddToQueue(email);
+                new EmailRepository(context, fakeClock, Mock.Of<IMapper>()).AddToQueue(email);
             }
 
             using (var context = this.CreateContext())
@@ -56,6 +60,81 @@
                 Assert.Equal(PlainTextBody, actual.PlainTextBody);
                 Assert.Equal(HtmlBody, actual.HtmlBody);
                 Assert.Equal(instant, actual.AddedTime);
+            }
+        }
+
+        [Fact]
+        public void Test_GetUnsent()
+        {
+            // Arrange
+            var unsentEmail = new DataQueueItem
+            {
+                To = "a@b.c",
+                Subject = "Unsent email subject",
+                HtmlBody = "<p>Unsent email body</p>",
+                PlainTextBody = "Unsent email body",
+                AddedTime = 1.January(2019).At(10, 30, 56).Utc()
+            };
+
+            var earlierUnsentEmail = new DataQueueItem
+            {
+                To = "x@y.z",
+                Subject = "Earlier unsent email subject",
+                HtmlBody = "<p>Earlier unsent email body</p>",
+                PlainTextBody = "Earlier unsent email body",
+                AddedTime = 1.January(2019).At(10, 29, 02).Utc()
+            };
+
+            var sentEmail = new DataQueueItem
+            {
+                To = "d@e.f",
+                Subject = "Sent email subject",
+                HtmlBody = "<p>Sent email body</p>",
+                PlainTextBody = "Sent email body",
+                AddedTime = 1.January(2019).At(10, 27, 50).Utc(),
+                SentTime = 1.January(2019).At(10, 28, 03).Utc()
+            };
+
+            using (var context = this.CreateContext())
+            {
+                context.EmailQueueItems.AddRange(unsentEmail, earlierUnsentEmail, sentEmail);
+                context.SaveChanges();
+            }
+
+            var mapperConfiguration = new MapperConfiguration(c =>
+            {
+                c.CreateMap<DataQueueItem, ModelQueueItem>();
+            });
+
+            using (var context = this.CreateContext())
+            {
+                // Act
+                var repository = new EmailRepository(
+                    context,
+                    Mock.Of<IClock>(),
+                    new Mapper(mapperConfiguration));
+
+                var result = repository.GetUnsent();
+
+                // Assert
+                var unsentEmails = new[] { unsentEmail, earlierUnsentEmail };
+
+                Assert.Equal(unsentEmails.Length, result.Count);
+
+                Assert.True(result.First().AddedTime < result.Last().AddedTime);
+
+                foreach (var expected in unsentEmails)
+                {
+                    Assert.Single(
+                        result,
+                        actual =>
+                            actual.To == expected.To &&
+                            actual.Subject == expected.Subject &&
+                            actual.HtmlBody == expected.HtmlBody &&
+                            actual.PlainTextBody == expected.PlainTextBody &&
+                            actual.AddedTime == expected.AddedTime &&
+                            actual.SentTime == null);
+                }
             }
         }
 
