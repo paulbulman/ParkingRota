@@ -31,6 +31,11 @@
         {
             var upcomingLongLeadTimeAllocationDates = this.dateCalculator.GetUpcomingLongLeadTimeAllocationDates();
 
+            if (!upcomingLongLeadTimeAllocationDates.Any())
+            {
+                return Task.CompletedTask;
+            }
+
             var firstDate = this.dateCalculator.GetCurrentDate().PlusDays(-30);
             var lastDate = upcomingLongLeadTimeAllocationDates.Last();
 
