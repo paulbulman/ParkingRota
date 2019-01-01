@@ -8,5 +8,7 @@
         void AddToQueue(IEmail email);
 
         IReadOnlyList<EmailQueueItem> GetUnsent();
+
+        void MarkAsSent(EmailQueueItem email);
     }
 }

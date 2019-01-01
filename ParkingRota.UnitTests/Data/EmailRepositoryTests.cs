@@ -101,10 +101,7 @@
                 context.SaveChanges();
             }
 
-            var mapperConfiguration = new MapperConfiguration(c =>
-            {
-                c.CreateMap<DataQueueItem, ModelQueueItem>();
-            });
+            var mapperConfiguration = new MapperConfiguration(c => { c.CreateMap<DataQueueItem, ModelQueueItem>(); });
 
             using (var context = this.CreateContext())
             {
@@ -134,6 +131,75 @@
                             actual.PlainTextBody == expected.PlainTextBody &&
                             actual.AddedTime == expected.AddedTime &&
                             actual.SentTime == null);
+                }
+            }
+        }
+
+        [Fact]
+        public void Test_MarkAsSent()
+        {
+            const string Subject = "Earlier unsent email subject";
+
+            // Arrange
+            var unsentEmail = new DataQueueItem
+            {
+                To = "a@b.c",
+                Subject = "Unsent email subject",
+                HtmlBody = "<p>Unsent email body</p>",
+                PlainTextBody = "Unsent email body",
+                AddedTime = 1.January(2019).At(10, 30, 56).Utc()
+            };
+
+            var earlierUnsentEmail = new DataQueueItem
+            {
+                To = "x@y.z",
+                Subject = Subject,
+                HtmlBody = "<p>Earlier unsent email body</p>",
+                PlainTextBody = "Earlier unsent email body",
+                AddedTime = 1.January(2019).At(10, 29, 02).Utc()
+            };
+
+            var sentEmail = new DataQueueItem
+            {
+                To = "d@e.f",
+                Subject = "Sent email subject",
+                HtmlBody = "<p>Sent email body</p>",
+                PlainTextBody = "Sent email body",
+                AddedTime = 1.January(2019).At(10, 27, 50).Utc(),
+                SentTime = 1.January(2019).At(10, 28, 03).Utc()
+            };
+
+            using (var context = this.CreateContext())
+            {
+                context.EmailQueueItems.AddRange(unsentEmail, earlierUnsentEmail, sentEmail);
+                context.SaveChanges();
+            }
+
+            IMapper mapper = new Mapper(new MapperConfiguration(c =>
+            {
+                c.CreateMap<DataQueueItem, ModelQueueItem>();
+            }));
+
+            var instant = 1.January(2019).At(11, 07, 23).Utc();
+
+            // Act
+            using (var context = this.CreateContext())
+            {
+                var dataUnsentEmail = context.EmailQueueItems.Single(e => e.Subject == Subject);
+                var modelUnsentEmail = mapper.Map<ModelQueueItem>(dataUnsentEmail);
+
+                new EmailRepository(context, new FakeClock(instant), Mock.Of<IMapper>()).MarkAsSent(modelUnsentEmail);
+            }
+
+            // Assert
+            {
+                using (var context = this.CreateContext())
+                {
+                    Assert.Single(context.EmailQueueItems.Where(e => e.DbSentTime == null));
+
+                    var previouslyUnsentEmail = context.EmailQueueItems.Single(e => e.Subject == Subject);
+
+                    Assert.Equal(instant, previouslyUnsentEmail.SentTime);
                 }
             }
         }

@@ -42,5 +42,11 @@
                 .ToArray()
                 .Select(this.mapper.Map<Business.Model.EmailQueueItem>)
                 .ToArray();
+
+        public void MarkAsSent(Business.Model.EmailQueueItem email)
+        {
+            this.context.EmailQueueItems.Single(e => e.Id == email.Id).SentTime = this.clock.GetCurrentInstant();
+            this.context.SaveChanges();
+        }
     }
 }
