@@ -1,6 +1,7 @@
 namespace ParkingRota.Service
 {
     using System;
+    using System.Threading.Tasks;
     using Amazon.Lambda.Core;
     using AutoMapper;
     using Business;
@@ -15,7 +16,7 @@ namespace ParkingRota.Service
 
     public class Program
     {
-        public async void RunTasks(ILambdaContext context)
+        public async Task RunTasks(ILambdaContext context)
         {
             var services = new ServiceCollection();
 
