@@ -19,11 +19,9 @@
         [Fact]
         public static void TestSubject()
         {
-            const string ExpectedSubject = "Reset password";
-
             var email = new ResetPassword(default(string), default(string), default(string));
 
-            Assert.Equal(ExpectedSubject, email.Subject);
+            Assert.Equal("Reset password", email.Subject);
         }
 
         [Theory]
@@ -33,11 +31,11 @@
         {
             var email = new ResetPassword(default(string), callbackUrl, originatingIpAddress);
 
-            Assert.True(email.HtmlBody.Contains(callbackUrl.Replace("&", "&amp;"), StringComparison.Ordinal));
-            Assert.True(email.HtmlBody.Contains(originatingIpAddress, StringComparison.OrdinalIgnoreCase));
+            Assert.True(email.HtmlBody.Contains(callbackUrl.Replace("&", "&amp;"), StringComparison.InvariantCulture));
+            Assert.True(email.HtmlBody.Contains(originatingIpAddress, StringComparison.InvariantCulture));
 
-            Assert.True(email.PlainTextBody.Contains(callbackUrl, StringComparison.Ordinal));
-            Assert.True(email.PlainTextBody.Contains(originatingIpAddress, StringComparison.OrdinalIgnoreCase));
+            Assert.True(email.PlainTextBody.Contains(callbackUrl, StringComparison.InvariantCulture));
+            Assert.True(email.PlainTextBody.Contains(originatingIpAddress, StringComparison.InvariantCulture));
         }
     }
 }

@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using NodaTime;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Emails;
     using ParkingRota.Business.Model;
@@ -24,47 +26,31 @@
         {
             var allocations = new[] { new Allocation { Date = 18.December(2018) } };
 
-            const string ExpectedSubject = "Daily allocations summary for 18 Dec";
-
             var email = new DailySummary(default(string), allocations, default(IReadOnlyList<Request>));
 
-            Assert.Equal(ExpectedSubject, email.Subject);
+            Assert.Equal("Daily allocations summary for 18 Dec", email.Subject);
         }
 
         [Fact]
         public static void TestBody()
         {
-            var allocatedUser = new ApplicationUser { FirstName = "Petr", LastName = "Čech" };
-            var otherAllocatedUser = new ApplicationUser { FirstName = "Héctor", LastName = "Bellerín" };
+            var allocatedUsers = Create.Users("Petr Čech", "Héctor Bellerín");
+            var interruptedUsers = Create.Users("Sokratis Papastathopoulos", "Mohamed Elneny");
 
-            var interruptedUser = new ApplicationUser { FirstName = "Sokratis", LastName = "Papastathopoulos" };
-            var otherInterruptedUser = new ApplicationUser { FirstName = "Mohamed", LastName = "Elneny" };
+            var allUsers = allocatedUsers.Concat(interruptedUsers);
 
-            var allocations = new[]
-            {
-                new Allocation { ApplicationUser = allocatedUser, Date = 18.December(2018) },
-                new Allocation { ApplicationUser = otherAllocatedUser, Date = 18.December(2018) },
-            };
+            var allocations = Create.Allocations(allocatedUsers, default(LocalDate));
+            var requests = Create.Requests(allUsers, default(LocalDate));
 
-            var requests = new[]
-            {
-                new Request { ApplicationUser = allocatedUser, Date = 18.December(2018) },
-                new Request { ApplicationUser = otherAllocatedUser, Date = 18.December(2018) },
-                new Request { ApplicationUser = interruptedUser, Date = 18.December(2018) },
-                new Request { ApplicationUser = otherInterruptedUser, Date = 18.December(2018) },
-            };
+            var email = new DailySummary(default(string), allocations, requests.ToArray());
 
-            var email = new DailySummary(default(string), allocations, requests);
+            Assert.All(allocatedUsers, a => email.HtmlBody.Contains(a.FullName, StringComparison.InvariantCulture));
+            Assert.All(allocatedUsers, a => email.PlainTextBody.Contains(a.FullName, StringComparison.InvariantCulture));
 
-            Assert.True(email.HtmlBody.Contains(allocatedUser.FullName, StringComparison.InvariantCultureIgnoreCase));
-            Assert.True(email.HtmlBody.Contains(otherAllocatedUser.FullName, StringComparison.InvariantCultureIgnoreCase));
-            Assert.True(email.PlainTextBody.Contains(allocatedUser.FullName, StringComparison.InvariantCultureIgnoreCase));
-            Assert.True(email.PlainTextBody.Contains(otherAllocatedUser.FullName, StringComparison.InvariantCultureIgnoreCase));
+            const string ExpectedInterruptedText = "(Interrupted: Mohamed Elneny, Sokratis Papastathopoulos)";
 
-            var interruptedText = $"(Interrupted: {otherInterruptedUser.FullName}, {interruptedUser.FullName})";
-
-            Assert.True(email.HtmlBody.Contains(interruptedText, StringComparison.InvariantCultureIgnoreCase));
-            Assert.True(email.PlainTextBody.Contains(interruptedText, StringComparison.InvariantCultureIgnoreCase));
+            Assert.True(email.HtmlBody.Contains(ExpectedInterruptedText, StringComparison.InvariantCulture));
+            Assert.True(email.PlainTextBody.Contains(ExpectedInterruptedText, StringComparison.InvariantCulture));
         }
     }
 }

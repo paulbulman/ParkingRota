@@ -21,22 +21,20 @@
         [Fact]
         public static void TestSubject()
         {
-            const string ExpectedSubject = "No reservations entered for 11 Dec";
-
             var email = new ReservationReminder(default(string), 11.December(2018));
 
-            Assert.Equal(ExpectedSubject, email.Subject);
+            Assert.Equal("No reservations entered for 11 Dec", email.Subject);
         }
 
         [Fact]
         public static void TestBody()
         {
-            const string ExpectedText = "No reservations have yet been entered for 01 Jan";
-
             var email = new ReservationReminder(default(string), 1.January(2019));
 
-            Assert.True(email.HtmlBody.Contains(ExpectedText, StringComparison.InvariantCultureIgnoreCase));
-            Assert.True(email.PlainTextBody.Contains(ExpectedText, StringComparison.InvariantCultureIgnoreCase));
+            const string ExpectedText = "No reservations have yet been entered for 01 Jan";
+
+            Assert.True(email.HtmlBody.Contains(ExpectedText, StringComparison.InvariantCulture));
+            Assert.True(email.PlainTextBody.Contains(ExpectedText, StringComparison.InvariantCulture));
         }
     }
 }

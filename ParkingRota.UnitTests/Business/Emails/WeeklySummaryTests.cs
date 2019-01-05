@@ -29,58 +29,35 @@
                 new Allocation { Date = 17.December(2018) }
             };
 
-            const string ExpectedSubject = "Weekly provisional allocations summary for 17 Dec - 21 Dec";
-
             var email = new WeeklySummary(default(string), allocations, default(IReadOnlyList<Request>));
 
-            Assert.Equal(ExpectedSubject, email.Subject);
+            Assert.Equal("Weekly provisional allocations summary for 17 Dec - 21 Dec", email.Subject);
         }
 
         [Fact]
         public static void TestBody()
         {
-            var allocatedUser = new ApplicationUser { FirstName = "Petr", LastName = "Čech" };
-            var otherAllocatedUser = new ApplicationUser { FirstName = "Héctor", LastName = "Bellerín" };
+            var firstDateAllocatedUsers = Create.Users("Petr Čech", "Héctor Bellerín");
+            var firstDateInterruptedUsers = Create.Users("Sokratis Papastathopoulos", "Mohamed Elneny");
 
-            var otherDateAllocatedUser = new ApplicationUser { FirstName = "Henrikh", LastName = "Mkhitaryan" };
-            var otherDateOtherAllocatedUser = new ApplicationUser { FirstName = "Laurent", LastName = "Koscielny" };
+            var secondDateAllocatedUsers = Create.Users("Henrikh Mkhitaryan", "Laurent Koscielny");
+            var secondDateInterruptedUsers = Create.Users("Aaron Ramsey", "Alexandre Lacazette");
 
-            var interruptedUser = new ApplicationUser { FirstName = "Sokratis", LastName = "Papastathopoulos" };
-            var otherInterruptedUser = new ApplicationUser { FirstName = "Mohamed", LastName = "Elneny" };
+            var allFirstDateUsers = firstDateAllocatedUsers.Concat(firstDateInterruptedUsers);
+            var allSecondDateUsers = secondDateAllocatedUsers.Concat(secondDateInterruptedUsers);
 
-            var otherDateInterruptedUser = new ApplicationUser { FirstName = "Aaron", LastName = "Ramsey" };
-            var otherDateOtherInterruptedUser = new ApplicationUser { FirstName = "Alexandre", LastName = "Lacazette" };
+            var allocations = Create.Allocations(secondDateAllocatedUsers, 21.December(2018))
+                .Concat(Create.Allocations(firstDateAllocatedUsers, 17.December(2018)));
 
-            var allocations = new[]
-            {
-                new Allocation { ApplicationUser = otherDateAllocatedUser, Date = 21.December(2018) },
-                new Allocation { ApplicationUser = allocatedUser, Date = 17.December(2018) },
-                new Allocation { ApplicationUser = otherDateOtherAllocatedUser, Date = 21.December(2018) },
-                new Allocation { ApplicationUser = otherAllocatedUser, Date = 17.December(2018) }
-            };
+            var requests = Create.Requests(allSecondDateUsers, 21.December(2018))
+                .Concat(Create.Requests(allFirstDateUsers, 17.December(2018)));
 
-            var requests = new[]
-            {
-                new Request { ApplicationUser = otherDateAllocatedUser, Date = 21.December(2018) },
-                new Request { ApplicationUser = allocatedUser, Date = 17.December(2018) },
-                new Request { ApplicationUser = otherDateOtherAllocatedUser, Date = 21.December(2018) },
-                new Request { ApplicationUser = otherAllocatedUser, Date = 17.December(2018) },
-
-                new Request { ApplicationUser = otherDateInterruptedUser, Date = 21.December(2018) },
-                new Request { ApplicationUser = interruptedUser, Date = 17.December(2018) },
-                new Request { ApplicationUser = otherDateOtherInterruptedUser, Date = 21.December(2018) },
-                new Request { ApplicationUser = otherInterruptedUser, Date = 17.December(2018) }
-            };
-
-            var email = new WeeklySummary(default(string), allocations, requests);
-
-            var interruptedText = $"(Interrupted: {otherInterruptedUser.FullName}, {interruptedUser.FullName})";
-            var otherDateInterruptedText = $"(Interrupted: {otherDateOtherInterruptedUser.FullName}, {otherDateInterruptedUser.FullName})";
+            var email = new WeeklySummary(default(string), allocations.ToArray(), requests.ToArray());
 
             var expectedValues = new[]
             {
-                "17 Dec:", otherAllocatedUser.FullName, allocatedUser.FullName, interruptedText,
-                "21 Dec:", otherDateOtherAllocatedUser.FullName, otherDateAllocatedUser.FullName, otherDateInterruptedText
+                "17 Dec:", "Héctor Bellerín", "Petr Čech", "(Interrupted: Mohamed Elneny, Sokratis Papastathopoulos)",
+                "21 Dec:", "Laurent Koscielny", "Henrikh Mkhitaryan", "(Interrupted: Alexandre Lacazette, Aaron Ramsey)"
             };
 
             Check_TextAppearsInOrder(expectedValues, email.HtmlBody);

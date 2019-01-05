@@ -19,11 +19,9 @@
         [Fact]
         public static void TestSubject()
         {
-            const string ExpectedSubject = "Confirm your email address";
-
             var email = new ConfirmEmailAddress(default(string), default(string), default(string));
 
-            Assert.Equal(ExpectedSubject, email.Subject);
+            Assert.Equal("Confirm your email address", email.Subject);
         }
 
         [Theory]
