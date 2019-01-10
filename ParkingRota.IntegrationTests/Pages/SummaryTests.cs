@@ -18,7 +18,7 @@
     using Allocation = Data.Allocation;
     using Request = Data.Request;
 
-    public class IndexTests : IClassFixture<DatabaseWebApplicationFactory<Program>>
+    public class SummaryTests : IClassFixture<DatabaseWebApplicationFactory<Program>>
     {
         private readonly DatabaseWebApplicationFactory<Program> factory;
 
@@ -27,18 +27,18 @@
         private const string PasswordHash =
             "AQAAAAEAACcQAAAAEGe/qgvKfGP5QOeQnC2YF5Fzphi2AvOD71xUXnzfW4yQfuuEGJ4qrdzt9bwESjN4Mw==";
 
-        public IndexTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
+        public SummaryTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Fact]
         public async Task Test_Index()
         {
-            var indexResponse = await this.LoadIndexPage();
+            var summaryResponse = await this.LoadSummaryPage();
 
-            Assert.Equal(HttpStatusCode.OK, indexResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, summaryResponse.StatusCode);
 
-            var indexDocument = await HtmlHelpers.GetDocumentAsync(indexResponse);
+            var summaryDocument = await HtmlHelpers.GetDocumentAsync(summaryResponse);
 
-            var calendarTable = indexDocument.QuerySelector("table");
+            var calendarTable = summaryDocument.QuerySelector("table");
 
             Assert.NotNull(calendarTable);
             Assert.IsAssignableFrom<IHtmlTableElement>(calendarTable);
@@ -51,11 +51,11 @@
             Assert.True(rows[1].Cells[3].InnerHtml.Contains("Jane Smith", StringComparison.Ordinal));
         }
 
-        private async Task<HttpResponseMessage> LoadIndexPage()
+        private async Task<HttpResponseMessage> LoadSummaryPage()
         {
             var client = this.CreateClient();
 
-            var loginResponse = await client.GetAsync("/");
+            var loginResponse = await client.GetAsync("/Summary");
 
             var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
 

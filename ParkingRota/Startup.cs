@@ -95,6 +95,7 @@ namespace ParkingRota
 
                     options.Conventions.AuthorizeFolder("/");
 
+                    options.Conventions.AllowAnonymousToPage("/Index");
                     options.Conventions.AllowAnonymousToPage("/Error");
                     options.Conventions.AllowAnonymousToPage("/Privacy");
                     options.Conventions.AllowAnonymousToPage("/RegisterSuccess");

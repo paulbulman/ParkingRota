@@ -1,0 +1,67 @@
+﻿@page
+@using System.Linq
+@using ParkingRota.Business
+@model SummaryModel
+@{
+    ViewData["Title"] = "Summary";
+}
+
+<h2>Summary</h2>
+<h4>Requests up to the end of next month:</h4>
+<hr />
+
+<table class="table table-top table-striped table-responsive table-bordered">
+    <thead>
+        <tr>
+            @(Html.Raw(string.Join(string.Empty, new[] { "Mon", "Tue", "Wed", "Thu", "Fri" }.Select(d => $"<th>{d}</th>"))))
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var calendarWeek in Model.Calendar.Weeks)
+        {
+            <tr>
+                @foreach (var calendarDay in calendarWeek.Days)
+                {
+                    <td>
+                        @if (calendarDay.IsActive)
+                        {
+                            <p>
+                                @calendarDay.Date.ForDisplay()
+                            </p>
+                            <p>
+                                @foreach (var displayRequest in calendarDay.Data.AllocatedRequests)
+                                {
+                                    if (displayRequest.IsCurrentUser)
+                                    {
+                                        <strong>@displayRequest.FullName</strong><br />
+                                    }
+                                    else
+                                    {
+                                        @displayRequest.FullName<br />
+                                    }
+                                }
+                            </p>
+                            <p class="interruption">
+                                @foreach (var displayRequest in calendarDay.Data.UnallocatedRequests)
+                                {
+                                    if (displayRequest.IsCurrentUser)
+                                    {
+                                        <strong>@displayRequest.FullName</strong><br />
+                                    }
+                                    else
+                                    {
+                                        @displayRequest.FullName<br />
+                                    }
+                                }
+                            </p>
+                        }
+                        else
+                        {
+                            @Html.Raw("&nbsp;")
+                        }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

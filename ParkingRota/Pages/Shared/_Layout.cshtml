@@ -30,7 +30,14 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a asp-page="/Index" class="navbar-brand">Home</a>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <a asp-page="/Summary" class="navbar-brand">Home</a>
+                }
+                else
+                {
+                    <a asp-page="/Index" class="navbar-brand">Home</a>
+                }
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">

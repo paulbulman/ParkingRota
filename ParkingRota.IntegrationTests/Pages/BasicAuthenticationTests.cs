@@ -13,8 +13,7 @@
         public BasicAuthenticationTests(WebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Theory]
-        [InlineData("/")]
-        [InlineData("/Index")]
+        [InlineData("/Summary")]
         [InlineData("/EditRequests")]
         [InlineData("/EditReservations")]
         [InlineData("/OverrideRequests")]
@@ -29,6 +28,8 @@
         }
 
         [Theory]
+        [InlineData("/")]
+        [InlineData("/Index")]
         [InlineData("/Error")]
         [InlineData("/Privacy")]
         public async Task Test_AnonymousPage(string requestUri)
