@@ -8,6 +8,7 @@
     using Microsoft.AspNetCore.Identity;
     using Moq;
     using NodaTime;
+    using ParkingRota.Business;
     using ParkingRota.Business.Model;
     using ParkingRota.Calendar;
 
@@ -31,6 +32,29 @@
                 .Single(d => d.Date == date)
                 .Data;
 
+        public static IPasswordBreachChecker CreatePasswordBreachChecker(string password, bool isBreached)
+        {
+            var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
+            mockPasswordBreachChecker
+                .Setup(c => c.PasswordIsBreached(password))
+                .Returns(Task.FromResult(isBreached));
+
+            return mockPasswordBreachChecker.Object;
+        }
+
+        public static Mock<SignInManager<ApplicationUser>> CreateMockSigninManager(UserManager<ApplicationUser> userManager)
+        {
+            var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
+            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
+
+            return new Mock<SignInManager<ApplicationUser>>(
+                userManager, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
+        }
+
+        public static Mock<UserManager<ApplicationUser>> CreateMockUserManager() =>
+            new Mock<UserManager<ApplicationUser>>(
+                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+
         public static Mock<UserManager<ApplicationUser>> CreateMockUserManager(
             ClaimsPrincipal principal, ApplicationUser loggedInUser)
         {
@@ -41,19 +65,6 @@
                 .Returns(Task.FromResult(loggedInUser));
 
             return mockUserManager;
-        }
-
-        public static Mock<UserManager<ApplicationUser>> CreateMockUserManager() =>
-            new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-
-        public static Mock<SignInManager<ApplicationUser>> CreateMockSigninManager(UserManager<ApplicationUser> userManager)
-        {
-            var httpContextAccessor = Mock.Of<IHttpContextAccessor>();
-            var userClaimsPrincipalFactory = Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>();
-
-            return new Mock<SignInManager<ApplicationUser>>(
-                userManager, httpContextAccessor, userClaimsPrincipalFactory, null, null, null);
         }
     }
 }

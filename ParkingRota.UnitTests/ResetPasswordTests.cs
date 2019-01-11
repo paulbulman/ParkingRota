@@ -2,12 +2,8 @@
 {
     using System.Threading.Tasks;
     using Areas.Identity.Pages.Account;
-    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
-    using Moq;
-    using ParkingRota.Business;
-    using ParkingRota.Business.Model;
     using Xunit;
 
     public class ResetPasswordTests
@@ -45,15 +41,10 @@
 
         private static ResetPasswordModel CreateModel(string password, bool passwordIsBreached)
         {
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = TestHelpers.CreateMockUserManager();
+            var passwordBreachChecker = TestHelpers.CreatePasswordBreachChecker(password, passwordIsBreached);
 
-            var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
-            mockPasswordBreachChecker
-                .Setup(c => c.PasswordIsBreached(password))
-                .Returns(Task.FromResult(passwordIsBreached));
-
-            return new ResetPasswordModel(mockUserManager.Object, mockPasswordBreachChecker.Object)
+            return new ResetPasswordModel(mockUserManager.Object, passwordBreachChecker)
             {
                 Input = new ResetPasswordModel.InputModel { Email = "a@b.c", Password = password }
             };

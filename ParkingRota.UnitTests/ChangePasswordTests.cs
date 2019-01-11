@@ -9,7 +9,6 @@
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.Extensions.Logging;
     using Moq;
-    using ParkingRota.Business;
     using ParkingRota.Business.Model;
     using Xunit;
 
@@ -35,16 +34,13 @@
             var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
             // Set up password breach checker
-            var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
-            mockPasswordBreachChecker
-                .Setup(c => c.PasswordIsBreached(newPassword))
-                .Returns(Task.FromResult(false));
+            var passwordBreachChecker = TestHelpers.CreatePasswordBreachChecker(newPassword, isBreached: false);
 
             // Set up model
             var model = new ChangePasswordModel(
                 mockUserManager.Object,
                 mockSigninManager.Object,
-                mockPasswordBreachChecker.Object,
+                passwordBreachChecker,
                 Mock.Of<ILogger<ChangePasswordModel>>())
             {
                 PageContext = { HttpContext = new DefaultHttpContext { User = principal } },
@@ -75,16 +71,13 @@
             var mockSigninManager = TestHelpers.CreateMockSigninManager(mockUserManager.Object);
 
             // Set up password breach checker
-            var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
-            mockPasswordBreachChecker
-                .Setup(c => c.PasswordIsBreached(password))
-                .Returns(Task.FromResult(true));
+            var passwordBreachChecker = TestHelpers.CreatePasswordBreachChecker(password, isBreached: true);
 
             // Set up model
             var model = new ChangePasswordModel(
                 mockUserManager.Object,
                 mockSigninManager.Object,
-                mockPasswordBreachChecker.Object,
+                passwordBreachChecker,
                 Mock.Of<ILogger<ChangePasswordModel>>())
             {
                 PageContext = { HttpContext = new DefaultHttpContext { User = principal } },

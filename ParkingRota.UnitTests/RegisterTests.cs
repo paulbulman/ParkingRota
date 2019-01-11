@@ -45,8 +45,7 @@ namespace ParkingRota.UnitTests
                 .Returns(new IPAddress(IpAddressInt));
 
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = TestHelpers.CreateMockUserManager();
             mockUserManager
                 .Setup(f => f.CreateAsync(It.IsAny<ApplicationUser>(), password))
                 .Returns(Task.FromResult(IdentityResult.Success))
@@ -60,8 +59,7 @@ namespace ParkingRota.UnitTests
             mockRegistrationTokenValidator.Setup(v => v.TokenIsValid(registrationToken)).Returns(true);
 
             // Set up password breach checker
-            var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
-            mockPasswordBreachChecker.Setup(c => c.PasswordIsBreached(password)).Returns(Task.FromResult(false));
+            var passwordBreachChecker = TestHelpers.CreatePasswordBreachChecker(password, isBreached: false);
 
             // Set up email repository
             var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
@@ -82,7 +80,7 @@ namespace ParkingRota.UnitTests
                 mockHttpContextAccessor.Object,
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
-                mockPasswordBreachChecker.Object,
+                passwordBreachChecker,
                 Mock.Of<ILogger<RegisterModel>>(),
                 mockEmailRepository.Object)
             {
@@ -113,8 +111,7 @@ namespace ParkingRota.UnitTests
         {
             // Arrange
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = TestHelpers.CreateMockUserManager();
 
             // Set up registration token validator
             var mockRegistrationTokenValidator = new Mock<IRegistrationTokenValidator>(MockBehavior.Strict);
@@ -146,23 +143,21 @@ namespace ParkingRota.UnitTests
         {
             // Arrange
             // Set up user manager
-            var mockUserManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
+            var mockUserManager = TestHelpers.CreateMockUserManager();
 
             // Set up registration token validator
             var mockRegistrationTokenValidator = new Mock<IRegistrationTokenValidator>(MockBehavior.Strict);
             mockRegistrationTokenValidator.Setup(v => v.TokenIsValid(It.IsAny<string>())).Returns(true);
 
             // Set up password breach checker
-            var mockPasswordBreachChecker = new Mock<IPasswordBreachChecker>(MockBehavior.Strict);
-            mockPasswordBreachChecker.Setup(c => c.PasswordIsBreached(password)).Returns(Task.FromResult(true));
+            var passwordBreachChecker = TestHelpers.CreatePasswordBreachChecker(password, isBreached: true);
 
             // Set up model
             var model = new RegisterModel(
                 Mock.Of<IHttpContextAccessor>(),
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
-                mockPasswordBreachChecker.Object,
+                passwordBreachChecker,
                 Mock.Of<ILogger<RegisterModel>>(),
                 Mock.Of<IEmailRepository>())
             {
