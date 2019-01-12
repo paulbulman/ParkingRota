@@ -54,17 +54,11 @@
             var user = new ApplicationUser { Email = "a@b.c" };
             var otherUser = new ApplicationUser { Email = "x@y.z" };
 
-            var alwaysNotifiedAllocations = new[]
-            {
-                new Allocation { ApplicationUser = user, Date = 27.December(2018) },
-                new Allocation { ApplicationUser = otherUser, Date = 27.December(2018) }
-            };
+            var allUsers = new[] { user, otherUser };
 
-            var dailySummaryAllocations = new[]
-            {
-                new Allocation { ApplicationUser = user, Date = 28.December(2018) },
-                new Allocation { ApplicationUser = otherUser, Date = 28.December(2018) }
-            };
+            var alwaysNotifiedAllocations = Create.Allocations(allUsers, 27.December(2018));
+
+            var dailySummaryAllocations = Create.Allocations(allUsers, 28.December(2018));
 
             var weeklySummaryAllocations = new[]
             {

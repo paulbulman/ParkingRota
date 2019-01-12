@@ -192,19 +192,16 @@
             }
 
             // Assert
+            using (var context = this.CreateContext())
             {
-                using (var context = this.CreateContext())
-                {
-                    Assert.Single(context.EmailQueueItems.Where(e => e.DbSentTime == null));
+                Assert.Single(context.EmailQueueItems.Where(e => e.DbSentTime == null));
 
-                    var previouslyUnsentEmail = context.EmailQueueItems.Single(e => e.Subject == Subject);
+                var previouslyUnsentEmail = context.EmailQueueItems.Single(e => e.Subject == Subject);
 
-                    Assert.Equal(instant, previouslyUnsentEmail.SentTime);
-                }
+                Assert.Equal(instant, previouslyUnsentEmail.SentTime);
             }
         }
 
         private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
-
     }
 }
