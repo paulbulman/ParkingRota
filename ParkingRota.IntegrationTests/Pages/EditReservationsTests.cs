@@ -35,7 +35,7 @@
         [Fact]
         public async Task Test_EditReservations_Get()
         {
-            var response = await this.LoadEditReservationsPage(this.CreateClient());
+            var response = await LoadEditReservationsPage(this.CreateClient());
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -62,7 +62,7 @@
 
             var client = this.CreateClient();
 
-            var getResponse = await this.LoadEditReservationsPage(client);
+            var getResponse = await LoadEditReservationsPage(client);
 
             var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
 
@@ -105,22 +105,8 @@
             return (IHtmlTableElement)calendarTable;
         }
 
-        private async Task<HttpResponseMessage> LoadEditReservationsPage(HttpClient client)
-        {
-            var loginResponse = await client.GetAsync("/EditReservations");
-
-            var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
-
-            var loginForm = (IHtmlFormElement)loginDocument.QuerySelector("form");
-
-            var loginFormValues = new Dictionary<string, string>
-            {
-                { "Input.Email", EmailAddress },
-                { "Input.Password", Password }
-            };
-
-            return await client.SendAsync(loginForm, loginFormValues);
-        }
+        private static async Task<HttpResponseMessage> LoadEditReservationsPage(HttpClient client) =>
+            await client.LoadAuthenticatedPage("/EditReservations", EmailAddress, Password);
 
         private HttpClient CreateClient() =>
             this.factory.WithWebHostBuilder(builder =>

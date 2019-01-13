@@ -9,7 +9,7 @@
 
     public static class HtmlHelpers
     {
-        public static async Task<IHtmlDocument> GetDocumentAsync(HttpResponseMessage response) => 
+        public static async Task<IHtmlDocument> GetDocumentAsync(HttpResponseMessage response) =>
             (IHtmlDocument)await BrowsingContext
                 .New()
                 .OpenAsync(virtualResponse => ResponseFactory(virtualResponse, response));

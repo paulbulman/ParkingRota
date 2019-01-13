@@ -1,9 +1,7 @@
 ﻿namespace ParkingRota.IntegrationTests.Pages
 {
-    using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using AngleSharp.Dom.Html;
     using Data;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
@@ -28,19 +26,7 @@
         {
             var client = this.CreateClient();
 
-            var loginResponse = await client.GetAsync(requestUri);
-
-            var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
-
-            var loginForm = (IHtmlFormElement)loginDocument.QuerySelector("form");
-
-            var loginFormValues = new Dictionary<string, string>
-            {
-                { "Input.Email", EmailAddress },
-                { "Input.Password", Password }
-            };
-
-            var pageResponse = await client.SendAsync(loginForm, loginFormValues);
+            var pageResponse = await client.LoadAuthenticatedPage(requestUri, EmailAddress, Password);
 
             var pageDocument = await HtmlHelpers.GetDocumentAsync(pageResponse);
 

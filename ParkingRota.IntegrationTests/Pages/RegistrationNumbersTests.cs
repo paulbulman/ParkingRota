@@ -1,7 +1,6 @@
 ﻿namespace ParkingRota.IntegrationTests.Pages
 {
     using System;
-    using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -26,7 +25,7 @@
         [Fact]
         public async Task Test_Display()
         {
-            var registrationNumbersResponse = await this.LoadRegistrationNumbersPage();
+            var registrationNumbersResponse = await LoadRegistrationNumbersPage(this.CreateClient());
 
             Assert.Equal(HttpStatusCode.OK, registrationNumbersResponse.StatusCode);
 
@@ -49,24 +48,8 @@
             Assert.True(rows[2].Cells[1].InnerHtml.Contains("Anne Other", StringComparison.Ordinal));
         }
 
-        private async Task<HttpResponseMessage> LoadRegistrationNumbersPage()
-        {
-            var client = this.CreateClient();
-
-            var loginResponse = await client.GetAsync("/RegistrationNumbers");
-
-            var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
-
-            var loginForm = (IHtmlFormElement)loginDocument.QuerySelector("form");
-
-            var loginFormValues = new Dictionary<string, string>
-            {
-                { "Input.Email", EmailAddress },
-                { "Input.Password", Password }
-            };
-
-            return await client.SendAsync(loginForm, loginFormValues);
-        }
+        private static async Task<HttpResponseMessage> LoadRegistrationNumbersPage(HttpClient client) =>
+            await client.LoadAuthenticatedPage("/RegistrationNumbers", EmailAddress, Password);
 
         private HttpClient CreateClient() =>
             this.factory.WithWebHostBuilder(builder =>

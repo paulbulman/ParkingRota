@@ -53,13 +53,11 @@
                 { "X-Xss-Protection", "1; mode=block; report=https://paulbulman.report-uri.com/r/d/xss/enforce" }
             };
 
-            foreach (var expectedHeader in expectedHeaders)
+            foreach (var (key, value) in expectedHeaders)
             {
-                Assert.True(
-                    response.Headers.Contains(expectedHeader.Key),
-                    $"Expected header '{expectedHeader.Key}' not present in HTTP response");
+                Assert.True(response.Headers.Contains(key), $"Expected header '{key}' not present in HTTP response");
 
-                Assert.Contains(expectedHeader.Value, response.Headers.GetValues(expectedHeader.Key));
+                Assert.Contains(value, response.Headers.GetValues(key));
             }
         }
     }

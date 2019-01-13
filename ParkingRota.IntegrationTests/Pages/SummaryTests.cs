@@ -1,7 +1,6 @@
 ﻿namespace ParkingRota.IntegrationTests.Pages
 {
     using System;
-    using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -32,7 +31,7 @@
         [Fact]
         public async Task Test_Index()
         {
-            var summaryResponse = await this.LoadSummaryPage();
+            var summaryResponse = await LoadSummaryPage(this.CreateClient());
 
             Assert.Equal(HttpStatusCode.OK, summaryResponse.StatusCode);
 
@@ -51,24 +50,8 @@
             Assert.True(rows[1].Cells[3].InnerHtml.Contains("Jane Smith", StringComparison.Ordinal));
         }
 
-        private async Task<HttpResponseMessage> LoadSummaryPage()
-        {
-            var client = this.CreateClient();
-
-            var loginResponse = await client.GetAsync("/Summary");
-
-            var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
-
-            var loginForm = (IHtmlFormElement)loginDocument.QuerySelector("form");
-
-            var loginFormValues = new Dictionary<string, string>
-            {
-                { "Input.Email", EmailAddress },
-                { "Input.Password", Password }
-            };
-
-            return await client.SendAsync(loginForm, loginFormValues);
-        }
+        private static async Task<HttpResponseMessage> LoadSummaryPage(HttpClient client) =>
+            await client.LoadAuthenticatedPage("/Summary", EmailAddress, Password);
 
         private HttpClient CreateClient() =>
             this.factory.WithWebHostBuilder(builder =>

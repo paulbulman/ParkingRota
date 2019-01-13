@@ -12,6 +12,24 @@
 
     public static class HttpClientExtensions
     {
+        public static async Task<HttpResponseMessage> LoadAuthenticatedPage(
+            this HttpClient client, string requestUri, string emailAddress, string password)
+        {
+            var loginResponse = await client.GetAsync(requestUri);
+
+            var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
+
+            var loginForm = (IHtmlFormElement)loginDocument.QuerySelector("form");
+
+            var loginFormValues = new Dictionary<string, string>
+            {
+                { "Input.Email", emailAddress },
+                { "Input.Password", password }
+            };
+
+            return await client.SendAsync(loginForm, loginFormValues);
+        }
+
         public static Task<HttpResponseMessage> SendAsync(
             this HttpClient client, IHtmlFormElement form, IHtmlElement submitButton) =>
                 client.SendAsync(form, submitButton, new Dictionary<string, string>());

@@ -32,7 +32,7 @@
         [Fact]
         public async Task Test_EditRequests_Get()
         {
-            var response = await this.LoadEditRequestsPage(this.CreateClient());
+            var response = await LoadEditRequestsPage(this.CreateClient());
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -49,7 +49,7 @@
         {
             var client = this.CreateClient();
 
-            var getResponse = await this.LoadEditRequestsPage(client);
+            var getResponse = await LoadEditRequestsPage(client);
 
             var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
 
@@ -103,22 +103,8 @@
             Assert.Equal(expectIsChecked, ((IHtmlInputElement)checkbox).IsChecked);
         }
 
-        private async Task<HttpResponseMessage> LoadEditRequestsPage(HttpClient client)
-        {
-            var loginResponse = await client.GetAsync("/EditRequests");
-
-            var loginDocument = await HtmlHelpers.GetDocumentAsync(loginResponse);
-
-            var loginForm = (IHtmlFormElement)loginDocument.QuerySelector("form");
-
-            var loginFormValues = new Dictionary<string, string>
-            {
-                { "Input.Email", EmailAddress },
-                { "Input.Password", Password }
-            };
-
-            return await client.SendAsync(loginForm, loginFormValues);
-        }
+        private static async Task<HttpResponseMessage> LoadEditRequestsPage(HttpClient client) =>
+            await client.LoadAuthenticatedPage("/EditRequests", EmailAddress, Password);
 
         private HttpClient CreateClient() =>
             this.factory.WithWebHostBuilder(builder =>
