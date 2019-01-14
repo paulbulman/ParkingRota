@@ -1,7 +1,6 @@
 namespace ParkingRota.UnitTests
 {
     using System;
-    using System.Net;
     using System.Threading.Tasks;
     using Areas.Identity.Pages.Account;
     using Microsoft.AspNetCore.Http;
@@ -36,13 +35,7 @@ namespace ParkingRota.UnitTests
 
             // Arrange
             // Set up HTTP context accessor
-            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-            mockHttpContextAccessor
-                .SetupGet(a => a.HttpContext.Request.Headers)
-                .Returns(new HeaderDictionary());
-            mockHttpContextAccessor
-                .SetupGet(a => a.HttpContext.Connection.RemoteIpAddress)
-                .Returns(new IPAddress(IpAddressInt));
+            var mockHttpContextAccessor = TestHelpers.CreateMockHttpContextAccessor(IpAddressInt);
 
             // Set up user manager
             var mockUserManager = TestHelpers.CreateMockUserManager();

@@ -2,6 +2,7 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Linq;
     using System.Threading.Tasks;
     using Business.Emails;
     using Business.Model;
@@ -63,7 +64,14 @@
 
                 var resetPasswordEmail = new ResetPassword(this.Input.Email, callbackUrl, ipAddress);
 
-                this.emailRepository.AddToQueue(resetPasswordEmail);
+                var recentlySent = this.emailRepository
+                    .GetRecent()
+                    .Any(e => e.To == resetPasswordEmail.To && e.Subject == resetPasswordEmail.Subject);
+
+                if (!recentlySent)
+                {
+                    this.emailRepository.AddToQueue(resetPasswordEmail);
+                }
 
                 return this.RedirectToPage("./ForgotPasswordConfirmation");
             }

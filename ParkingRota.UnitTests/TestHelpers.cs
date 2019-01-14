@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Security.Claims;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
@@ -40,6 +41,20 @@
                 .Returns(Task.FromResult(isBreached));
 
             return mockPasswordBreachChecker.Object;
+        }
+
+        public static Mock<IHttpContextAccessor> CreateMockHttpContextAccessor(int ipAddress)
+        {
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
+
+            mockHttpContextAccessor
+                .SetupGet(a => a.HttpContext.Request.Headers)
+                .Returns(new HeaderDictionary());
+            mockHttpContextAccessor
+                .SetupGet(a => a.HttpContext.Connection.RemoteIpAddress)
+                .Returns(new IPAddress(ipAddress));
+
+            return mockHttpContextAccessor;
         }
 
         public static Mock<SignInManager<ApplicationUser>> CreateMockSigninManager(UserManager<ApplicationUser> userManager)
