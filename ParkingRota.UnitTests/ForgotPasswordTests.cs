@@ -1,10 +1,10 @@
 namespace ParkingRota.UnitTests
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Areas.Identity.Pages.Account;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -32,36 +32,22 @@ namespace ParkingRota.UnitTests
             var mockHttpContextAccessor = TestHelpers.CreateMockHttpContextAccessor(IpAddressInt);
 
             // Set up user manager
-            var user = new ApplicationUser { Email = EmailAddress };
-
-            var mockUserManager = TestHelpers.CreateMockUserManager();
-            mockUserManager
-                .Setup(u => u.FindByEmailAsync(EmailAddress))
-                .Returns(Task.FromResult(user));
-            mockUserManager
-                .Setup(u => u.IsEmailConfirmedAsync(user))
-                .Returns(Task.FromResult(true));
-            mockUserManager
-                .Setup(u => u.GeneratePasswordResetTokenAsync(user))
-                .Returns(Task.FromResult("[Reset code]"));
+            var mockUserManager = CreateMockUserManager(userIsConfirmed: true);
 
             // Set up email repository
+            var otherUserEmail = new EmailQueueItem { To = "Other email address", Subject = "Reset password" };
+            var otherSubjectEmail = new EmailQueueItem { To = EmailAddress, Subject = "Other subject" };
+
             var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
             mockEmailRepository.Setup(e => e.AddToQueue(It.IsAny<ResetPassword>()));
             mockEmailRepository
                 .Setup(e => e.GetRecent())
-                .Returns(new List<EmailQueueItem>());
+                .Returns(new[] { otherUserEmail, otherSubjectEmail });
 
             // Set up model
             var httpContext = new DefaultHttpContext();
 
-            var actionContext = new ActionContext(
-                httpContext, new RouteData(), new PageActionDescriptor(), new ModelStateDictionary());
-
-            var mockUrlHelper = new Mock<UrlHelper>(actionContext);
-            mockUrlHelper
-                .Setup(u => u.RouteUrl(It.IsAny<UrlRouteContext>()))
-                .Returns(ConfirmEmailUrl);
+            var mockUrlHelper = CreateMockUrlHelper(httpContext, ConfirmEmailUrl);
 
             var model = new ForgotPasswordModel(
                 mockHttpContextAccessor.Object,
@@ -120,15 +106,7 @@ namespace ParkingRota.UnitTests
         {
             // Arrange
             // Set up user manager
-            var user = new ApplicationUser { Email = EmailAddress };
-
-            var mockUserManager = TestHelpers.CreateMockUserManager();
-            mockUserManager
-                .Setup(u => u.FindByEmailAsync(EmailAddress))
-                .Returns(Task.FromResult(user));
-            mockUserManager
-                .Setup(u => u.IsEmailConfirmedAsync(user))
-                .Returns(Task.FromResult(false));
+            var mockUserManager = CreateMockUserManager(userIsConfirmed: false);
 
             // Set up model
             var model = new ForgotPasswordModel(
@@ -157,18 +135,7 @@ namespace ParkingRota.UnitTests
             var mockHttpContextAccessor = TestHelpers.CreateMockHttpContextAccessor(IpAddressInt);
 
             // Set up user manager
-            var user = new ApplicationUser { Email = EmailAddress };
-
-            var mockUserManager = TestHelpers.CreateMockUserManager();
-            mockUserManager
-                .Setup(u => u.FindByEmailAsync(EmailAddress))
-                .Returns(Task.FromResult(user));
-            mockUserManager
-                .Setup(u => u.IsEmailConfirmedAsync(user))
-                .Returns(Task.FromResult(true));
-            mockUserManager
-                .Setup(u => u.GeneratePasswordResetTokenAsync(user))
-                .Returns(Task.FromResult("[Reset code]"));
+            var mockUserManager = CreateMockUserManager(userIsConfirmed: true);
 
             // Set up email repository
             var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
@@ -179,13 +146,7 @@ namespace ParkingRota.UnitTests
             // Set up model
             var httpContext = new DefaultHttpContext();
 
-            var actionContext = new ActionContext(
-                httpContext, new RouteData(), new PageActionDescriptor(), new ModelStateDictionary());
-
-            var mockUrlHelper = new Mock<UrlHelper>(actionContext);
-            mockUrlHelper
-                .Setup(u => u.RouteUrl(It.IsAny<UrlRouteContext>()))
-                .Returns("https://some.url");
+            var mockUrlHelper = CreateMockUrlHelper(httpContext, "https://some.url");
 
             var model = new ForgotPasswordModel(
                 mockHttpContextAccessor.Object,
@@ -203,6 +164,41 @@ namespace ParkingRota.UnitTests
             // Assert
             Assert.IsType<RedirectToPageResult>(result);
             Assert.Equal("./ForgotPasswordConfirmation", ((RedirectToPageResult)result).PageName);
+        }
+
+        private static Mock<UserManager<ApplicationUser>> CreateMockUserManager(bool userIsConfirmed)
+        {
+            var user = new ApplicationUser { Email = EmailAddress };
+
+            var mockUserManager = TestHelpers.CreateMockUserManager();
+            mockUserManager
+                .Setup(u => u.FindByEmailAsync(EmailAddress))
+                .Returns(Task.FromResult(user));
+            mockUserManager
+                .Setup(u => u.IsEmailConfirmedAsync(user))
+                .Returns(Task.FromResult(userIsConfirmed));
+
+            if (userIsConfirmed)
+            {
+                mockUserManager
+                    .Setup(u => u.GeneratePasswordResetTokenAsync(user))
+                    .Returns(Task.FromResult("[Reset code]"));
+            }
+
+            return mockUserManager;
+        }
+
+        private static Mock<UrlHelper> CreateMockUrlHelper(HttpContext httpContext, string confirmEmailUrl)
+        {
+            var actionContext = new ActionContext(
+                httpContext, new RouteData(), new PageActionDescriptor(), new ModelStateDictionary());
+
+            var mockUrlHelper = new Mock<UrlHelper>(actionContext);
+            mockUrlHelper
+                .Setup(u => u.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Returns(confirmEmailUrl);
+
+            return mockUrlHelper;
         }
     }
 }
