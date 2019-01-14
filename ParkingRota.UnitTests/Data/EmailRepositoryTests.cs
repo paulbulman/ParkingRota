@@ -64,6 +64,83 @@
         }
 
         [Fact]
+        public void Test_GetRecent()
+        {
+            // Arrange
+            var unsentEmail = new DataQueueItem
+            {
+                To = "a@b.c",
+                Subject = "Unsent email subject",
+                HtmlBody = "<p>Unsent email body</p>",
+                PlainTextBody = "Unsent email body",
+                AddedTime = 1.January(2019).At(10, 29, 56).Utc()
+            };
+
+            var sentEmail = new DataQueueItem
+            {
+                To = "d@e.f",
+                Subject = "Sent email subject",
+                HtmlBody = "<p>Sent email body</p>",
+                PlainTextBody = "Sent email body",
+                AddedTime = 1.January(2019).At(10, 27, 50).Utc(),
+                SentTime = 1.January(2019).At(10, 28, 03).Utc()
+            };
+
+            var earlierSentEmail = new DataQueueItem
+            {
+                To = "x@y.z",
+                Subject = "Earlier sent email subject",
+                HtmlBody = "<p>Earlier sent email body</p>",
+                PlainTextBody = "Earlier sent email body",
+                AddedTime = 1.January(2019).At(9, 59, 50).Utc(),
+                SentTime = 1.January(2019).At(10, 00, 03).Utc()
+            };
+
+            using (var context = this.CreateContext())
+            {
+                context.EmailQueueItems.AddRange(unsentEmail, sentEmail, earlierSentEmail);
+                context.SaveChanges();
+            }
+
+            var instant = 1.January(2019).At(10, 30, 00).Utc();
+
+            var fakeClock = new FakeClock(instant);
+
+            var mapperConfiguration = new MapperConfiguration(c => { c.CreateMap<DataQueueItem, ModelQueueItem>(); });
+
+            using (var context = this.CreateContext())
+            {
+                // Act
+                var repository = new EmailRepository(
+                    context,
+                    fakeClock,
+                    new Mapper(mapperConfiguration));
+
+                var result = repository.GetRecent();
+
+                // Assert
+                var recentEmails = new[] { unsentEmail, sentEmail };
+
+                Assert.Equal(recentEmails.Length, result.Count);
+
+                Assert.True(result.First().AddedTime < result.Last().AddedTime);
+
+                foreach (var expected in recentEmails)
+                {
+                    Assert.Single(
+                        result,
+                        actual =>
+                            actual.To == expected.To &&
+                            actual.Subject == expected.Subject &&
+                            actual.HtmlBody == expected.HtmlBody &&
+                            actual.PlainTextBody == expected.PlainTextBody &&
+                            actual.AddedTime == expected.AddedTime &&
+                            actual.SentTime == expected.SentTime);
+                }
+            }
+        }
+
+        [Fact]
         public void Test_GetUnsent()
         {
             // Arrange

@@ -35,6 +35,18 @@
             this.context.SaveChanges();
         }
 
+        public IReadOnlyList<Business.Model.EmailQueueItem> GetRecent()
+        {
+            var threshold = this.clock.GetCurrentInstant().Minus(Duration.FromMinutes(30)).ToDateTimeUtc();
+
+            return this.context.EmailQueueItems
+                .Where(e => e.DbAddedTime >= threshold)
+                .OrderBy(e => e.AddedTime)
+                .ToArray()
+                .Select(this.mapper.Map<Business.Model.EmailQueueItem>)
+                .ToArray();
+        }
+
         public IReadOnlyList<Business.Model.EmailQueueItem> GetUnsent() =>
             this.context.EmailQueueItems
                 .Where(e => e.DbSentTime == null)

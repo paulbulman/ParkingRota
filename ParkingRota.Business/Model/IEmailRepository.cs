@@ -7,6 +7,8 @@
     {
         void AddToQueue(IEmail email);
 
+        IReadOnlyList<EmailQueueItem> GetRecent();
+
         IReadOnlyList<EmailQueueItem> GetUnsent();
 
         void MarkAsSent(EmailQueueItem email);
