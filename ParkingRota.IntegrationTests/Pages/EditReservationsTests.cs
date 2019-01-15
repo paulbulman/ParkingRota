@@ -14,7 +14,6 @@
     using NodaTime;
     using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business.Model;
     using UnitTests;
     using Xunit;
 
@@ -24,18 +23,12 @@
 
         private const int ReservableSpaces = 4;
 
-        private const string UserId = "b35d8fae-6e76-486d-9255-4ea5b68527b1";
-        private const string EmailAddress = "anneother@gmail.com";
-        private const string Password = "9Ft6M%";
-        private const string PasswordHash =
-            "AQAAAAEAACcQAAAAEGe/qgvKfGP5QOeQnC2YF5Fzphi2AvOD71xUXnzfW4yQfuuEGJ4qrdzt9bwESjN4Mw==";
-
         public EditReservationsTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Fact]
         public async Task Test_EditReservations_Get()
         {
-            var response = await LoadEditReservationsPage(this.CreateClient());
+            var response = await this.CreateClient().LoadAuthenticatedPage("/EditReservations");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -62,7 +55,7 @@
 
             var client = this.CreateClient();
 
-            var getResponse = await LoadEditReservationsPage(client);
+            var getResponse = await client.LoadAuthenticatedPage("/EditReservations");
 
             var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
 
@@ -73,7 +66,7 @@
 
             var formValues = new Dictionary<string, string>
             {
-                { "selectedReservationStrings", $"2018-11-08|{NewOrder}|{UserId}" }
+                { "selectedReservationStrings", $"2018-11-08|{NewOrder}|{DatabaseWebApplicationFactory<Program>.DefaultUserId}" }
             };
 
             var postResponse = await client.SendAsync(form, formValues);
@@ -105,9 +98,6 @@
             return (IHtmlTableElement)calendarTable;
         }
 
-        private static async Task<HttpResponseMessage> LoadEditReservationsPage(HttpClient client) =>
-            await client.LoadAuthenticatedPage("/EditReservations", EmailAddress, Password);
-
         private HttpClient CreateClient() =>
             this.factory.WithWebHostBuilder(builder =>
             {
@@ -121,31 +111,16 @@
                     {
                         var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                        var applicationUser = new ApplicationUser
-                        {
-                            Id = UserId,
-                            UserName = EmailAddress,
-                            NormalizedUserName = EmailAddress.ToUpper(),
-                            Email = EmailAddress,
-                            NormalizedEmail = EmailAddress.ToUpper(),
-                            PasswordHash = PasswordHash,
-                            SecurityStamp = "DI5SLUUOBZMZJ3ROV6CKOO673JJFF72E",
-                            ConcurrencyStamp = "1837d1c1-393b-46ba-9397-578fca593f9d",
-                            CarRegistrationNumber = "AB12CDE",
-                            CommuteDistance = 9.99m,
-                            FirstName = "Anne",
-                            LastName = "Other",
-                            EmailConfirmed = true
-                        };
+                        var applicationUser = context.Users.Single();
 
-                        var reservation = new Data.Reservation
+                        var reservation = new Reservation
                         {
                             ApplicationUser = applicationUser,
                             Date = 7.November(2018),
                             Order = 2
                         };
 
-                        var systemParameterList = new Data.SystemParameterList
+                        var systemParameterList = new SystemParameterList
                         {
                             ReservableSpaces = ReservableSpaces
                         };
@@ -159,7 +134,6 @@
                         };
 
                         context.Roles.Add(teamLeaderRole);
-                        context.Users.Add(applicationUser);
                         context.UserRoles.Add(userRole);
                         context.Reservations.Add(reservation);
                         context.SystemParameterLists.Add(systemParameterList);

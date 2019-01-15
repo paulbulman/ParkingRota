@@ -14,7 +14,6 @@
     using NodaTime;
     using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business.Model;
     using UnitTests;
     using Xunit;
 
@@ -22,17 +21,12 @@
     {
         private readonly DatabaseWebApplicationFactory<Program> factory;
 
-        private const string EmailAddress = "anneother@gmail.com";
-        private const string Password = "9Ft6M%";
-        private const string PasswordHash =
-            "AQAAAAEAACcQAAAAEGe/qgvKfGP5QOeQnC2YF5Fzphi2AvOD71xUXnzfW4yQfuuEGJ4qrdzt9bwESjN4Mw==";
-
         public EditRequestsTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Fact]
         public async Task Test_EditRequests_Get()
         {
-            var response = await LoadEditRequestsPage(this.CreateClient());
+            var response = await this.CreateClient().LoadAuthenticatedPage("/EditRequests");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -49,7 +43,7 @@
         {
             var client = this.CreateClient();
 
-            var getResponse = await LoadEditRequestsPage(client);
+            var getResponse = await client.LoadAuthenticatedPage("/EditRequests");
 
             var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
 
@@ -103,9 +97,6 @@
             Assert.Equal(expectIsChecked, ((IHtmlInputElement)checkbox).IsChecked);
         }
 
-        private static async Task<HttpResponseMessage> LoadEditRequestsPage(HttpClient client) =>
-            await client.LoadAuthenticatedPage("/EditRequests", EmailAddress, Password);
-
         private HttpClient CreateClient() =>
             this.factory.WithWebHostBuilder(builder =>
             {
@@ -119,30 +110,14 @@
                     {
                         var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                        var applicationUser = new ApplicationUser
-                        {
-                            Id = "b35d8fae-6e76-486d-9255-4ea5b68527b1",
-                            UserName = EmailAddress,
-                            NormalizedUserName = EmailAddress.ToUpper(),
-                            Email = EmailAddress,
-                            NormalizedEmail = EmailAddress.ToUpper(),
-                            PasswordHash = PasswordHash,
-                            SecurityStamp = "DI5SLUUOBZMZJ3ROV6CKOO673JJFF72E",
-                            ConcurrencyStamp = "1837d1c1-393b-46ba-9397-578fca593f9d",
-                            CarRegistrationNumber = "AB12CDE",
-                            CommuteDistance = 9.99m,
-                            FirstName = "Anne",
-                            LastName = "Other",
-                            EmailConfirmed = true
-                        };
+                        var applicationUser = context.Users.Single();
 
-                        var request = new Data.Request
+                        var request = new Request
                         {
                             ApplicationUser = applicationUser,
                             Date = 7.November(2018)
                         };
 
-                        context.Users.Add(applicationUser);
                         context.Requests.Add(request);
 
                         context.SaveChanges();

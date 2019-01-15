@@ -12,8 +12,7 @@
 
     public static class HttpClientExtensions
     {
-        public static async Task<HttpResponseMessage> LoadAuthenticatedPage(
-            this HttpClient client, string requestUri, string emailAddress, string password)
+        public static async Task<HttpResponseMessage> LoadAuthenticatedPage(this HttpClient client, string requestUri)
         {
             var loginResponse = await client.GetAsync(requestUri);
 
@@ -23,8 +22,8 @@
 
             var loginFormValues = new Dictionary<string, string>
             {
-                { "Input.Email", emailAddress },
-                { "Input.Password", password }
+                { "Input.Email", DatabaseWebApplicationFactory<Program>.DefaultEmailAddress },
+                { "Input.Password", DatabaseWebApplicationFactory<Program>.DefaultPassword }
             };
 
             return await client.SendAsync(loginForm, loginFormValues);

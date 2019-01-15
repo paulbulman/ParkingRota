@@ -1,6 +1,7 @@
 ﻿namespace ParkingRota.IntegrationTests.Pages
 {
     using System;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -21,17 +22,12 @@
     {
         private readonly DatabaseWebApplicationFactory<Program> factory;
 
-        private const string EmailAddress = "anneother@gmail.com";
-        private const string Password = "9Ft6M%";
-        private const string PasswordHash =
-            "AQAAAAEAACcQAAAAEGe/qgvKfGP5QOeQnC2YF5Fzphi2AvOD71xUXnzfW4yQfuuEGJ4qrdzt9bwESjN4Mw==";
-
         public SummaryTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Fact]
         public async Task Test_Index()
         {
-            var summaryResponse = await LoadSummaryPage(this.CreateClient());
+            var summaryResponse = await this.CreateClient().LoadAuthenticatedPage("/Summary");
 
             Assert.Equal(HttpStatusCode.OK, summaryResponse.StatusCode);
 
@@ -50,9 +46,6 @@
             Assert.True(rows[1].Cells[3].InnerHtml.Contains("Jane Smith", StringComparison.Ordinal));
         }
 
-        private static async Task<HttpResponseMessage> LoadSummaryPage(HttpClient client) =>
-            await client.LoadAuthenticatedPage("/Summary", EmailAddress, Password);
-
         private HttpClient CreateClient() =>
             this.factory.WithWebHostBuilder(builder =>
             {
@@ -66,22 +59,7 @@
                     {
                         var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                        var applicationUser = new ApplicationUser
-                        {
-                            Id = "b35d8fae-6e76-486d-9255-4ea5b68527b1",
-                            UserName = EmailAddress,
-                            NormalizedUserName = EmailAddress.ToUpper(),
-                            Email = EmailAddress,
-                            NormalizedEmail = EmailAddress.ToUpper(),
-                            PasswordHash = PasswordHash,
-                            SecurityStamp = "DI5SLUUOBZMZJ3ROV6CKOO673JJFF72E",
-                            ConcurrencyStamp = "1837d1c1-393b-46ba-9397-578fca593f9d",
-                            CarRegistrationNumber = "AB12CDE",
-                            CommuteDistance = 9.99m,
-                            FirstName = "Anne",
-                            LastName = "Other",
-                            EmailConfirmed = true
-                        };
+                        var applicationUser = context.Users.Single();
 
                         var otherUser = new ApplicationUser
                         {
@@ -89,7 +67,6 @@
                             LastName = "Smith"
                         };
 
-                        context.Users.Add(applicationUser);
                         context.Users.Add(otherUser);
 
                         context.Requests.Add(new Request
