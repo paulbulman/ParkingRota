@@ -12,6 +12,7 @@ namespace ParkingRota.Service
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using NodaTime;
 
     public class Program
@@ -19,6 +20,8 @@ namespace ParkingRota.Service
         public async Task RunTasks(ILambdaContext context)
         {
             var services = new ServiceCollection();
+
+            services.AddLogging();
 
             var connectionString =
                 Environment.GetEnvironmentVariable("ParkingRotaConnectionString") ??
@@ -50,7 +53,7 @@ namespace ParkingRota.Service
             services.AddScoped<IScheduledTaskRepository, ScheduledTaskRepository>();
             services.AddScoped<ScheduledTaskRunner>();
             services.AddScoped<ISystemParameterListRepository, SystemParameterListRepository>();
-            
+
             services.AddScoped<IScheduledTask, DailySummary>();
             services.AddScoped<IScheduledTask, RequestReminder>();
             services.AddScoped<IScheduledTask, ReservationReminder>();
@@ -70,11 +73,11 @@ namespace ParkingRota.Service
 
             services.AddSingleton<IMapper>(new Mapper(mapperConfiguration));
 
-            var serviceScopeFactory = services
-                .BuildServiceProvider()
-                .GetRequiredService<IServiceScopeFactory>();
+            var serviceProvider = services.BuildServiceProvider();
 
-            using (var scope = serviceScopeFactory.CreateScope())
+            serviceProvider.GetService<ILoggerFactory>().AddConsole(LogLevel.Information);
+
+            using (var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var allocationCreator = scope.ServiceProvider.GetRequiredService<AllocationCreator>();
                 var newAllocations = allocationCreator.Create();

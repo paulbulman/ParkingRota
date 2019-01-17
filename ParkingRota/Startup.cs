@@ -131,6 +131,10 @@ namespace ParkingRota
             {
                 loggerFactory.AddAWSProvider(this.Configuration.GetAWSLoggingConfigSection());
             }
+            else
+            {
+                loggerFactory.AddConsole(LogLevel.Debug);
+            }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
