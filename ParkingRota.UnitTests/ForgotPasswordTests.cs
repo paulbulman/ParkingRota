@@ -29,7 +29,7 @@ namespace ParkingRota.UnitTests
             const string ConfirmEmailUrl = "https://some.url";
 
             // Set up HTTP context accessor
-            var mockHttpContextAccessor = TestHelpers.CreateMockHttpContextAccessor(IpAddressInt);
+            var httpContextAccessor = TestHelpers.CreateHttpContextAccessor(IpAddressInt);
 
             // Set up user manager
             var mockUserManager = CreateMockUserManager(userIsConfirmed: true);
@@ -50,7 +50,7 @@ namespace ParkingRota.UnitTests
             var mockUrlHelper = CreateMockUrlHelper(httpContext, ConfirmEmailUrl);
 
             var model = new ForgotPasswordModel(
-                mockHttpContextAccessor.Object,
+                httpContextAccessor,
                 mockUserManager.Object,
                 mockEmailRepository.Object)
             {
@@ -132,7 +132,7 @@ namespace ParkingRota.UnitTests
             const int IpAddressInt = 0x2414188f;
 
             // Set up HTTP context accessor
-            var mockHttpContextAccessor = TestHelpers.CreateMockHttpContextAccessor(IpAddressInt);
+            var httpContextAccessor = TestHelpers.CreateHttpContextAccessor(IpAddressInt);
 
             // Set up user manager
             var mockUserManager = CreateMockUserManager(userIsConfirmed: true);
@@ -149,7 +149,7 @@ namespace ParkingRota.UnitTests
             var mockUrlHelper = CreateMockUrlHelper(httpContext, "https://some.url");
 
             var model = new ForgotPasswordModel(
-                mockHttpContextAccessor.Object,
+                httpContextAccessor,
                 mockUserManager.Object,
                 mockEmailRepository.Object)
             {

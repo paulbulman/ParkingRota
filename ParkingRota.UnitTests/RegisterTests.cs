@@ -35,7 +35,7 @@ namespace ParkingRota.UnitTests
 
             // Arrange
             // Set up HTTP context accessor
-            var mockHttpContextAccessor = TestHelpers.CreateMockHttpContextAccessor(IpAddressInt);
+            var httpContextAccessor = TestHelpers.CreateHttpContextAccessor(IpAddressInt);
 
             // Set up user manager
             var mockUserManager = TestHelpers.CreateMockUserManager();
@@ -70,7 +70,7 @@ namespace ParkingRota.UnitTests
                 .Returns(ConfirmEmailUrl);
 
             var model = new RegisterModel(
-                mockHttpContextAccessor.Object,
+                httpContextAccessor,
                 mockUserManager.Object,
                 mockRegistrationTokenValidator.Object,
                 passwordBreachChecker,

@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using Business.Model;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -12,11 +13,16 @@
     [AllowAnonymous]
     public class LoginModel : PageModel
     {
+        private readonly IHttpContextAccessor httpContextAccessor;
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly ILogger<LoginModel> logger;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(
+            IHttpContextAccessor httpContextAccessor,
+            SignInManager<ApplicationUser> signInManager, 
+            ILogger<LoginModel> logger)
         {
+            this.httpContextAccessor = httpContextAccessor;
             this.signInManager = signInManager;
             this.logger = logger;
         }
@@ -59,20 +65,30 @@
 
             if (this.ModelState.IsValid)
             {
+                var originatingIpAddress = this.httpContextAccessor.GetOriginatingIpAddress();
+
                 var result = await this.signInManager.PasswordSignInAsync(
                     this.Input.Email, this.Input.Password, this.Input.RememberMe, lockoutOnFailure: true);
 
                 if (result.Succeeded)
                 {
-                    this.logger.LogInformation("User logged in.");
+                    this.logger.LogInformation(
+                        $"User {this.Input.Email} logged in from IP address {originatingIpAddress}.");
+
                     return this.LocalRedirect(returnUrl);
                 }
 
                 if (result.RequiresTwoFactor)
                 {
+                    this.logger.LogInformation(
+                        $"User {this.Input.Email} logged in from IP address {originatingIpAddress}.");
+
                     return this.RedirectToPage(
                         "./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = this.Input.RememberMe });
                 }
+
+                this.logger.LogInformation(
+                    $"Failed login attempt for user {this.Input.Email} from IP address {originatingIpAddress}.");
 
                 this.ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }

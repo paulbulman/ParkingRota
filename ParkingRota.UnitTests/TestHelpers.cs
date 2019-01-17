@@ -43,7 +43,7 @@
             return mockPasswordBreachChecker.Object;
         }
 
-        public static Mock<IHttpContextAccessor> CreateMockHttpContextAccessor(int ipAddress)
+        public static IHttpContextAccessor CreateHttpContextAccessor(int ipAddress)
         {
             var mockHttpContextAccessor = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
 
@@ -54,7 +54,7 @@
                 .SetupGet(a => a.HttpContext.Connection.RemoteIpAddress)
                 .Returns(new IPAddress(ipAddress));
 
-            return mockHttpContextAccessor;
+            return mockHttpContextAccessor.Object;
         }
 
         public static Mock<SignInManager<ApplicationUser>> CreateMockSigninManager(UserManager<ApplicationUser> userManager)
