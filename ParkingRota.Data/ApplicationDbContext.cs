@@ -62,10 +62,10 @@
             builder.Entity<BankHoliday>().Property(b => b.DbDate).HasColumnName("Date");
             builder.Entity<BankHoliday>().Ignore(b => b.Date);
 
-            builder.Entity<EmailQueueItem>().Property(t => t.DbAddedTime).HasColumnName("AddedTime");
-            builder.Entity<EmailQueueItem>().Ignore(t => t.AddedTime);
-            builder.Entity<EmailQueueItem>().Property(t => t.DbSentTime).HasColumnName("SentTime");
-            builder.Entity<EmailQueueItem>().Ignore(t => t.SentTime);
+            builder.Entity<EmailQueueItem>().Property(e => e.DbAddedTime).HasColumnName("AddedTime");
+            builder.Entity<EmailQueueItem>().Ignore(e => e.AddedTime);
+            builder.Entity<EmailQueueItem>().Property(e => e.DbSentTime).HasColumnName("SentTime");
+            builder.Entity<EmailQueueItem>().Ignore(e => e.SentTime);
 
             builder.Entity<RegistrationToken>().Property(t => t.DbExpiryTime).HasColumnName("ExpiryTime");
             builder.Entity<RegistrationToken>().Ignore(t => t.ExpiryTime);
@@ -78,9 +78,11 @@
             builder.Entity<Reservation>().Property(r => r.DbDate).HasColumnName("Date");
             builder.Entity<Reservation>().Ignore(r => r.Date);
 
-            builder.Entity<ScheduledTask>().HasIndex(a => a.ScheduledTaskType).IsUnique();
-            builder.Entity<ScheduledTask>().Property(a => a.DbNextRunTime).HasColumnName("NextRunTime");
-            builder.Entity<ScheduledTask>().Ignore(a => a.NextRunTime);
+            builder.Entity<ScheduledTask>().HasIndex(t => t.ScheduledTaskType).IsUnique();
+            builder.Entity<ScheduledTask>().Property(t => t.DbNextRunTime).HasColumnName("NextRunTime");
+            builder.Entity<ScheduledTask>().Ignore(t => t.NextRunTime);
+            
+            builder.Entity<SystemParameterList>().Property(p => p.NearbyDistance).HasColumnType("decimal(18,2)");
         }
     }
 }
