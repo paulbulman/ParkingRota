@@ -1,24 +1,22 @@
 ﻿namespace ParkingRota.Data
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using AutoMapper;
     using Business.Model;
+    using ModelBankHoliday = Business.Model.BankHoliday;
 
     public class BankHolidayRepository : IBankHolidayRepository
     {
-        private readonly IApplicationDbContext context;
-        private readonly IMapper mapper;
+        private readonly Lazy<IReadOnlyList<ModelBankHoliday>> bankHolidays;
 
-        public BankHolidayRepository(IApplicationDbContext context, IMapper mapper)
-        {
-            this.context = context;
-            this.mapper = mapper;
-        }
+        public BankHolidayRepository(IApplicationDbContext context, IMapper mapper) => 
+            this.bankHolidays = new Lazy<IReadOnlyList<ModelBankHoliday>>(CreateBankHolidays(context, mapper));
 
-        public IReadOnlyList<Business.Model.BankHoliday> BankHolidays =>
-            this.context.BankHolidays
-                .Select(this.mapper.Map<Business.Model.BankHoliday>)
-                .ToArray();
+        private static Func<IReadOnlyList<ModelBankHoliday>> CreateBankHolidays(IApplicationDbContext context, IMapper mapper) =>
+            () => context.BankHolidays.ToArray().Select(mapper.Map<ModelBankHoliday>).ToArray();
+
+        public IReadOnlyList<ModelBankHoliday> BankHolidays => this.bankHolidays.Value;
     }
 }

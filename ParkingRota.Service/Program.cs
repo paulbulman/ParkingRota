@@ -21,7 +21,7 @@ namespace ParkingRota.Service
         {
             var services = new ServiceCollection();
 
-            services.AddLogging();
+            services.AddLogging(configure => configure.AddConsole());
 
             var connectionString =
                 Environment.GetEnvironmentVariable("ParkingRotaConnectionString") ??
@@ -74,8 +74,6 @@ namespace ParkingRota.Service
             services.AddSingleton<IMapper>(new Mapper(mapperConfiguration));
 
             var serviceProvider = services.BuildServiceProvider();
-
-            serviceProvider.GetService<ILoggerFactory>().AddConsole(LogLevel.Information);
 
             using (var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
