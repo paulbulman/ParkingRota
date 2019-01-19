@@ -58,7 +58,7 @@
                     "/Account/ResetPassword",
                     pageHandler: null,
                     values: new { code },
-                    protocol: this.Request.Scheme);
+                    protocol: "https");
 
                 var ipAddress = this.httpContextAccessor.GetOriginatingIpAddress();
 

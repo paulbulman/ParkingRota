@@ -117,7 +117,7 @@
                             "/Account/ConfirmEmail",
                             pageHandler: null,
                             values: new { userId = user.Id, code = emailConfirmationToken },
-                            protocol: this.Request.Scheme);
+                            protocol: "https");
 
                         var ipAddress = this.httpContextAccessor.GetOriginatingIpAddress();
 
