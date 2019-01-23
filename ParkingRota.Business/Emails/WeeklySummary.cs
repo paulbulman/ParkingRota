@@ -8,17 +8,18 @@
 
     public class WeeklySummary : IEmail
     {
+        private readonly ApplicationUser recipient;
         private readonly IReadOnlyList<Allocation> allocations;
         private readonly IReadOnlyList<Request> requests;
 
-        public WeeklySummary(string to, IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests)
+        public WeeklySummary(ApplicationUser recipient, IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests)
         {
+            this.recipient = recipient;
             this.allocations = allocations;
             this.requests = requests;
-            this.To = to;
         }
 
-        public string To { get; }
+        public string To => this.recipient.Email;
 
         public string Subject => $"Weekly provisional allocations summary for {this.FormattedDateRange}";
 
@@ -33,8 +34,7 @@
                 foreach (var localDate in this.OrderedDates)
                 {
                     body.Append($"<p>{localDate.ForDisplay()}:</p>");
-                    body.Append(DailySummary.GetHtmlSummary(
-                        this.GetDailyAllocations(localDate), this.GetDailyRequests(localDate)));
+                    body.Append(DailySummary.GetHtmlSummary(this.recipient, this.GetDailyAllocations(localDate), this.GetDailyRequests(localDate)));
                 }
 
                 body.Append($"<p>{Footer}</p>");
@@ -56,8 +56,7 @@
                 {
                     lines.Add($"{localDate.ForDisplay()}:");
                     lines.Add(string.Empty);
-                    lines.AddRange(DailySummary.GetPlainTextSummary(
-                        this.GetDailyAllocations(localDate), this.GetDailyRequests(localDate)));
+                    lines.AddRange(DailySummary.GetPlainTextSummary(this.recipient, this.GetDailyAllocations(localDate), this.GetDailyRequests(localDate)));
                 }
 
                 lines.Add(Footer);

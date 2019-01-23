@@ -1,5 +1,6 @@
 ﻿namespace ParkingRota.Business.Emails
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -7,17 +8,18 @@
 
     public class DailySummary : IEmail
     {
+        private readonly ApplicationUser recipient;
         private readonly IReadOnlyList<Allocation> allocations;
         private readonly IReadOnlyList<Request> requests;
 
-        public DailySummary(string to, IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests)
+        public DailySummary(ApplicationUser recipient, IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests)
         {
+            this.recipient = recipient;
             this.allocations = allocations;
             this.requests = requests;
-            this.To = to;
         }
 
-        public string To { get; }
+        public string To => this.recipient.Email;
 
         public string Subject => $"Daily allocations summary for {this.FormattedDate}";
 
@@ -29,7 +31,7 @@
 
                 body.Append($"<p>{this.Header}</p>");
 
-                body.Append(GetHtmlSummary(this.allocations, this.requests));
+                body.Append(GetHtmlSummary(this.recipient, this.allocations, this.requests));
 
                 body.Append($"<p>{Footer}</p>");
 
@@ -46,7 +48,7 @@
                 lines.Add(this.Header);
                 lines.Add(string.Empty);
 
-                lines.AddRange(GetPlainTextSummary(this.allocations, this.requests));
+                lines.AddRange(GetPlainTextSummary(this.recipient, this.allocations, this.requests));
 
                 lines.Add(Footer);
 
@@ -54,13 +56,16 @@
             }
         }
 
-        public static string GetHtmlSummary(IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests)
+        public static string GetHtmlSummary(
+            ApplicationUser recipient,
+            IReadOnlyList<Allocation> allocations,
+            IReadOnlyList<Request> requests)
         {
             var summary = new StringBuilder();
 
-            summary.Append($"<p>{string.Join("<br/>", GetAllocatedNames(allocations))}</p>");
+            summary.Append($"<p>{string.Join("<br/>", GetAllocatedNames(recipient, allocations, BodyType.Html))}</p>");
 
-            var interruptedNames = GetInterruptedNames(allocations, requests);
+            var interruptedNames = GetInterruptedNames(recipient, allocations, requests, BodyType.Html);
 
             if (interruptedNames.Any())
             {
@@ -71,15 +76,16 @@
         }
 
         public static IReadOnlyList<string> GetPlainTextSummary(
+            ApplicationUser recipient,
             IReadOnlyList<Allocation> allocations,
             IReadOnlyList<Request> requests)
         {
             var summary = new List<string>();
 
-            summary.AddRange(GetAllocatedNames(allocations));
+            summary.AddRange(GetAllocatedNames(recipient, allocations, BodyType.PlainText));
             summary.Add(string.Empty);
 
-            var interruptedNames = GetInterruptedNames(allocations, requests);
+            var interruptedNames = GetInterruptedNames(recipient, allocations, requests, BodyType.PlainText);
 
             if (interruptedNames.Any())
             {
@@ -90,17 +96,45 @@
             return summary;
         }
 
-        private static IReadOnlyList<string> GetAllocatedNames(IReadOnlyList<Allocation> allocations) => allocations
-            .OrderBy(a => a.ApplicationUser.LastName)
-            .Select(a => a.ApplicationUser.FullName)
-            .ToArray();
+        private static IReadOnlyList<string> GetAllocatedNames(
+            ApplicationUser recipient,
+            IReadOnlyList<Allocation> allocations,
+            BodyType bodyType)
+            => allocations
+                .OrderBy(a => a.ApplicationUser.LastName)
+                .Select(a => GetName(recipient, a.ApplicationUser, bodyType))
+                .ToArray();
+
+        private static string GetName(ApplicationUser recipient, ApplicationUser allocatedUser, BodyType bodyType)
+        {
+            if (allocatedUser == recipient)
+            {
+                switch (bodyType)
+                {
+                    case BodyType.Html:
+                        return $"<strong>{allocatedUser.FullName}</strong>";
+                    case BodyType.PlainText:
+                        return $"*{allocatedUser.FullName}*";
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(bodyType));
+                }
+            }
+            else
+            {
+                return allocatedUser.FullName;
+            }
+        }
 
         private static IReadOnlyList<string> GetInterruptedNames(
-                IReadOnlyList<Allocation> allocations, IReadOnlyList<Request> requests) => requests
-            .Where(r => allocations.All(a => a.ApplicationUser.Id != r.ApplicationUser.Id))
-            .OrderBy(i => i.ApplicationUser.LastName)
-            .Select(i => i.ApplicationUser.FullName)
-            .ToArray();
+            ApplicationUser recipient,
+            IReadOnlyList<Allocation> allocations,
+            IReadOnlyList<Request> requests,
+            BodyType bodyType)
+            => requests
+                .Where(r => allocations.All(a => a.ApplicationUser.Id != r.ApplicationUser.Id))
+                .OrderBy(i => i.ApplicationUser.LastName)
+                .Select(i => GetName(recipient, i.ApplicationUser, bodyType))
+                .ToArray();
 
         private string FormattedDate => this.allocations.First().Date.ForDisplay();
 
@@ -109,5 +143,11 @@
         private const string Footer =
             "If you no longer need a space allocated to you, " +
             "please remove your request so that it can be given to someone else.";
+
+        private enum BodyType
+        {
+            Html,
+            PlainText
+        }
     }
 }

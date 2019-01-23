@@ -36,9 +36,9 @@
             var allocations = this.allocationRepository.GetAllocations(firstDate, lastDate);
             var requests = this.requestRepository.GetRequests(firstDate, lastDate);
 
-            foreach (var applicationUser in requests.Select(r => r.ApplicationUser).Distinct())
+            foreach (var recipient in requests.Select(r => r.ApplicationUser).Distinct())
             {
-                this.emailRepository.AddToQueue(new Emails.WeeklySummary(applicationUser.Email, allocations, requests));
+                this.emailRepository.AddToQueue(new Emails.WeeklySummary(recipient, allocations, requests));
             }
 
             return Task.CompletedTask;

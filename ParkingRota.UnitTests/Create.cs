@@ -16,7 +16,7 @@
         public static IReadOnlyList<ApplicationUser> Users(params string[] fullNames) =>
             fullNames.Select(User).ToArray();
 
-        private static ApplicationUser User(string fullName)
+        public static ApplicationUser User(string fullName)
         {
             var names = fullName.Split(" ");
 
