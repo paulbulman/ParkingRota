@@ -43,6 +43,10 @@
             [StringLength(10)]
             [Display(Name = "Car registration number")]
             public string CarRegistrationNumber { get; set; }
+
+            [StringLength(10)]
+            [Display(Name = "Alternative car registration number")]
+            public string AlternativeCarRegistrationNumber { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -62,6 +66,7 @@
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 CarRegistrationNumber = user.CarRegistrationNumber,
+                AlternativeCarRegistrationNumber = user.AlternativeCarRegistrationNumber
             };
 
             return this.Page();
@@ -82,11 +87,13 @@
 
             if (this.Input.FirstName != user.FirstName ||
                 this.Input.LastName != user.LastName ||
-                this.Input.CarRegistrationNumber != user.CarRegistrationNumber)
+                this.Input.CarRegistrationNumber != user.CarRegistrationNumber ||
+                this.Input.AlternativeCarRegistrationNumber != user.AlternativeCarRegistrationNumber)
             {
                 user.FirstName = this.Input.FirstName;
                 user.LastName = this.Input.LastName;
                 user.CarRegistrationNumber = this.Input.CarRegistrationNumber;
+                user.AlternativeCarRegistrationNumber = this.Input.AlternativeCarRegistrationNumber;
 
                 var updateUserResult = await this.userManager.UpdateAsync(user);
                 if (!updateUserResult.Succeeded)

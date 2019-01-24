@@ -12,9 +12,42 @@
 
         public RegistrationNumbersModel(UserManager<ApplicationUser> userManager) => this.userManager = userManager;
 
-        public IReadOnlyList<ApplicationUser> ApplicationUsers { get; private set; }
+        public IReadOnlyList<RegistrationNumberRecord> RegistrationNumberRecords { get; private set; }
 
         public void OnGet() =>
-            this.ApplicationUsers = this.userManager.Users.OrderBy(u => u.CarRegistrationNumber).ToArray();
+            this.RegistrationNumberRecords = this.userManager.Users
+                .ToArray()
+                .SelectMany(CreateRegistrationNumberRecords)
+                .OrderBy(r => r.CarRegistrationNumber)
+                .ToArray();
+
+        private static IEnumerable<RegistrationNumberRecord> CreateRegistrationNumberRecords(ApplicationUser user)
+        {
+            var registrationNumberRecords = new List<RegistrationNumberRecord>
+            {
+                new RegistrationNumberRecord(user.FullName, user.CarRegistrationNumber)
+            };
+
+            if (!string.IsNullOrEmpty(user.AlternativeCarRegistrationNumber))
+            {
+                registrationNumberRecords.Add(
+                    new RegistrationNumberRecord(user.FullName, user.AlternativeCarRegistrationNumber));
+            }
+
+            return registrationNumberRecords;
+        }
+
+        public class RegistrationNumberRecord
+        {
+            public RegistrationNumberRecord(string fullName, string carRegistrationNumber)
+            {
+                this.FullName = fullName;
+                this.CarRegistrationNumber = carRegistrationNumber;
+            }
+
+            public string FullName { get; }
+
+            public string CarRegistrationNumber { get; }
+        }
     }
 }

@@ -12,8 +12,20 @@
         {
             var mockUserManager = TestHelpers.CreateMockUserManager();
 
-            var user = new ApplicationUser { FirstName = "Colm", LastName = "Wilkinson", CarRegistrationNumber = "W789XYZ" };
-            var otherUser = new ApplicationUser { FirstName = "Philip", LastName = "Quast", CarRegistrationNumber = "AB12CDE" };
+            var user = new ApplicationUser
+            {
+                FirstName = "Colm",
+                LastName = "Wilkinson",
+                CarRegistrationNumber = "W789XYZ"
+            };
+
+            var otherUser = new ApplicationUser
+            {
+                FirstName = "Philip",
+                LastName = "Quast",
+                CarRegistrationNumber = "Z987YXW",
+                AlternativeCarRegistrationNumber = "AB12CDE",
+            };
 
             var applicationUsers = new[] { user, otherUser };
 
@@ -25,22 +37,24 @@
 
             model.OnGet();
 
-            var result = model.ApplicationUsers;
+            var result = model.RegistrationNumberRecords;
+
+            var expectedRecords = new[]
+            {
+                new RegistrationNumbersModel.RegistrationNumberRecord("Philip Quast", "AB12CDE"),
+                new RegistrationNumbersModel.RegistrationNumberRecord("Colm Wilkinson", "W789XYZ"),
+                new RegistrationNumbersModel.RegistrationNumberRecord("Philip Quast", "Z987YXW"),
+            };
 
             Assert.NotNull(result);
 
-            Assert.Equal(applicationUsers.Length, result.Count);
+            Assert.Equal(expectedRecords.Length, result.Count);
 
-            Assert.All(
-                applicationUsers,
-                expected => Assert.Single(
-                    result.Where(
-                        actual =>
-                            actual.FirstName == expected.FirstName &&
-                            actual.LastName == expected.LastName &&
-                            actual.CarRegistrationNumber == expected.CarRegistrationNumber)));
-
-            Assert.Equal(otherUser.CarRegistrationNumber, result.First().CarRegistrationNumber);
+            for (var i = 0; i < expectedRecords.Length; i++)
+            {
+                Assert.Equal(expectedRecords[i].FullName, result[i].FullName);
+                Assert.Equal(expectedRecords[i].CarRegistrationNumber, result[i].CarRegistrationNumber);
+            }
         }
     }
 }

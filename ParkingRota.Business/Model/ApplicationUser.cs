@@ -23,6 +23,11 @@
         [Display(Name = "Car registration number")]
         public string CarRegistrationNumber { get; set; }
 
+        [ProtectedPersonalData]
+        [StringLength(10)]
+        [Display(Name = "Alternative car registration number")]
+        public string AlternativeCarRegistrationNumber { get; set; }
+
         [PersonalData]
         public decimal CommuteDistance { get; set; }
 

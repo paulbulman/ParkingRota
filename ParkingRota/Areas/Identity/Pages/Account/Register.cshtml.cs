@@ -58,6 +58,10 @@
             [Display(Name = "Car registration number")]
             public string CarRegistrationNumber { get; set; }
 
+            [StringLength(10)]
+            [Display(Name = "Alternative car registration number")]
+            public string AlternativeCarRegistrationNumber { get; set; }
+
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
@@ -148,6 +152,7 @@
                 FirstName = input.FirstName,
                 LastName = input.LastName,
                 CarRegistrationNumber = input.CarRegistrationNumber,
+                AlternativeCarRegistrationNumber = input.AlternativeCarRegistrationNumber,
                 CommuteDistance = DefaultCommuteDistance,
                 UserName = input.Email,
                 Email = input.Email

@@ -73,6 +73,7 @@
                 { "Input.FirstName", "Anne" },
                 { "Input.LastName", "Other" },
                 { "Input.CarRegistrationNumber", "AB12CDE" },
+                { "Input.AlternativeCarRegistrationNumber", "A123BCD" },
                 { "Input.Email", "another@domain.com" },
                 { "Input.Password", password },
                 { "Input.ConfirmPassword", password },

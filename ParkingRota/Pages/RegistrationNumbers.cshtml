@@ -17,11 +17,11 @@
     </thead>
     <tbody>
         @{
-            foreach (var applicationUser in Model.ApplicationUsers)
+            foreach (var registrationNumberRecord in Model.RegistrationNumberRecords)
             {
                 <tr>
-                    <td>@applicationUser.CarRegistrationNumber.ToUpper().Replace(" ", string.Empty)</td>
-                    <td>@applicationUser.FullName</td>
+                    <td>@registrationNumberRecord.CarRegistrationNumber.ToUpper().Replace(" ", string.Empty)</td>
+                    <td>@registrationNumberRecord.FullName</td>
                 </tr>
             }
         }

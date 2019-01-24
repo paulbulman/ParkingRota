@@ -29,6 +29,11 @@
                 <input asp-for="Input.CarRegistrationNumber" class="form-control" />
                 <span asp-validation-for="Input.CarRegistrationNumber" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="Input.AlternativeCarRegistrationNumber"></label>
+                <input asp-for="Input.AlternativeCarRegistrationNumber" class="form-control" placeholder="(Optional)" />
+                <span asp-validation-for="Input.AlternativeCarRegistrationNumber" class="text-danger"></span>
+            </div>
             <button type="submit" class="btn btn-default">Save</button>
         </form>
     </div>
