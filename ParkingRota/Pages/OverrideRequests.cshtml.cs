@@ -31,7 +31,10 @@
         {
             this.SelectedUserId = id;
 
-            this.Users = this.userManager.Users.Select(u => new SelectListItem(u.FullName, u.Id)).ToList();
+            this.Users = this.userManager.Users
+                .OrderBy(u => u.LastName)
+                .Select(u => new SelectListItem(u.FullName, u.Id))
+                .ToList();
         }
 
         public IActionResult OnPost(string selectedUserId, IReadOnlyList<string> selectedDateStrings)

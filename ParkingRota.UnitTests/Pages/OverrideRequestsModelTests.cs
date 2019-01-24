@@ -19,8 +19,8 @@
         public static void Test_Get()
         {
             var principal = new ClaimsPrincipal();
-            var loggedInUser = new ApplicationUser { FirstName = "Colm", LastName = "Wilkinson" };
-            var otherUser = new ApplicationUser { FirstName = "Philip", LastName = "Quast" };
+            var loggedInUser = Create.User("Colm Wilkinson");
+            var otherUser = Create.User("Philip Quast");
 
             var applicationUsers = new[] { loggedInUser, otherUser };
 
@@ -37,6 +37,10 @@
 
             Assert.Equal(applicationUsers.Length, model.Users.Count);
 
+            Assert.Equal(
+                applicationUsers.OrderBy(u => u.LastName).Select(u => u.FullName),
+                model.Users.Select(u => u.Text));
+
             Assert.All(
                 applicationUsers,
                 u => Assert.Single(model.Users.Where(l => l.Value == u.Id && l.Text == u.FullName)));
@@ -46,7 +50,7 @@
         public static void Test_Post()
         {
             // Arrange
-            var selectedUser = new ApplicationUser { FirstName = "Colm", LastName = "Wilkinson" };
+            var selectedUser = Create.User("Colm Wilkinson");
 
             // Set up request repository
             var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
