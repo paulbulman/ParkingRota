@@ -5,5 +5,7 @@
     public interface IBankHolidayRepository
     {
         IReadOnlyList<BankHoliday> GetBankHolidays();
+
+        void AddBankHolidays(IReadOnlyList<BankHoliday> newBankHolidays);
     }
 }

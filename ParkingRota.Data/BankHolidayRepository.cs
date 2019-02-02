@@ -11,11 +11,22 @@
     {
         private readonly Lazy<IReadOnlyList<ModelBankHoliday>> bankHolidays;
 
-        public BankHolidayRepository(IApplicationDbContext context, IMapper mapper) => 
+        private readonly IApplicationDbContext context;
+
+        public BankHolidayRepository(IApplicationDbContext context, IMapper mapper)
+        {
+            this.context = context;
             this.bankHolidays = new Lazy<IReadOnlyList<ModelBankHoliday>>(CreateBankHolidays(context, mapper));
+        }
 
         private static Func<IReadOnlyList<ModelBankHoliday>> CreateBankHolidays(IApplicationDbContext context, IMapper mapper) =>
             () => context.BankHolidays.ToArray().Select(mapper.Map<ModelBankHoliday>).ToArray();
+
+        public void AddBankHolidays(IReadOnlyList<ModelBankHoliday> newBankHolidays)
+        {
+            this.context.BankHolidays.AddRange(newBankHolidays.Select(b => new BankHoliday { Date = b.Date }));
+            this.context.SaveChanges();
+        }
 
         public IReadOnlyList<ModelBankHoliday> GetBankHolidays() => this.bankHolidays.Value;
     }
