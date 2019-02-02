@@ -17,6 +17,6 @@
         private static Func<IReadOnlyList<ModelBankHoliday>> CreateBankHolidays(IApplicationDbContext context, IMapper mapper) =>
             () => context.BankHolidays.ToArray().Select(mapper.Map<ModelBankHoliday>).ToArray();
 
-        public IReadOnlyList<ModelBankHoliday> BankHolidays => this.bankHolidays.Value;
+        public IReadOnlyList<ModelBankHoliday> GetBankHolidays() => this.bankHolidays.Value;
     }
 }

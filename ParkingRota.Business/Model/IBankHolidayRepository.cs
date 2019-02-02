@@ -4,6 +4,6 @@
 
     public interface IBankHolidayRepository
     {
-        IReadOnlyList<BankHoliday> BankHolidays { get; }
+        IReadOnlyList<BankHoliday> GetBankHolidays();
     }
 }

@@ -125,7 +125,7 @@
         private bool IsWorkingDay(LocalDate date) =>
             date.DayOfWeek != IsoDayOfWeek.Saturday &&
             date.DayOfWeek != IsoDayOfWeek.Sunday &&
-            this.bankHolidayRepository.BankHolidays.All(b => b.Date != date);
+            this.bankHolidayRepository.GetBankHolidays().All(b => b.Date != date);
 
         private static LocalDate GetLastLongLeadTimeAllocationDate(LocalDate localDate) =>
             localDate.Next(IsoDayOfWeek.Thursday).PlusWeeks(1).PlusDays(1);

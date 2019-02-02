@@ -218,7 +218,7 @@
             var mockBankHolidayRepository = new Mock<IBankHolidayRepository>(MockBehavior.Strict);
 
             mockBankHolidayRepository
-                .SetupGet(r => r.BankHolidays)
+                .Setup(r => r.GetBankHolidays())
                 .Returns(bankHolidayDates.Select(b => new BankHoliday { Date = b }).ToArray());
 
             return mockBankHolidayRepository.Object;
