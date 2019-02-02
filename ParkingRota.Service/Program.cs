@@ -60,6 +60,7 @@ namespace ParkingRota.Service
             services.AddScoped<AllocationNotifier>();
             services.AddScoped<IAllocationRepository, AllocationRepository>();
             services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+            services.AddHttpClient<IBankHolidayFetcher, BankHolidayFetcher>();
             services.AddScoped<IBankHolidayRepository, BankHolidayRepository>();
             services.AddScoped<IDateCalculator, DateCalculator>();
             services.AddScoped<EmailProcessor>();
@@ -76,6 +77,7 @@ namespace ParkingRota.Service
             services.AddScoped<ScheduledTaskRunner>();
             services.AddScoped<ISystemParameterListRepository, SystemParameterListRepository>();
 
+            services.AddScoped<IScheduledTask, BankHolidayUpdater>();
             services.AddScoped<IScheduledTask, DailySummary>();
             services.AddScoped<IScheduledTask, RequestReminder>();
             services.AddScoped<IScheduledTask, ReservationReminder>();
