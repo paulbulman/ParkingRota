@@ -8,7 +8,12 @@
     using NodaTime;
     using NodaTime.Text;
 
-    public class BankHolidayFetcher
+    public interface IBankHolidayFetcher
+    {
+        Task<IReadOnlyList<LocalDate>> Fetch();
+    }
+
+    public class BankHolidayFetcher : IBankHolidayFetcher
     {
         private readonly HttpClient client;
 
