@@ -21,7 +21,14 @@
 
         public string To => this.recipient.Email;
 
-        public string Subject => $"Daily allocations summary for {this.FormattedDate}";
+        public string Subject
+        {
+            get
+            {
+                var status = this.allocations.Any(a => a.ApplicationUser == recipient) ? "ALLOCATED" : "INTERRUPTED";
+                return $"[{status}] {this.FormattedDate} Daily allocations summary";
+            }
+        }
 
         public string HtmlBody
         {
