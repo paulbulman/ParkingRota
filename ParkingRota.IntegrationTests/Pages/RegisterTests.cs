@@ -4,7 +4,7 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using AngleSharp.Dom.Html;
+    using AngleSharp.Html.Dom;
     using Data;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.AspNetCore.TestHost;

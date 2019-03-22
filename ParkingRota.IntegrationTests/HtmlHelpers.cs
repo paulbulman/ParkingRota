@@ -4,8 +4,8 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using AngleSharp;
-    using AngleSharp.Dom.Html;
-    using AngleSharp.Network;
+    using AngleSharp.Html.Dom;
+    using AngleSharp.Io;
 
     public static class HtmlHelpers
     {
