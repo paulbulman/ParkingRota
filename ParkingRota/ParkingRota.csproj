@@ -6,12 +6,16 @@
     <AWSProjectType>Lambda</AWSProjectType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="3.0.3" />
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="AWS.Logger.AspNetCore" Version="1.4.1" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.4" AllowExplicitVersion="true" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.5" PrivateAssets="All" />
   </ItemGroup>
 
