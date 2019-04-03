@@ -7,11 +7,6 @@
     using SendGrid;
     using SendGrid.Helpers.Mail;
 
-    public interface IEmailSender
-    {
-        Task Send(IEmail email);
-    }
-
     public class EmailSender : IEmailSender
     {
         private readonly ISystemParameterListRepository systemParameterListRepository;
