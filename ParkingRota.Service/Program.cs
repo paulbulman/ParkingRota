@@ -66,6 +66,7 @@ namespace ParkingRota.Service
             services.AddScoped<EmailProcessor>();
             services.AddScoped<IEmailRepository, EmailRepository>();
             services.AddScoped<IEmailSender, SendGridEmailSender>();
+            services.AddScoped<IEmailSender, AwsSesEmailSender>();
             services.AddHttpClient<IPasswordBreachChecker, PasswordBreachChecker>();
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
