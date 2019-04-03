@@ -7,11 +7,11 @@
     using SendGrid;
     using SendGrid.Helpers.Mail;
 
-    public class EmailSender : IEmailSender
+    public class SendGridEmailSender : IEmailSender
     {
         private readonly ISystemParameterListRepository systemParameterListRepository;
 
-        public EmailSender(ISystemParameterListRepository systemParameterListRepository) =>
+        public SendGridEmailSender(ISystemParameterListRepository systemParameterListRepository) =>
             this.systemParameterListRepository = systemParameterListRepository;
 
         public bool CanSend => !string.IsNullOrEmpty(ApiKey);
