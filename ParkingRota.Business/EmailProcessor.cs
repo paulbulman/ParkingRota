@@ -19,12 +19,15 @@
         {
             foreach (var emailQueueItem in this.emailRepository.GetUnsent())
             {
-                await this.emailSender.Send(
-                    new Email(
-                        emailQueueItem.To,
-                        emailQueueItem.Subject,
-                        emailQueueItem.HtmlBody,
-                        emailQueueItem.PlainTextBody));
+                if (this.emailSender.CanSend)
+                {
+                    await this.emailSender.Send(
+                        new Email(
+                            emailQueueItem.To,
+                            emailQueueItem.Subject,
+                            emailQueueItem.HtmlBody,
+                            emailQueueItem.PlainTextBody));
+                }
 
                 this.emailRepository.MarkAsSent(emailQueueItem);
             }

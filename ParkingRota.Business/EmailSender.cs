@@ -14,24 +14,23 @@
         public EmailSender(ISystemParameterListRepository systemParameterListRepository) =>
             this.systemParameterListRepository = systemParameterListRepository;
 
+        public bool CanSend => !string.IsNullOrEmpty(ApiKey);
+
+        private static string ApiKey => Environment.GetEnvironmentVariable("SendGridApiKey");
+
         public async Task Send(IEmail email)
         {
-            var apiKey = Environment.GetEnvironmentVariable("SendGridApiKey");
+            var client = new SendGridClient(ApiKey);
 
-            if (!string.IsNullOrEmpty(apiKey))
-            {
-                var client = new SendGridClient(apiKey);
+            var fromEmailAddress = this.systemParameterListRepository.GetSystemParameterList().FromEmailAddress;
 
-                var fromEmailAddress = this.systemParameterListRepository.GetSystemParameterList().FromEmailAddress;
-
-                await client.SendEmailAsync(
-                    MailHelper.CreateSingleEmail(
-                        new EmailAddress(fromEmailAddress),
-                        new EmailAddress(email.To),
-                        email.Subject,
-                        email.PlainTextBody,
-                        email.HtmlBody));
-            }
+            await client.SendEmailAsync(
+                MailHelper.CreateSingleEmail(
+                    new EmailAddress(fromEmailAddress),
+                    new EmailAddress(email.To),
+                    email.Subject,
+                    email.PlainTextBody,
+                    email.HtmlBody));
         }
     }
 }

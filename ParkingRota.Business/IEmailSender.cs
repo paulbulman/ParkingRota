@@ -5,6 +5,8 @@
 
     public interface IEmailSender
     {
+        bool CanSend { get; }
+
         Task Send(IEmail email);
     }
 }
