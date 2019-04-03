@@ -1,6 +1,7 @@
 ﻿namespace ParkingRota.UnitTests.Business
 {
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Moq;
     using ParkingRota.Business;
     using ParkingRota.Business.Emails;
@@ -54,7 +55,8 @@
             // Act
             var emailProcessor = new EmailProcessor(
                 mockEmailRepository.Object,
-                new[] { disabledMockEmailSender.Object, enabledMockEmailSender.Object });
+                new[] { disabledMockEmailSender.Object, enabledMockEmailSender.Object },
+                Mock.Of<ILogger<EmailProcessor>>());
 
             await emailProcessor.SendPending();
 
