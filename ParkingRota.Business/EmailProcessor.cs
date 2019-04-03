@@ -1,5 +1,7 @@
 ﻿namespace ParkingRota.Business
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Emails;
     using Model;
@@ -7,21 +9,23 @@
     public class EmailProcessor
     {
         private readonly IEmailRepository emailRepository;
-        private readonly IEmailSender emailSender;
+        private readonly IEnumerable<IEmailSender> emailSenders;
 
-        public EmailProcessor(IEmailRepository emailRepository, IEmailSender emailSender)
+        public EmailProcessor(IEmailRepository emailRepository, IEnumerable<IEmailSender> emailSenders)
         {
             this.emailRepository = emailRepository;
-            this.emailSender = emailSender;
+            this.emailSenders = emailSenders;
         }
 
         public async Task SendPending()
         {
             foreach (var emailQueueItem in this.emailRepository.GetUnsent())
             {
-                if (this.emailSender.CanSend)
+                var sender = this.emailSenders.FirstOrDefault(s => s.CanSend);
+
+                if (sender != null)
                 {
-                    await this.emailSender.Send(
+                    await sender.Send(
                         new Email(
                             emailQueueItem.To,
                             emailQueueItem.Subject,

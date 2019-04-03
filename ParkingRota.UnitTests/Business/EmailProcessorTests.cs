@@ -38,20 +38,30 @@
             mockEmailRepository
                 .Setup(r => r.MarkAsSent(It.IsAny<EmailQueueItem>()));
 
-            var mockEmailSender = new Mock<IEmailSender>(MockBehavior.Strict);
-            mockEmailSender
+            var disabledMockEmailSender = new Mock<IEmailSender>(MockBehavior.Strict);
+            disabledMockEmailSender
+                .SetupGet(s => s.CanSend)
+                .Returns(false);
+
+            var enabledMockEmailSender = new Mock<IEmailSender>(MockBehavior.Strict);
+            enabledMockEmailSender
+                .SetupGet(s => s.CanSend)
+                .Returns(true);
+            enabledMockEmailSender
                 .Setup(s => s.Send(It.IsAny<IEmail>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            var emailProcessor = new EmailProcessor(mockEmailRepository.Object, mockEmailSender.Object);
+            var emailProcessor = new EmailProcessor(
+                mockEmailRepository.Object,
+                new[] { disabledMockEmailSender.Object, enabledMockEmailSender.Object });
 
             await emailProcessor.SendPending();
 
             // Assert
             foreach (var emailQueueItem in unsentEmails)
             {
-                mockEmailSender.Verify(
+                enabledMockEmailSender.Verify(
                     s => s.Send(It.Is<IEmail>(e =>
                         e.To == emailQueueItem.To &&
                         e.Subject == emailQueueItem.Subject &&
