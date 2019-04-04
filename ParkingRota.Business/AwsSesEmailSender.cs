@@ -4,6 +4,7 @@
     using System.Net;
     using System.Net.Mail;
     using System.Net.Mime;
+    using System.Threading;
     using System.Threading.Tasks;
     using Emails;
     using Model;
@@ -47,6 +48,9 @@
             {
                 client.Credentials = new NetworkCredential(Username, Password);
                 client.EnableSsl = true;
+
+                // Ensure we stay within AWS sending rate limit
+                Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
                 await client.SendMailAsync(message);
             }
