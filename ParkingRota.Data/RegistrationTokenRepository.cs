@@ -20,5 +20,14 @@
             this.context.RegistrationTokens
                 .Select(this.mapper.Map<Business.Model.RegistrationToken>)
                 .ToArray();
+
+        public void DeleteRegistrationToken(string token)
+        {
+            var registrationToken = this.context.RegistrationTokens.Single(t => t.Token == token);
+
+            this.context.RegistrationTokens.Remove(registrationToken);
+
+            this.context.SaveChanges();
+        }
     }
 }

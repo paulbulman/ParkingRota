@@ -5,5 +5,7 @@
     public interface IRegistrationTokenRepository
     {
         IReadOnlyList<RegistrationToken> GetRegistrationTokens();
+
+        void DeleteRegistrationToken(string token);
     }
 }

@@ -5,6 +5,7 @@
     using System.Linq;
     using AutoMapper;
     using Microsoft.EntityFrameworkCore;
+    using Moq;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Data;
     using Xunit;
@@ -49,9 +50,48 @@
                 {
                     Assert.Single(
                         result.Where(r =>
-                            r.ExpiryTime == existingRegistrationToken.ExpiryTime &&
-                            r.Token == existingRegistrationToken.Token));
+                            r.Token == existingRegistrationToken.Token &&
+                            r.ExpiryTime == existingRegistrationToken.ExpiryTime));
                 }
+            }
+        }
+
+        [Fact]
+        public void Test_DeleteRegistrationToken()
+        {
+            // Arrange
+            var tokenToKeep = new DataRegistrationToken
+            {
+                ExpiryTime = 8.May(2019).At(15, 44, 38).Utc(),
+                Token = "ABC"
+            };
+
+            var tokenToDelete = new DataRegistrationToken
+            {
+                ExpiryTime = 9.May(2019).At(16, 32, 14).Utc(),
+                Token = "XYZ"
+            };
+
+            var existingRegistrationTokens = new[] { tokenToKeep, tokenToDelete };
+
+            this.SeedDatabase(existingRegistrationTokens);
+
+            // Act
+            using (var context = this.CreateContext())
+            {
+                new RegistrationTokenRepository(context, Mock.Of<IMapper>())
+                    .DeleteRegistrationToken(tokenToDelete.Token);
+            }
+
+            // Assert
+            using (var context = this.CreateContext())
+            {
+                var result = context.RegistrationTokens.ToArray();
+
+                Assert.Single(result);
+
+                Assert.Equal(tokenToKeep.Token, result[0].Token);
+                Assert.Equal(tokenToKeep.ExpiryTime, result[0].ExpiryTime);
             }
         }
 
