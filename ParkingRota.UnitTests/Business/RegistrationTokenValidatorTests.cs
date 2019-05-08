@@ -28,7 +28,7 @@
             var mockRegistrationTokenRepository = new Mock<IRegistrationTokenRepository>(MockBehavior.Strict);
 
             mockRegistrationTokenRepository
-                .SetupGet(r => r.RegistrationTokens)
+                .Setup(r => r.GetRegistrationTokens())
                 .Returns(registrationTokens);
 
             var validator = new RegistrationTokenValidator(
@@ -54,7 +54,7 @@
             var mockRegistrationTokenRepository = new Mock<IRegistrationTokenRepository>(MockBehavior.Strict);
 
             mockRegistrationTokenRepository
-                .SetupGet(r => r.RegistrationTokens)
+                .Setup(r => r.GetRegistrationTokens())
                 .Returns(registrationTokens);
 
             var validator = new RegistrationTokenValidator(

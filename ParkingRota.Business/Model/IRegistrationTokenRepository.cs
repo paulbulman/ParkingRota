@@ -4,6 +4,6 @@
 
     public interface IRegistrationTokenRepository
     {
-        IReadOnlyList<RegistrationToken> RegistrationTokens { get; }
+        IReadOnlyList<RegistrationToken> GetRegistrationTokens();
     }
 }

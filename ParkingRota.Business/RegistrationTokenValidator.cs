@@ -22,7 +22,7 @@
         }
 
         public bool TokenIsValid(string token) =>
-            this.registrationTokenRepository.RegistrationTokens.Any(r =>
+            this.registrationTokenRepository.GetRegistrationTokens().Any(r =>
                 string.Equals(r.Token, token, StringComparison.InvariantCultureIgnoreCase) &&
                 this.clock.GetCurrentInstant() < r.ExpiryTime);
     }

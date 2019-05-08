@@ -16,7 +16,7 @@
             this.mapper = mapper;
         }
 
-        public IReadOnlyList<Business.Model.RegistrationToken> RegistrationTokens =>
+        public IReadOnlyList<Business.Model.RegistrationToken> GetRegistrationTokens() =>
             this.context.RegistrationTokens
                 .Select(this.mapper.Map<Business.Model.RegistrationToken>)
                 .ToArray();
