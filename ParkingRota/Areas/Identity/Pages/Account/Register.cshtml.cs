@@ -17,6 +17,7 @@
     {
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly IRegistrationTokenRepository registrationTokenRepository;
         private readonly IRegistrationTokenValidator registrationTokenValidator;
         private readonly IPasswordBreachChecker passwordBreachChecker;
         private readonly ILogger<RegisterModel> logger;
@@ -25,6 +26,7 @@
         public RegisterModel(
             IHttpContextAccessor httpContextAccessor,
             UserManager<ApplicationUser> userManager,
+            IRegistrationTokenRepository registrationTokenRepository,
             IRegistrationTokenValidator registrationTokenValidator,
             IPasswordBreachChecker passwordBreachChecker,
             ILogger<RegisterModel> logger,
@@ -32,6 +34,7 @@
         {
             this.httpContextAccessor = httpContextAccessor;
             this.userManager = userManager;
+            this.registrationTokenRepository = registrationTokenRepository;
             this.registrationTokenValidator = registrationTokenValidator;
             this.passwordBreachChecker = passwordBreachChecker;
             this.logger = logger;
@@ -115,6 +118,8 @@
                     if (result.Succeeded)
                     {
                         this.logger.LogInformation($"Created user with Id {user.Id}.");
+
+                        this.registrationTokenRepository.DeleteRegistrationToken(this.Input.RegistrationToken);
 
                         var emailConfirmationToken = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
                         var callbackUrl = this.Url.Page(

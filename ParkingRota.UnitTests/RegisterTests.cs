@@ -47,6 +47,10 @@ namespace ParkingRota.UnitTests
                 .Setup(u => u.GenerateEmailConfirmationTokenAsync(It.IsAny<ApplicationUser>()))
                 .Returns(Task.FromResult("[Confirm email token]"));
 
+            // Set up registration token repository
+            var mockRegistrationTokenRepository = new Mock<IRegistrationTokenRepository>(MockBehavior.Strict);
+            mockRegistrationTokenRepository.Setup(r => r.DeleteRegistrationToken(registrationToken));
+
             // Set up registration token validator
             var mockRegistrationTokenValidator = new Mock<IRegistrationTokenValidator>(MockBehavior.Strict);
             mockRegistrationTokenValidator.Setup(v => v.TokenIsValid(registrationToken)).Returns(true);
@@ -72,6 +76,7 @@ namespace ParkingRota.UnitTests
             var model = new RegisterModel(
                 httpContextAccessor,
                 mockUserManager.Object,
+                mockRegistrationTokenRepository.Object,
                 mockRegistrationTokenValidator.Object,
                 passwordBreachChecker,
                 Mock.Of<ILogger<RegisterModel>>(),
@@ -89,7 +94,12 @@ namespace ParkingRota.UnitTests
             Assert.IsType<RedirectToPageResult>(result);
             Assert.Equal(RegistersuccessPageName, ((RedirectToPageResult)result).PageName);
 
-            mockEmailRepository.Verify(p => p.AddToQueue(
+            mockRegistrationTokenRepository.Verify(
+                r => r.DeleteRegistrationToken(registrationToken),
+                Times.Once);
+
+            mockEmailRepository.Verify(
+                p => p.AddToQueue(
                     It.Is<ConfirmEmailAddress>(e =>
                         e.To == EmailAddress &&
                         e.HtmlBody.Contains(ConfirmEmailUrl, StringComparison.Ordinal) &&
@@ -114,6 +124,7 @@ namespace ParkingRota.UnitTests
             var model = new RegisterModel(
                 Mock.Of<IHttpContextAccessor>(),
                 mockUserManager.Object,
+                Mock.Of<IRegistrationTokenRepository>(),
                 mockRegistrationTokenValidator.Object,
                 Mock.Of<IPasswordBreachChecker>(),
                 Mock.Of<ILogger<RegisterModel>>(),
@@ -149,6 +160,7 @@ namespace ParkingRota.UnitTests
             var model = new RegisterModel(
                 Mock.Of<IHttpContextAccessor>(),
                 mockUserManager.Object,
+                Mock.Of<IRegistrationTokenRepository>(),
                 mockRegistrationTokenValidator.Object,
                 passwordBreachChecker,
                 Mock.Of<ILogger<RegisterModel>>(),
