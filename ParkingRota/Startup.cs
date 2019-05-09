@@ -23,12 +23,10 @@ namespace ParkingRota
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<CookiePolicyOptions>(options =>
             {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.Strict;
                 options.Secure = CookieSecurePolicy.SameAsRequest;
@@ -42,6 +40,7 @@ namespace ParkingRota
 
             services.AddAuthorization(options =>
             {
+                options.AddPolicy(UserRole.SiteAdmin, policy => policy.RequireRole(UserRole.SiteAdmin));
                 options.AddPolicy(UserRole.TeamLeader, policy => policy.RequireRole(UserRole.TeamLeader));
             });
 
@@ -92,6 +91,7 @@ namespace ParkingRota
                 {
                     options.Conventions.AuthorizePage("/EditReservations", UserRole.TeamLeader);
                     options.Conventions.AuthorizePage("/OverrideRequests", UserRole.TeamLeader);
+                    options.Conventions.AuthorizePage("/AddNewUser", UserRole.SiteAdmin);
 
                     options.Conventions.AuthorizeFolder("/");
 
@@ -107,7 +107,6 @@ namespace ParkingRota
             services.AddHttpContextAccessor();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
