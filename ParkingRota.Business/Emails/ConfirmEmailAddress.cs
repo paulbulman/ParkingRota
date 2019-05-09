@@ -27,7 +27,7 @@
                 var encodedCallbackUrl = HtmlEncoder.Default.Encode(this.unencodedCallbackUrl);
 
                 return
-                    "<p>Someone - hopefully you - registered this email address on the Parking Rota website.<p>" +
+                    "<p>Someone - hopefully you - registered this email address on the Parking Rota website.</p>" +
                     $"<p>If this was you, please confirm your account by <a href='{encodedCallbackUrl}'>clicking here</a>. If not, you can disregard this email.</p>" +
                     $"<p>The request originated from IP address {this.originatingIpAddress}</p>";
             }
