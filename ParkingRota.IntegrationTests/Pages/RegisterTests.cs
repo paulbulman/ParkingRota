@@ -28,7 +28,7 @@
             const string Password = "529064FD-a221-41C7-8BFC-0EC61B14BBDE";
 
             var client = this.CreateClient(RegistrationToken);
-            var registerPage = await client.GetAsync("/Identity/Account/Register");
+            var registerPage = await client.GetAsync($"/Identity/Account/Register?registrationToken={RegistrationToken}");
 
             Assert.Equal(HttpStatusCode.OK, registerPage.StatusCode);
 

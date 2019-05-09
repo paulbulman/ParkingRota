@@ -47,11 +47,7 @@
                 <input asp-for="Input.ConfirmPassword" class="form-control" />
                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Input.RegistrationToken"></label>
-                <input asp-for="Input.RegistrationToken" class="form-control" />
-                <span asp-validation-for="Input.RegistrationToken" class="text-danger"></span>
-            </div>
+            <input asp-for="Input.RegistrationToken" />
             <button type="submit" class="btn btn-default">Register</button>
         </form>
     </div>
