@@ -1,20 +1,67 @@
 ﻿namespace ParkingRota.Pages
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
+    using Business.Emails;
+    using Business.Model;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using NodaTime;
 
     public class AddNewUserModel : PageModel
     {
+        private readonly IClock clock;
+        private readonly IEmailRepository emailRepository;
+        private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IRegistrationTokenRepository registrationTokenRepository;
+
+        public AddNewUserModel(
+            IClock clock,
+            IEmailRepository emailRepository,
+            IHttpContextAccessor httpContextAccessor,
+            IRegistrationTokenRepository registrationTokenRepository)
+        {
+            this.clock = clock;
+            this.emailRepository = emailRepository;
+            this.httpContextAccessor = httpContextAccessor;
+            this.registrationTokenRepository = registrationTokenRepository;
+        }
+
         [TempData]
         public string StatusMessage { get; set; }
 
-        public void OnPost()
+        public IActionResult OnPost()
         {
-            this.Input.Email = string.Empty;
-            this.Input.ConfirmEmail = string.Empty;
+            if (!this.ModelState.IsValid)
+            {
+                return this.Page();
+            }
 
-            this.StatusMessage = "Token will be sent.";
+            var token = Guid.NewGuid().ToString();
+
+            this.registrationTokenRepository.AddRegistrationToken(
+                new RegistrationToken
+                {
+                    Token = token,
+                    ExpiryTime = this.clock.GetCurrentInstant().Plus(Duration.FromHours(24))
+                });
+
+            var callbackUrl = this.Url.Page(
+                "/Account/Register",
+                pageHandler: null,
+                values: new { area = "Identity", registrationToken = token },
+                protocol: "https");
+
+            var ipAddress = this.httpContextAccessor.GetOriginatingIpAddress();
+
+            this.emailRepository.AddToQueue(new Signup(this.Input.Email, callbackUrl, ipAddress));
+
+            this.ModelState.Clear();
+
+            this.StatusMessage = "Email will be sent.";
+
+            return this.RedirectToPage();
         }
 
         [BindProperty]
