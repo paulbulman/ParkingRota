@@ -6,6 +6,8 @@
     {
         IReadOnlyList<RegistrationToken> GetRegistrationTokens();
 
+        void AddRegistrationToken(RegistrationToken registrationToken);
+
         void DeleteRegistrationToken(string token);
     }
 }

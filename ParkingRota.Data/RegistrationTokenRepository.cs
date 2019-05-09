@@ -21,6 +21,18 @@
                 .Select(this.mapper.Map<Business.Model.RegistrationToken>)
                 .ToArray();
 
+        public void AddRegistrationToken(Business.Model.RegistrationToken registrationToken)
+        {
+            this.context.RegistrationTokens.Add(
+                new RegistrationToken
+                {
+                    Token = registrationToken.Token,
+                    ExpiryTime = registrationToken.ExpiryTime
+                });
+
+            this.context.SaveChanges();
+        }
+
         public void DeleteRegistrationToken(string token)
         {
             var registrationToken = this.context.RegistrationTokens.Single(t => t.Token == token);
