@@ -157,15 +157,12 @@
 
         private static ApplicationUser CreateApplicationUser(InputModel input)
         {
-            const decimal DefaultCommuteDistance = 9.99m;
-
             return new ApplicationUser
             {
                 FirstName = input.FirstName,
                 LastName = input.LastName,
                 CarRegistrationNumber = input.CarRegistrationNumber,
                 AlternativeCarRegistrationNumber = input.AlternativeCarRegistrationNumber,
-                CommuteDistance = DefaultCommuteDistance,
                 UserName = input.Email,
                 Email = input.Email
             };

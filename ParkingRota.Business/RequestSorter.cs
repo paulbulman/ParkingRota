@@ -74,6 +74,7 @@
             !allocations.Any(a => a.ApplicationUser.Id == request.ApplicationUser.Id && a.Date == request.Date);
 
         private static int LivesFarAway(Request request, SystemParameterList systemParameterList) =>
+            request.ApplicationUser.CommuteDistance == null ||
             request.ApplicationUser.CommuteDistance > systemParameterList.NearbyDistance ? 0 : 1;
 
         private static decimal? CalculateExistingAllocationRatio(

@@ -120,6 +120,26 @@
         }
 
         [Fact]
+        public void Test_Sort_TreatsNoDistanceAsFarAway()
+        {
+            var nearbyUser = this.NearbyUsers.First();
+            var farAwayUser = this.FarAwayUsers.First();
+
+            farAwayUser.CommuteDistance = null;
+
+            this.AddRequest(nearbyUser, AllocationDate.PlusDays(-1));
+            this.AddRequest(nearbyUser, AllocationDate.PlusDays(-2));
+
+            this.AddRequest(farAwayUser, AllocationDate.PlusDays(-1), allocated: true);
+            this.AddRequest(farAwayUser, AllocationDate.PlusDays(-2), allocated: true);
+
+            var lowerPriorityRequest = this.AddRequest(nearbyUser);
+            var higherPriorityRequest = this.AddRequest(farAwayUser);
+
+            this.CheckSortOrder(new[] { higherPriorityRequest, lowerPriorityRequest });
+        }
+
+        [Fact]
         public void Test_Sort_ReturnsMostInterruptedFirst()
         {
             var lessInterruptedUser = this.NearbyUsers.First();
