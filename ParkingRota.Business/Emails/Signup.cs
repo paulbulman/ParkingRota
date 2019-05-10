@@ -28,7 +28,7 @@
 
                 return
                     "<p>A registration token has been generated for you to create an account on the Parking Rota website.</p>" +
-                    $"<p>If you were expecting this, create an account by <a href='{encodedCallbackUrl}'>clicking here</a>." +
+                    $"<p>If you were expecting this, create an account by <a href='{encodedCallbackUrl}'>clicking here</a>. " +
                     "If not, you can disregard this email. The link will be valid for 24 hours.</p>" +
                     $"<p>The request originated from IP address {this.originatingIpAddress}</p>";
             }
