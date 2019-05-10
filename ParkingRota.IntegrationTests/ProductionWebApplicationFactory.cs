@@ -6,6 +6,6 @@
     public class ProductionWebApplicationFactory<TProgram> : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder) =>
-            builder.UseSetting("Environment", "Production");
+            builder.UseSetting("Environment", "ProductionTest");
     }
 }
