@@ -1,0 +1,39 @@
+﻿@page
+@model ParkingRota.Pages.Users.IndexModel
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<h2>Manage Users</h2>
+
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table table-top table-striped table-responsive table-bordered">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Users[0].FirstName)</th>
+            <th>@Html.DisplayNameFor(model => model.Users[0].LastName)</th>
+            <th>@Html.DisplayNameFor(model => model.Users[0].CarRegistrationNumber)</th>
+            <th>@Html.DisplayNameFor(model => model.Users[0].AlternativeCarRegistrationNumber)</th>
+            <th>@Html.DisplayNameFor(model => model.Users[0].CommuteDistance)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => user.FirstName)</td>
+                <td>@Html.DisplayFor(modelItem => user.LastName)</td>
+                <td>@Html.DisplayFor(modelItem => user.CarRegistrationNumber)</td>
+                <td>@Html.DisplayFor(modelItem => user.AlternativeCarRegistrationNumber)</td>
+                <td>@Html.DisplayFor(modelItem => user.CommuteDistance)</td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@user.Id">Edit</a> |
+                    <a asp-page="./Delete" asp-route-id="@user.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

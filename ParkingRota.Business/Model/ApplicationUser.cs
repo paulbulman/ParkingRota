@@ -29,6 +29,7 @@
         public string AlternativeCarRegistrationNumber { get; set; }
 
         [PersonalData]
+        [Display(Name = "Commute distance (miles)")]
         public decimal? CommuteDistance { get; set; }
 
         public string FullName => $"{this.FirstName} {this.LastName}";

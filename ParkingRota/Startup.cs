@@ -91,7 +91,8 @@ namespace ParkingRota
                 {
                     options.Conventions.AuthorizePage("/EditReservations", UserRole.TeamLeader);
                     options.Conventions.AuthorizePage("/OverrideRequests", UserRole.TeamLeader);
-                    options.Conventions.AuthorizePage("/AddNewUser", UserRole.SiteAdmin);
+
+                    options.Conventions.AuthorizeFolder("/Users", UserRole.SiteAdmin);
 
                     options.Conventions.AuthorizeFolder("/");
 

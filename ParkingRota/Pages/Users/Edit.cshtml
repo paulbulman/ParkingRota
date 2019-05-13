@@ -1,0 +1,49 @@
+﻿@page
+@model ParkingRota.Pages.Users.EditModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<h2>Edit User</h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <h4>Edit user details:</h4>
+            <hr />
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Input.FirstName"></label>
+                <input asp-for="Input.FirstName" class="form-control" />
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.LastName"></label>
+                <input asp-for="Input.LastName" class="form-control" />
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.CarRegistrationNumber"></label>
+                <input asp-for="Input.CarRegistrationNumber" class="form-control" />
+                <span asp-validation-for="Input.CarRegistrationNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.AlternativeCarRegistrationNumber"></label>
+                <input asp-for="Input.AlternativeCarRegistrationNumber" class="form-control" placeholder="(Optional)" />
+                <span asp-validation-for="Input.AlternativeCarRegistrationNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.CommuteDistance"></label>
+                <input asp-for="Input.CommuteDistance" class="form-control" />
+                <span asp-validation-for="Input.CommuteDistance" class="text-danger"></span>
+            </div>
+            <input asp-for="Input.Id" />
+            <input type="submit" value="Save" class="btn btn-primary" /> |
+            <a asp-page="./Index">Return without saving</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
