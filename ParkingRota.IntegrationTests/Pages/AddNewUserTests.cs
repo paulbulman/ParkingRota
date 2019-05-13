@@ -24,7 +24,7 @@
         {
             var client = this.CreateClient();
 
-            var getResponse = await client.LoadAuthenticatedPage("/AddNewUser");
+            var getResponse = await client.LoadAuthenticatedPage("/Users/Create");
             var getDocument = await HtmlHelpers.GetDocumentAsync(getResponse);
 
             var form = getDocument

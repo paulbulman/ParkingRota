@@ -14,7 +14,8 @@
 
         [Theory]
         [InlineData("/Summary")]
-        [InlineData("/AddNewUser")]
+        [InlineData("/Users")]
+        [InlineData("/Users/Create")]
         [InlineData("/EditRequests")]
         [InlineData("/EditReservations")]
         [InlineData("/OverrideRequests")]

@@ -1,4 +1,4 @@
-﻿namespace ParkingRota.UnitTests.Pages
+﻿namespace ParkingRota.UnitTests.Pages.Users
 {
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -11,10 +11,10 @@
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Emails;
     using ParkingRota.Business.Model;
-    using ParkingRota.Pages;
+    using ParkingRota.Pages.Users;
     using Xunit;
 
-    public static class AddNewUserModelTests
+    public static class CreateModelTests
     {
         [Fact]
         public static void Test_AddNewUser_Succeeds()
@@ -56,13 +56,13 @@
             // Act
             const string EmailAddress = "a@b.c";
 
-            var model = new AddNewUserModel(
+            var model = new CreateModel(
                 mockClock,
                 mockEmailRepository.Object,
                 httpContextAccessor,
                 mockRegistrationTokenRepository.Object)
             {
-                Input = new AddNewUserModel.InputModel { Email = EmailAddress, ConfirmEmail = EmailAddress },
+                Input = new CreateModel.InputModel { Email = EmailAddress, ConfirmEmail = EmailAddress },
                 Url = mockUrlHelper.Object
             };
 

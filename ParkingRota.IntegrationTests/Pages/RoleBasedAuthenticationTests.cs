@@ -10,7 +10,8 @@
         public RoleBasedAuthenticationTests(DatabaseWebApplicationFactory<Program> factory) => this.factory = factory;
 
         [Theory]
-        [InlineData("/AddNewUser")]
+        [InlineData("/Users")]
+        [InlineData("/Users/Create")]
         [InlineData("/EditReservations")]
         [InlineData("/OverrideRequests")]
         public async Task Test_RestrictedAuthenticatedPage(string requestUri)

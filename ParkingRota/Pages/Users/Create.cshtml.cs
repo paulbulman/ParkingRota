@@ -1,4 +1,4 @@
-﻿namespace ParkingRota.Pages
+﻿namespace ParkingRota.Pages.Users
 {
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -9,14 +9,14 @@
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using NodaTime;
 
-    public class AddNewUserModel : PageModel
+    public class CreateModel : PageModel
     {
         private readonly IClock clock;
         private readonly IEmailRepository emailRepository;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly IRegistrationTokenRepository registrationTokenRepository;
 
-        public AddNewUserModel(
+        public CreateModel(
             IClock clock,
             IEmailRepository emailRepository,
             IHttpContextAccessor httpContextAccessor,
