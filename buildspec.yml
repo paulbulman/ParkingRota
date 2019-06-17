@@ -7,6 +7,9 @@ env:
     ParkingRotaAdminConnectionString: "ParkingRotaAdminConnectionString"
 
 phases:
+  install:
+    runtime-versions:
+      dotnet: 2.2
   build:
     commands:
       - dotnet build
