@@ -32,6 +32,8 @@
         [Display(Name = "Commute distance (miles)")]
         public decimal? CommuteDistance { get; set; }
 
+        public bool IsVisitor { get; set; }
+
         public string FullName => $"{this.FirstName} {this.LastName}";
     }
 }
