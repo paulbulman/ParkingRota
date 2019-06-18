@@ -16,6 +16,7 @@
 
         public void OnGet() =>
             this.RegistrationNumberRecords = this.userManager.Users
+                .Where(u => !u.IsVisitor)
                 .ToArray()
                 .SelectMany(CreateRegistrationNumberRecords)
                 .OrderBy(r => r.CarRegistrationNumber)
