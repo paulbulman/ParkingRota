@@ -12,7 +12,6 @@ namespace ParkingRota.UnitTests.Pages
         [Fact]
         public static void Test_Get()
         {
-            var mockUserManager = TestHelpers.CreateMockUserManager();
 
             var user = new ApplicationUser
             {
@@ -29,11 +28,7 @@ namespace ParkingRota.UnitTests.Pages
                 AlternativeCarRegistrationNumber = "AB12CDE",
             };
 
-            var applicationUsers = new[] { user, otherUser };
-
-            mockUserManager
-                .SetupGet(u => u.Users)
-                .Returns(applicationUsers.AsQueryable());
+            var mockUserManager = TestHelpers.CreateMockUserManager(new[] { user, otherUser });
 
             var model = new RegistrationNumbersModel(mockUserManager.Object);
 
@@ -71,12 +66,7 @@ namespace ParkingRota.UnitTests.Pages
                 IsVisitor = true
             };
 
-            var applicationUsers = new[] { user, visitorUser };
-
-            var mockUserManager = TestHelpers.CreateMockUserManager();
-            mockUserManager
-                .SetupGet(u => u.Users)
-                .Returns(applicationUsers.AsQueryable());
+            var mockUserManager = TestHelpers.CreateMockUserManager(new[] { user, visitorUser });
 
             var model = new RegistrationNumbersModel(mockUserManager.Object);
 

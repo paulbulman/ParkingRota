@@ -70,6 +70,17 @@
             new Mock<UserManager<ApplicationUser>>(
                 Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
 
+        public static Mock<UserManager<ApplicationUser>> CreateMockUserManager(IEnumerable<ApplicationUser> applicationUsers)
+        {
+            var mockUserManager = CreateMockUserManager();
+
+            mockUserManager
+                .SetupGet(u => u.Users)
+                .Returns(applicationUsers.AsQueryable());
+
+            return mockUserManager;
+        }
+
         public static Mock<UserManager<ApplicationUser>> CreateMockUserManager(
             ClaimsPrincipal principal, ApplicationUser loggedInUser)
         {

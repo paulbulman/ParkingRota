@@ -58,10 +58,7 @@
                 .Setup(r => r.UpdateRequests(selectedUser, It.IsAny<IReadOnlyList<Request>>()));
 
             // Set up user manager
-            var mockUserManager = TestHelpers.CreateMockUserManager();
-            mockUserManager
-                .Setup(u => u.Users)
-                .Returns(new[] { selectedUser }.AsQueryable());
+            var mockUserManager = TestHelpers.CreateMockUserManager(new[] { selectedUser });
 
             // Act
             var requestDates = new[] { 13.November(2018), 15.November(2018), 16.November(2018) };
