@@ -1,5 +1,7 @@
 ﻿namespace ParkingRota.UnitTests.Business.ScheduledTasks
 {
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Moq;
     using NodaTime;
     using NodaTime.Testing.Extensions;
@@ -74,6 +76,46 @@
                         It.Is<ParkingRota.Business.Emails.DailySummary>(s => s.To == applicationUser.Email)),
                     Times.Once);
             }
+        }
+
+        [Fact]
+        public static async Task Test_Run_ExcludesVisitorAccounts()
+        {
+            // Arrange
+            var nextWorkingDate = 28.December(2018);
+
+            var visitorUser = new ApplicationUser { Email = "x@y.z", IsVisitor = true };
+
+            var mockAllocationRepository = new Mock<IAllocationRepository>(MockBehavior.Strict);
+            mockAllocationRepository
+                .Setup(a => a.GetAllocations(nextWorkingDate, nextWorkingDate))
+                .Returns(new List<Allocation>());
+
+            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
+            mockDateCalculator
+                .Setup(d => d.GetNextWorkingDate())
+                .Returns(nextWorkingDate);
+
+            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
+
+            var requests = new[]
+            {
+                new Request { ApplicationUser = visitorUser, Date = nextWorkingDate }
+            };
+
+            var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
+            mockRequestRepository
+                .Setup(r => r.GetRequests(nextWorkingDate, nextWorkingDate))
+                .Returns(requests);
+
+            // Act/Assert (Mock.Strict ensures no emails were sent)
+            var dailySummary = new DailySummary(
+                mockAllocationRepository.Object,
+                mockDateCalculator.Object,
+                mockEmailRepository.Object,
+                mockRequestRepository.Object);
+
+            await dailySummary.Run();
         }
 
         [Theory]

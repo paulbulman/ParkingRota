@@ -33,7 +33,7 @@
             var allocations = this.allocationRepository.GetAllocations(nextWorkingDate, nextWorkingDate);
             var requests = this.requestRepository.GetRequests(nextWorkingDate, nextWorkingDate);
 
-            foreach (var recipient in requests.Select(r => r.ApplicationUser))
+            foreach (var recipient in requests.Where(r => !r.ApplicationUser.IsVisitor).Select(r => r.ApplicationUser))
             {
                 this.emailRepository.AddToQueue(new Emails.DailySummary(recipient, allocations, requests));
             }
