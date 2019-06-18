@@ -1,5 +1,6 @@
 ﻿namespace ParkingRota.UnitTests.Business.ScheduledTasks
 {
+    using System.Collections.Generic;
     using Moq;
     using NodaTime;
     using NodaTime.Testing.Extensions;
@@ -7,7 +8,6 @@
     using ParkingRota.Business.Emails;
     using ParkingRota.Business.Model;
     using Xunit;
-    using DailySummary = ParkingRota.Business.ScheduledTasks.DailySummary;
     using WeeklySummary = ParkingRota.Business.ScheduledTasks.WeeklySummary;
 
     public static class WeeklySummaryTests
@@ -67,13 +67,13 @@
                 .Returns(requests);
 
             // Act
-            var dailySummary = new WeeklySummary(
+            var weeklySummary = new WeeklySummary(
                 mockAllocationRepository.Object,
                 mockDateCalculator.Object,
                 mockEmailRepository.Object,
                 mockRequestRepository.Object);
 
-            await dailySummary.Run();
+            await weeklySummary.Run();
 
             // Assert
             foreach (var applicationUser in new[] { allocatedUser, interruptedUser })
@@ -83,6 +83,48 @@
                         It.Is<ParkingRota.Business.Emails.WeeklySummary>(s => s.To == applicationUser.Email)),
                     Times.Once);
             }
+        }
+
+        [Fact]
+        public static async void Test_Run_ExcludesVisitorAccounts()
+        {
+            // Arrange
+            var firstDate = 24.December(2018);
+            var lastDate = 28.December(2018);
+
+            var visitorUser = new ApplicationUser { Email = "x@y.z", IsVisitor = true };
+
+            var requests = new[]
+            {
+                new Request { ApplicationUser = visitorUser, Date = firstDate },
+                new Request { ApplicationUser = visitorUser, Date = lastDate }
+            };
+
+            var mockAllocationRepository = new Mock<IAllocationRepository>(MockBehavior.Strict);
+            mockAllocationRepository
+                .Setup(a => a.GetAllocations(firstDate, lastDate))
+                .Returns(new List<Allocation>());
+
+            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
+            mockDateCalculator
+                .Setup(d => d.GetWeeklySummaryDates())
+                .Returns(new[] { firstDate, lastDate });
+
+            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
+
+            var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
+            mockRequestRepository
+                .Setup(r => r.GetRequests(firstDate, lastDate))
+                .Returns(requests);
+
+            // Act/Assert (Mock.Strict ensures no emails were sent)
+            var weeklySummary = new WeeklySummary(
+                mockAllocationRepository.Object,
+                mockDateCalculator.Object,
+                mockEmailRepository.Object,
+                mockRequestRepository.Object);
+
+            await weeklySummary.Run();
         }
 
         [Theory]
