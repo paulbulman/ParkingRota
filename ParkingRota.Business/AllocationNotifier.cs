@@ -38,7 +38,7 @@
                 datesToExclude.AddRange(this.dateCalculator.GetWeeklySummaryDates());
             }
 
-            foreach (var allocation in allocations.Where(a => !datesToExclude.Contains(a.Date)))
+            foreach (var allocation in allocations.Where(a => !datesToExclude.Contains(a.Date) && !a.ApplicationUser.IsVisitor))
             {
                 this.emailRepository.AddToQueue(new SingleAllocation(allocation));
             }
