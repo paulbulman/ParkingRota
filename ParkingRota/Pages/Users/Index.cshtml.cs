@@ -21,7 +21,7 @@
             var currentUser = await this.userManager.GetUserAsync(this.User);
 
             this.Users = await this.userManager.Users
-                .Where(u => u.Id != currentUser.Id)
+                .Where(u => u.Id != currentUser.Id && !u.IsVisitor)
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
                 .ToListAsync();
