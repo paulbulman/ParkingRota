@@ -10,6 +10,7 @@ namespace ParkingRota
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.StaticFiles;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -137,7 +138,14 @@ namespace ParkingRota
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
+
+            var provider = new FileExtensionContentTypeProvider
+            {
+                Mappings = {[".webmanifest"] = "application/manifest+json"}
+            };
+
+            app.UseStaticFiles(new StaticFileOptions {ContentTypeProvider = provider});
+
             app.UseCookiePolicy();
 
             app.UseAuthentication();
