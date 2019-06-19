@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <UserSecretsId>aspnet-ParkingRota-55E11B64-4C85-491C-88FA-8F020659226F</UserSecretsId>
-    <AWSProjectType>Lambda</AWSProjectType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -11,7 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="3.0.3" />
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="AWS.Logger.AspNetCore" Version="1.4.1" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.9.406" />
@@ -22,7 +20,6 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Amazon.ElasticBeanstalk.Tools" Version="1.1.4" />
-    <DotNetCliToolReference Include="Amazon.Lambda.Tools" Version="2.2.0" />
   </ItemGroup>
 
 
