@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Identity;
     using Moq;
     using NodaTime;
     using NodaTime.Testing.Extensions;
@@ -62,10 +63,7 @@
                 .Setup(r => r.GetRequests(earliestRequestDate, latestRequestDate))
                 .Returns(existingRequests);
 
-            var users = new[] { userWithRequests, userWithoutRequests, otherUserWithoutRequests };
-
-            var mockUserManager = TestHelpers.CreateMockUserManager();
-            mockUserManager.SetupGet(m => m.Users).Returns(users.AsQueryable);
+            var mockUserManager = CreateMockUserManager(userWithRequests, userWithoutRequests, otherUserWithoutRequests);
 
             // Act
             var requestReminder = new RequestReminder(
@@ -105,17 +103,21 @@
             var earliestRequestDate = 12.November(2018);
             var latestRequestDate = 28.December(2018);
 
+            var user = new ApplicationUser();
+
             var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
             mockRequestRepository
                 .Setup(r => r.GetRequests(earliestRequestDate, latestRequestDate))
-                .Returns(new[] { new Request { ApplicationUser = new ApplicationUser(), Date = 28.December(2018) } });
+                .Returns(new[] { new Request { ApplicationUser = user, Date = 28.December(2018) } });
+
+            var mockUserManager = CreateMockUserManager(user);
 
             // Act and assert: mock strict on email repository ensures nothing has been done.
             var requestReminder = new RequestReminder(
                 mockDateCalculator.Object,
                 mockEmailRepository.Object,
                 mockRequestRepository.Object,
-                TestHelpers.CreateMockUserManager().Object);
+                mockUserManager.Object);
 
             await requestReminder.Run();
         }
@@ -144,12 +146,52 @@
                 .Setup(r => r.GetRequests(earliestRequestDate, latestRequestDate))
                 .Returns(new List<Request>());
 
+            var mockUserManager = CreateMockUserManager(new ApplicationUser());
+
             // Act and assert: mock strict on email repository ensures nothing has been done.
             var requestReminder = new RequestReminder(
                 mockDateCalculator.Object,
                 mockEmailRepository.Object,
                 mockRequestRepository.Object,
-                TestHelpers.CreateMockUserManager().Object);
+                mockUserManager.Object);
+
+            await requestReminder.Run();
+        }
+
+        [Fact]
+        public static async Task Test_Run_VisitorUser()
+        {
+            // Arrange
+            var date = 12.December(2018);
+
+            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
+            mockDateCalculator
+                .Setup(d => d.GetCurrentDate())
+                .Returns(date);
+            mockDateCalculator
+                .Setup(d => d.GetUpcomingLongLeadTimeAllocationDates())
+                .Returns(new[] { 24.December(2018), 27.December(2018), 28.December(2018) });
+
+            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
+
+            var earliestRequestDate = 12.November(2018);
+            var latestRequestDate = 28.December(2018);
+
+            var visitorUser = new ApplicationUser {IsVisitor = true};
+
+            var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
+            mockRequestRepository
+                .Setup(r => r.GetRequests(earliestRequestDate, latestRequestDate))
+                .Returns(new[] { new Request { ApplicationUser = visitorUser, Date = 21.December(2018) } });
+
+            var mockUserManager = CreateMockUserManager(visitorUser);
+
+            // Act and assert: mock strict on email repository ensures nothing has been done.
+            var requestReminder = new RequestReminder(
+                mockDateCalculator.Object,
+                mockEmailRepository.Object,
+                mockRequestRepository.Object,
+                mockUserManager.Object);
 
             await requestReminder.Run();
         }
@@ -179,6 +221,15 @@
             var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
 
             Assert.Equal(expected, result);
+        }
+
+        private static Mock<UserManager<ApplicationUser>> CreateMockUserManager(params ApplicationUser[] users)
+        {
+            var mockUserManager = TestHelpers.CreateMockUserManager();
+
+            mockUserManager.SetupGet(m => m.Users).Returns(users.AsQueryable);
+
+            return mockUserManager;
         }
     }
 }

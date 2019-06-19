@@ -44,6 +44,7 @@
             var users = this.userManager.Users.ToArray();
 
             var activeUsersWithoutUpcomingRequests = users.Where(u =>
+                !u.IsVisitor &&
                 requests.Any(r => r.ApplicationUser.Id == u.Id) &&
                 !requests.Any(r => r.ApplicationUser.Id == u.Id && upcomingLongLeadTimeAllocationDates.Contains(r.Date)));
 
