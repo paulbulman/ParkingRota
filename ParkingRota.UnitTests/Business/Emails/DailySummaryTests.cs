@@ -41,7 +41,7 @@
 
             var email = new DailySummary(recipient, allocations, requests);
 
-            Assert.Equal("[ALLOCATED] 18 Dec Daily allocations summary", email.Subject);
+            Assert.Equal("[Allocated] 18 Dec Daily allocations summary", email.Subject);
         }
 
         [Fact]

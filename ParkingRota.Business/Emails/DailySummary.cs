@@ -25,7 +25,7 @@
         {
             get
             {
-                var status = this.allocations.Any(a => a.ApplicationUser == recipient) ? "ALLOCATED" : "INTERRUPTED";
+                var status = this.allocations.Any(a => a.ApplicationUser == this.recipient) ? "Allocated" : "INTERRUPTED";
                 return $"[{status}] {this.FormattedDate} Daily allocations summary";
             }
         }
