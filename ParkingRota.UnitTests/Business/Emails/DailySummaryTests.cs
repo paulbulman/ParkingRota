@@ -25,13 +25,43 @@
         }
 
         [Fact]
-        public static void TestSubject()
+        public static void TestSubject_RecipientAllocated()
         {
-            var allocations = new[] { new Allocation { Date = 18.December(2018) } };
+            var date = 18.December(2018);
 
-            var email = new DailySummary(new ApplicationUser(), allocations, default(IReadOnlyList<Request>));
+            var recipient = Create.User("Pierre-Emerick Aubameyang");
 
-            Assert.Equal("Daily allocations summary for 18 Dec", email.Subject);
+            var allocatedUsers = Create.Users("Petr Čech", "Héctor Bellerín").Concat(new[] { recipient });
+            var interruptedUsers = Create.Users("Sokratis Papastathopoulos", "Mohamed Elneny");
+
+            var allUsers = allocatedUsers.Concat(interruptedUsers);
+
+            var allocations = Create.Allocations(allocatedUsers, date);
+            var requests = Create.Requests(allUsers, date);
+
+            var email = new DailySummary(recipient, allocations, requests);
+
+            Assert.Equal("[Allocated] 18 Dec Daily allocations summary", email.Subject);
+        }
+
+        [Fact]
+        public static void TestSubject_RecipientInterrupted()
+        {
+            var date = 18.December(2018);
+
+            var recipient = Create.User("Pierre-Emerick Aubameyang");
+
+            var allocatedUsers = Create.Users("Petr Čech", "Héctor Bellerín");
+            var interruptedUsers = Create.Users("Sokratis Papastathopoulos", "Mohamed Elneny").Concat(new[] { recipient });
+
+            var allUsers = allocatedUsers.Concat(interruptedUsers);
+
+            var allocations = Create.Allocations(allocatedUsers, date);
+            var requests = Create.Requests(allUsers, date);
+
+            var email = new DailySummary(recipient, allocations, requests);
+
+            Assert.Equal("[INTERRUPTED] 18 Dec Daily allocations summary", email.Subject);
         }
 
         [Fact]
