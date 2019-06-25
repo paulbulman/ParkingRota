@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Amazon.Lambda.TestUtilities;
     using ParkingRota.Service;
     using Xunit;
 
@@ -17,9 +16,8 @@
             }
 
             var program = new Program();
-            var context = new TestLambdaContext();
 
-            await program.RunTasks(context);
+            await program.RunTasks();
         }
     }
 }

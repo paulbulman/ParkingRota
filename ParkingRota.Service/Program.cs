@@ -2,7 +2,6 @@ namespace ParkingRota.Service
 {
     using System;
     using System.Threading.Tasks;
-    using Amazon.Lambda.Core;
     using AutoMapper;
     using Business;
     using Business.Model;
@@ -19,7 +18,7 @@ namespace ParkingRota.Service
     {
         private readonly Lazy<ServiceProvider> serviceProvider = new Lazy<ServiceProvider>(BuildServiceProvider);
 
-        public async Task RunTasks(ILambdaContext context)
+        public async Task RunTasks()
         {
             using (var scope = this.serviceProvider.Value.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {

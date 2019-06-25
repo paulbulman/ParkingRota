@@ -7,8 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.Core" Version="1.1.0" />
-    <PackageReference Include="Amazon.Lambda.TestUtilities" Version="1.1.0" />
     <PackageReference Include="AngleSharp" Version="0.12.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.4" AllowExplicitVersion="true" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.2.0" />
