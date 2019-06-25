@@ -1,7 +1,9 @@
 namespace ParkingRota.Service
 {
     using System;
-    using System.Threading.Tasks;
+    using System.ServiceProcess;
+    using System.Threading;
+    using System.Timers;
     using AutoMapper;
     using Business;
     using Business.Model;
@@ -13,14 +15,71 @@ namespace ParkingRota.Service
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NodaTime;
+    using Timer = System.Timers.Timer;
 
-    public class Service
+    public class Service : ServiceBase
     {
-        private readonly Lazy<ServiceProvider> serviceProvider = new Lazy<ServiceProvider>(BuildServiceProvider);
+        private ServiceProvider serviceProvider;
 
-        public async Task RunTasks()
+        private Timer timer;
+
+        protected override void OnStart(string[] args)
         {
-            using (var scope = this.serviceProvider.Value.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            this.serviceProvider = BuildServiceProvider();
+
+            this.timer = new Timer(Duration.FromSeconds(20).TotalMilliseconds);
+            this.timer.Elapsed += this.Timer_Elapsed;
+            this.timer.Start();
+        }
+
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                if (Monitor.TryEnter(this))
+                {
+                    try
+                    {
+                        this.RunTasks();
+                    }
+                    finally
+                    {
+                        Monitor.Exit(this);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                // Exceptions get swallowed by the caller of this, so we need to make sure we don't ignore them.
+                ThreadPool.QueueUserWorkItem(
+                    callback => throw new InvalidOperationException("Timer process exception", exception));
+            }
+        }
+
+        protected override void OnStop()
+        {
+            this.timer.Stop();
+
+            lock (this)
+            {
+                // Ensure any current run has finished
+            }
+
+            base.OnStop();
+            this.Dispose(true);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            this.serviceProvider?.Dispose();
+            this.timer?.Dispose();
+        }
+
+        public async void RunTasks()
+        {
+            using (var scope = this.serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var allocationCreator = scope.ServiceProvider.GetRequiredService<AllocationCreator>();
                 var newAllocations = allocationCreator.Create();
