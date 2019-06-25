@@ -5,7 +5,7 @@
     using ParkingRota.Service;
     using Xunit;
 
-    public class ProgramTests
+    public class ServiceTests
     {
         [Fact]
         public async Task Test_RunTasks()
@@ -15,7 +15,7 @@
                 return;
             }
 
-            var program = new Program();
+            var program = new Service();
 
             await program.RunTasks();
         }

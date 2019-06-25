@@ -14,7 +14,7 @@ namespace ParkingRota.Service
     using Microsoft.Extensions.Logging;
     using NodaTime;
 
-    public class Program
+    public class Service
     {
         private readonly Lazy<ServiceProvider> serviceProvider = new Lazy<ServiceProvider>(BuildServiceProvider);
 
