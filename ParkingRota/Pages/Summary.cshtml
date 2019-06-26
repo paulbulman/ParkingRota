@@ -10,8 +10,8 @@
 <h4>Requests up to the end of next month:</h4>
 <hr />
 
-<table class="table table-top table-striped table-responsive table-bordered">
-    <thead>
+<table class="table table-top table-striped table-bordered">
+    <thead class="thead-dark">
         <tr>
             @(Html.Raw(string.Join(string.Empty, new[] { "Mon", "Tue", "Wed", "Thu", "Fri" }.Select(d => $"<th>{d}</th>"))))
         </tr>

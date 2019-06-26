@@ -5,8 +5,8 @@
 <form method="post">
     <input type="hidden" name="selectedUserId" value="@Model.SelectedUserId" />
     <div class="form-group">
-        <table class="table table-striped table-responsive table-bordered">
-            <thead>
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
                 <tr>
                     @(Html.Raw(string.Join(string.Empty, new[] { "Mon", "Tue", "Wed", "Thu", "Fri" }.Select(d => $"<th>{d}</th>"))))
                 </tr>
@@ -41,12 +41,12 @@
         </table>
 
         <div class="form-group">
-            <button id="selectAll" type="button" class="btn btn-default">Select all</button>
-            <button id="selectNone" type="button" class="btn btn-default">Select none</button>
+            <button id="selectAll" type="button" class="btn btn-outline-secondary">Select all</button>
+            <button id="selectNone" type="button" class="btn btn-outline-secondary">Select none</button>
         </div>
 
         <div class="form-group">
-            <input type="submit" value="Save" class="btn btn-default" />
+            <input type="submit" value="Save" class="btn btn-primary" />
         </div>
     </div>
 </form>

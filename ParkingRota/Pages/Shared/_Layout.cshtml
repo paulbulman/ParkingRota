@@ -14,23 +14,17 @@
         <link rel="stylesheet" href="~/css/site.css" />
     </environment>
     <environment exclude="Development">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"
               crossorigin="anonymous"
-              integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" />
+              integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
     <partial name="_Favicons" />
 </head>
 <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
                 @if (SignInManager.IsSignedIn(User))
                 {
                     <a asp-page="/Summary" class="navbar-brand">Home</a>
@@ -39,37 +33,41 @@
                 {
                     <a asp-page="/Index" class="navbar-brand">Home</a>
                 }
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <li><a asp-page="/EditRequests">Edit requests</a></li>
-                        <li><a asp-page="/RegistrationNumbers">Registration numbers</a></li>
-
-                        var applicationUser = await UserManager.GetUserAsync(User);
-
-                        if (await UserManager.IsInRoleAsync(applicationUser, UserRole.TeamLeader))
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                    <partial name="_LoginPartial" />
+                    <ul class="navbar-nav flex-grow-1">
+                        @if (SignInManager.IsSignedIn(User))
                         {
-                            <li><a asp-page="/EditReservations">Edit reservations</a></li>
-                            <li><a asp-page="/OverrideRequests">Override requests</a></li>
-                        }
+                            <li class="nav-item"><a class="nav-link text-dark" asp-page="/EditRequests">Edit requests</a></li>
+                            <li class="nav-item"><a class="nav-link text-dark" asp-page="/RegistrationNumbers">Registration numbers</a></li>
 
-                        if (await UserManager.IsInRoleAsync(applicationUser, UserRole.SiteAdmin))
-                        {
-                            <li><a asp-page="/Users/Index">Manage users</a></li>
+                            var applicationUser = await UserManager.GetUserAsync(User);
+
+                            if (await UserManager.IsInRoleAsync(applicationUser, UserRole.TeamLeader))
+                            {
+                                <li class="nav-item"><a class="nav-link text-dark" asp-page="/EditReservations">Edit reservations</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-page="/OverrideRequests">Override requests</a></li>
+                            }
+
+                            if (await UserManager.IsInRoleAsync(applicationUser, UserRole.SiteAdmin))
+                            {
+                                <li class="nav-item"><a class="nav-link text-dark" asp-page="/Users/Index">Manage users</a></li>
+                            }
                         }
-                    }
-                </ul>
-                <partial name="_LoginPartial" />
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <partial name="_CookieConsentPartial" />
-
-    <div class="container body-content">
-        @RenderBody()
+    <div class="container">
+        <partial name="_CookieConsentPartial" />
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
     </div>
 
     <environment include="Development">
@@ -82,9 +80,9 @@
                 crossorigin="anonymous"
                 integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=">
         </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.bundle.min.js"
                 crossorigin="anonymous"
-                integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=">
+                integrity="sha256-fzFFyH01cBVPYzl16KT40wqjhgPtq6FFUB6ckN2+GGw=">
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
     </environment>

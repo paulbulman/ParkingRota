@@ -9,6 +9,7 @@ namespace ParkingRota
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Identity.UI;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.StaticFiles;
     using Microsoft.EntityFrameworkCore;
@@ -59,7 +60,7 @@ namespace ParkingRota
                     c.User.RequireUniqueEmail = true;
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultUI()
+                .AddDefaultUI(UIFramework.Bootstrap4)
                 .AddDefaultTokenProviders();
 
             services.AddSingleton<IClock>(SystemClock.Instance);
@@ -105,7 +106,7 @@ namespace ParkingRota
 
                     options.Conventions.AddPageRoute("/OverrideRequests", "OverrideRequests/{id?}");
                 })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddHttpContextAccessor();
         }
