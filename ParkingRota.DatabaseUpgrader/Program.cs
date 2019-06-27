@@ -8,9 +8,11 @@
 
     internal static class Program
     {
-        private static async Task Main()
+        private static async Task Main(string[] args)
         {
-            var connectionString = Environment.GetEnvironmentVariable("ParkingRotaAdminConnectionString");
+            var connectionStringEnvironmentVariableName = args.Any() ? args[0] : "ParkingRotaAdminConnectionString";
+
+            var connectionString = Environment.GetEnvironmentVariable(connectionStringEnvironmentVariableName);
 
             if (string.IsNullOrEmpty(connectionString))
             {
