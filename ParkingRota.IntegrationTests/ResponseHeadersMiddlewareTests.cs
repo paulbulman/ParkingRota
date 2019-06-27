@@ -21,7 +21,8 @@
                 "default-src 'none'; " +
                 "connect-src paulbulman.report-uri.com; " +
                 "font-src 'self' cdnjs.cloudflare.com; " +
-                "img-src 'self'; " +
+                "img-src 'self' data:; " +
+                "manifest-src 'self'; " +
                 "script-src 'self' 'sha256-Ht5pieobFHQ7OBn1NV/L2c0mgYcW0/QdrzeaOpo0LWw=' cdnjs.cloudflare.com; " +
                 "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; " +
                 "upgrade-insecure-requests; " +

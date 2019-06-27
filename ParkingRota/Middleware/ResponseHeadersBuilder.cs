@@ -31,7 +31,8 @@
                 "default-src 'none'; " +
                 $"connect-src {ReportUriSubdomain}; " +
                 $"font-src 'self' {CloudflareSubdomain}; " +
-                "img-src 'self'; " +
+                "img-src 'self' data:; " +
+                "manifest-src 'self'; " +
                 $"script-src 'self' 'sha256-Ht5pieobFHQ7OBn1NV/L2c0mgYcW0/QdrzeaOpo0LWw=' {CloudflareSubdomain}; " +
                 $"style-src 'self' 'unsafe-inline' {CloudflareSubdomain}; " +
                 "upgrade-insecure-requests; " +
