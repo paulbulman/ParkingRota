@@ -10,14 +10,18 @@
     {
         private static async Task Main(string[] args)
         {
-            var connectionStringEnvironmentVariableName = args.Any() ? args[0] : "ParkingRotaAdminConnectionString";
+            var connectionStringEnvironmentVariableName = args.Any() ? args[0] : string.Empty;
+
+            if (string.IsNullOrEmpty(connectionStringEnvironmentVariableName))
+            {
+                throw new InvalidOperationException("Connection string environment variable name not set");
+            }
 
             var connectionString = Environment.GetEnvironmentVariable(connectionStringEnvironmentVariableName);
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                Console.WriteLine("Connection string environment variable not set.");
-                return;
+                throw new InvalidOperationException("Connection string environment variable not set");
             }
 
             var dbContextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>()

@@ -9,7 +9,7 @@
         [Fact]
         public void Test_RunTasks()
         {
-            var connectionString = Environment.GetEnvironmentVariable("ParkingRotaServiceTestConnectionString");
+            var connectionString = Environment.GetEnvironmentVariable("ParkingRotaTestConnectionString");
 
             if (!string.IsNullOrEmpty(connectionString))
             {
