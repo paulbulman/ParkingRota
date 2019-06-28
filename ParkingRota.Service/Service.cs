@@ -92,6 +92,9 @@ namespace ParkingRota.Service
 
                 var emailProcessor = scope.ServiceProvider.GetRequiredService<EmailProcessor>();
                 await emailProcessor.SendPending();
+
+                var lastServiceRunTimeUpdater = scope.ServiceProvider.GetRequiredService<LastServiceRunTimeUpdater>();
+                lastServiceRunTimeUpdater.Update();
             }
         }
 
@@ -125,6 +128,7 @@ namespace ParkingRota.Service
             services.AddScoped<IEmailRepository, EmailRepository>();
             services.AddScoped<IEmailSender, SendGridEmailSender>();
             services.AddScoped<IEmailSender, AwsSesEmailSender>();
+            services.AddScoped<LastServiceRunTimeUpdater>();
             services.AddHttpClient<IPasswordBreachChecker, PasswordBreachChecker>();
             services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
             services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
