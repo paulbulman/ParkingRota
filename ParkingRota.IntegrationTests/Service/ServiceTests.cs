@@ -9,15 +9,12 @@
         [Fact]
         public void Test_RunTasks()
         {
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CODEBUILD_BUILD_ID")) ||
-                !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("BUILD_ID")))
+            var connectionString = Environment.GetEnvironmentVariable("ParkingRotaServiceTestConnectionString");
+
+            if (!string.IsNullOrEmpty(connectionString))
             {
-                return;
+                new Service(connectionString).RunTasks();
             }
-
-            var program = new Service();
-
-            program.RunTasks();
         }
     }
 }

@@ -19,15 +19,20 @@ namespace ParkingRota.Service
 
     public class Service : ServiceBase
     {
-        private ServiceProvider serviceProvider;
+        private readonly string connectionString;
+        private readonly ServiceProvider serviceProvider;
+        private readonly Timer timer;
 
-        private Timer timer;
+        public Service()
+        {
+            this.serviceProvider = BuildServiceProvider();
+            this.timer = new Timer(Duration.FromSeconds(20).TotalMilliseconds);
+        }
+
+        public Service(string connectionString) : this() => this.connectionString = connectionString;
 
         protected override void OnStart(string[] args)
         {
-            this.serviceProvider = BuildServiceProvider();
-
-            this.timer = new Timer(Duration.FromSeconds(20).TotalMilliseconds);
             this.timer.Elapsed += this.Timer_Elapsed;
             this.timer.Start();
         }
@@ -73,8 +78,8 @@ namespace ParkingRota.Service
         {
             base.Dispose(disposing);
 
-            this.serviceProvider?.Dispose();
-            this.timer?.Dispose();
+            this.serviceProvider.Dispose();
+            this.timer.Dispose();
         }
 
         public async void RunTasks()
@@ -98,7 +103,7 @@ namespace ParkingRota.Service
             }
         }
 
-        private static ServiceProvider BuildServiceProvider()
+        private ServiceProvider BuildServiceProvider()
         {
             Console.WriteLine("Building service provider");
 
@@ -106,11 +111,12 @@ namespace ParkingRota.Service
 
             services.AddLogging(configure => configure.AddConsole());
 
-            var connectionString =
+            var databaseConnectionString =
+                this.connectionString ??
                 Environment.GetEnvironmentVariable("ParkingRotaConnectionString") ??
                 GetConfiguration().GetConnectionString("DefaultConnection");
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(databaseConnectionString));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
