@@ -3,6 +3,7 @@
     using System;
     using AutoMapper;
     using Microsoft.EntityFrameworkCore;
+    using NodaTime.Testing.Extensions;
     using ParkingRota.Data;
     using Xunit;
     using DataSystemParameterList = ParkingRota.Data.SystemParameterList;
@@ -26,7 +27,8 @@
                 TotalSpaces = 19,
                 ReservableSpaces = 4,
                 NearbyDistance = 3.99m,
-                FromEmailAddress = "noreply@parkingrota"
+                FromEmailAddress = "noreply@parkingrota",
+                LastServiceRunTime = 27.June(2019).At(16, 54, 20).Utc()
             };
 
             // Arrange
@@ -57,6 +59,7 @@
                 Assert.Equal(systemParameterList.ReservableSpaces, result.ReservableSpaces);
                 Assert.Equal(systemParameterList.NearbyDistance, result.NearbyDistance);
                 Assert.Equal(systemParameterList.FromEmailAddress, result.FromEmailAddress);
+                Assert.Equal(systemParameterList.LastServiceRunTime, result.LastServiceRunTime);
             }
         }
 

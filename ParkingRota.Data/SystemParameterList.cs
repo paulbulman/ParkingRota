@@ -1,6 +1,8 @@
 ﻿namespace ParkingRota.Data
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
+    using NodaTime;
 
     public class SystemParameterList
     {
@@ -14,5 +16,13 @@
 
         [Required]
         public string FromEmailAddress { get; set; }
+
+        public Instant LastServiceRunTime
+        {
+            get => DbConvert.Instant.FromDb(this.DbLastServiceRunTime);
+            set => this.DbLastServiceRunTime = DbConvert.Instant.ToDb(value);
+        }
+
+        public DateTime DbLastServiceRunTime { get; set; }
     }
 }

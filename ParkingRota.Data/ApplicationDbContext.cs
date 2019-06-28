@@ -81,7 +81,10 @@
             builder.Entity<ScheduledTask>().HasIndex(t => t.ScheduledTaskType).IsUnique();
             builder.Entity<ScheduledTask>().Property(t => t.DbNextRunTime).HasColumnName("NextRunTime");
             builder.Entity<ScheduledTask>().Ignore(t => t.NextRunTime);
-            
+
+            builder.Entity<SystemParameterList>().Property(t => t.DbLastServiceRunTime).HasColumnName("LastServiceRunTime");
+            builder.Entity<SystemParameterList>().Ignore(t => t.LastServiceRunTime);
+
             builder.Entity<SystemParameterList>().Property(p => p.NearbyDistance).HasColumnType("decimal(18,2)");
         }
     }
