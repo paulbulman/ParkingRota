@@ -17,5 +17,18 @@
 
         public Business.Model.SystemParameterList GetSystemParameterList() => 
             this.mapper.Map<Business.Model.SystemParameterList>(this.context.SystemParameterLists.Single());
+
+        public void UpdateSystemParameterList(Business.Model.SystemParameterList updated)
+        {
+            var existing = this.context.SystemParameterLists.Single();
+
+            existing.TotalSpaces = updated.TotalSpaces;
+            existing.ReservableSpaces = updated.ReservableSpaces;
+            existing.NearbyDistance = updated.NearbyDistance;
+            existing.FromEmailAddress = updated.FromEmailAddress;
+            existing.LastServiceRunTime = updated.LastServiceRunTime;
+
+            context.SaveChanges();
+        }
     }
 }
