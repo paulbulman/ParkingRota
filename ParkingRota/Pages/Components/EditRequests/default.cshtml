@@ -23,8 +23,8 @@
                                     <label class="label-calendar">
                                         @Html.CheckBox(
                                             "selectedDateStrings",
-                                            calendarDay.Data,
-                                            new { value = calendarDay.Date.ForRoundTrip() })
+                                            calendarDay.Data.IsSelected,
+                                            new { isNextMonth = calendarDay.Data.IsNextMonth, value = calendarDay.Date.ForRoundTrip() })
 
                                         @calendarDay.Date.ForDisplay()
                                     </label>
@@ -42,6 +42,7 @@
 
         <div class="form-group">
             <button id="selectAll" type="button" class="btn btn-outline-secondary">Select all</button>
+            <button id="selectAllNextMonth" type="button" class="btn btn-outline-secondary">Select all next month</button>
             <button id="selectNone" type="button" class="btn btn-outline-secondary">Select none</button>
         </div>
 
