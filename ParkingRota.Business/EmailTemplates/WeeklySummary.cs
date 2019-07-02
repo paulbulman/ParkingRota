@@ -1,4 +1,4 @@
-﻿namespace ParkingRota.Business.Emails
+﻿namespace ParkingRota.Business.EmailTemplates
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -6,7 +6,7 @@
     using Model;
     using NodaTime;
 
-    public class WeeklySummary : IEmail
+    public class WeeklySummary : IEmailTemplate
     {
         private readonly ApplicationUser recipient;
         private readonly IReadOnlyList<Allocation> allocations;

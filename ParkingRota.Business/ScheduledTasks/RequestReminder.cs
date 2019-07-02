@@ -51,7 +51,7 @@
             foreach (var user in activeUsersWithoutUpcomingRequests)
             {
                 this.emailRepository.AddToQueue(
-                    new Emails.RequestReminder(
+                    new EmailTemplates.RequestReminder(
                         user.Email,
                         upcomingLongLeadTimeAllocationDates.First(),
                         upcomingLongLeadTimeAllocationDates.Last()));

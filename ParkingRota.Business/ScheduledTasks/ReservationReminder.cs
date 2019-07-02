@@ -40,7 +40,7 @@
                 foreach (var teamLeaderUser in teamLeaderUsers)
                 {
                     this.emailRepository.AddToQueue(
-                        new Emails.ReservationReminder(teamLeaderUser.Email, nextWorkingDate));
+                        new EmailTemplates.ReservationReminder(teamLeaderUser.Email, nextWorkingDate));
                 }
             }
         }

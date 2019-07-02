@@ -9,7 +9,7 @@
     using Moq;
     using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business.Emails;
+    using ParkingRota.Business.EmailTemplates;
     using ParkingRota.Business.Model;
     using ParkingRota.Pages.Users;
     using Xunit;
@@ -33,7 +33,7 @@
 
             // Set up email repository
             var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
-            mockEmailRepository.Setup(r => r.AddToQueue(It.IsAny<IEmail>()));
+            mockEmailRepository.Setup(r => r.AddToQueue(It.IsAny<IEmailTemplate>()));
 
             // Set up HTTP context accessor
             var httpContextAccessor = TestHelpers.CreateHttpContextAccessor(IpAddressInt);

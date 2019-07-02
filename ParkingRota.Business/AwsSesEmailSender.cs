@@ -6,7 +6,7 @@
     using System.Net.Mime;
     using System.Threading;
     using System.Threading.Tasks;
-    using Emails;
+    using EmailTemplates;
     using Model;
 
     public class AwsSesEmailSender : IEmailSender
@@ -30,15 +30,15 @@
 
         private static string ConfigSet => Environment.GetEnvironmentVariable("SmtpConfigSet");
 
-        public async Task Send(IEmail email)
+        public async Task Send(IEmailTemplate emailTemplate)
         {
             var fromEmailAddress = this.systemParameterListRepository.GetSystemParameterList().FromEmailAddress;
 
-            var message = new MailMessage(fromEmailAddress, email.To, email.Subject, email.PlainTextBody);
+            var message = new MailMessage(fromEmailAddress, emailTemplate.To, emailTemplate.Subject, emailTemplate.PlainTextBody);
 
             message.AlternateViews.Add(
                 AlternateView.CreateAlternateViewFromString(
-                    email.HtmlBody,
+                    emailTemplate.HtmlBody,
                     new ContentType("text/html")));
 
             message.Headers.Add("X-SES-CONFIGURATION-SET", ConfigSet);

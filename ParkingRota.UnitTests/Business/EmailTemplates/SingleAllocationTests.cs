@@ -1,8 +1,8 @@
-﻿namespace ParkingRota.UnitTests.Business.Emails
+﻿namespace ParkingRota.UnitTests.Business.EmailTemplates
 {
     using System;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business.Emails;
+    using ParkingRota.Business.EmailTemplates;
     using ParkingRota.Business.Model;
     using Xunit;
 

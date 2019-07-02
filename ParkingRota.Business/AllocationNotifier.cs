@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Emails;
+    using EmailTemplates;
     using Model;
     using NodaTime;
 

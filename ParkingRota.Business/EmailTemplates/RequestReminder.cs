@@ -1,8 +1,8 @@
-﻿namespace ParkingRota.Business.Emails
+﻿namespace ParkingRota.Business.EmailTemplates
 {
     using NodaTime;
 
-    public class RequestReminder : IEmail
+    public class RequestReminder : IEmailTemplate
     {
         private readonly LocalDate firstDate;
         private readonly LocalDate lastDate;

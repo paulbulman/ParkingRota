@@ -13,7 +13,7 @@ namespace ParkingRota.UnitTests
     using Microsoft.Extensions.Logging;
     using Moq;
     using ParkingRota.Business;
-    using ParkingRota.Business.Emails;
+    using ParkingRota.Business.EmailTemplates;
     using ParkingRota.Business.Model;
     using Xunit;
 

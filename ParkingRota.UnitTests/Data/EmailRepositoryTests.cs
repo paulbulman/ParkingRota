@@ -3,7 +3,7 @@
     using System.Linq;
     using AutoMapper;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business.Emails;
+    using ParkingRota.Business.EmailTemplates;
     using ParkingRota.Data;
     using Xunit;
     using DataQueueItem = ParkingRota.Data.EmailQueueItem;

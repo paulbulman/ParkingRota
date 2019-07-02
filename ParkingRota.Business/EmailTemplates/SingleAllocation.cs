@@ -1,8 +1,8 @@
-﻿namespace ParkingRota.Business.Emails
+﻿namespace ParkingRota.Business.EmailTemplates
 {
     using Model;
 
-    public class SingleAllocation : IEmail
+    public class SingleAllocation : IEmailTemplate
     {
         private readonly Allocation allocation;
 

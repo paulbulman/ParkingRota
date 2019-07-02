@@ -11,7 +11,7 @@ namespace ParkingRota.UnitTests
     using Microsoft.AspNetCore.Mvc.Routing;
     using Microsoft.AspNetCore.Routing;
     using Moq;
-    using ParkingRota.Business.Emails;
+    using ParkingRota.Business.EmailTemplates;
     using ParkingRota.Business.Model;
     using Xunit;
 

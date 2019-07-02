@@ -1,14 +1,14 @@
-﻿namespace ParkingRota.Business.Emails
+﻿namespace ParkingRota.Business.EmailTemplates
 {
     using System.Collections.Generic;
     using System.Text.Encodings.Web;
 
-    public class ResetPassword : IEmail
+    public class Signup : IEmailTemplate
     {
         private readonly string unencodedCallbackUrl;
         private readonly string originatingIpAddress;
 
-        public ResetPassword(string to, string unencodedCallbackUrl, string originatingIpAddress)
+        public Signup(string to, string unencodedCallbackUrl, string originatingIpAddress)
         {
             this.To = to;
 
@@ -18,7 +18,7 @@
 
         public string To { get; }
 
-        public string Subject => "Reset password";
+        public string Subject => "Parking Rota registration";
 
         public string HtmlBody
         {
@@ -27,8 +27,9 @@
                 var encodedCallbackUrl = HtmlEncoder.Default.Encode(this.unencodedCallbackUrl);
 
                 return
-                    "<p>Someone - hopefully you - requested to reset the password associated with this email address on the Parking Rota website.<p>" +
-                    $"<p>If this was you, you can do so by <a href='{encodedCallbackUrl}'>clicking here</a>. If not, you can disregard this email.</p>" +
+                    "<p>A registration token has been generated for you to create an account on the Parking Rota website.</p>" +
+                    $"<p>If you were expecting this, create an account by <a href='{encodedCallbackUrl}'>clicking here</a>. " +
+                    "If not, you can disregard this email. The link will be valid for 24 hours.</p>" +
                     $"<p>The request originated from IP address {this.originatingIpAddress}</p>";
             }
         }
@@ -39,17 +40,15 @@
             {
                 var lines = new List<string>();
 
-                lines.Add(
-                    "Someone - hopefully you - requested to reset the password associated with this email address " +
-                    "on the Parking Rota website.");
+                lines.Add("A registration token has been generated for you to create an account on the Parking Rota website.");
                 lines.Add(string.Empty);
 
                 lines.Add(
-                    "If this was you, you can do so by copying the following link (removing line breaks) " +
-                    "into your browser. If not, you can disregard this email.");
+                    "If you were expecting this, create an account by copying the following link (removing line breaks) " +
+                    "into your browser. If not, you can disregard this email. The link will be valid for 24 hours.");
                 lines.Add(string.Empty);
 
-                lines.Add("Reset link:");
+                lines.Add("Registration link:");
                 lines.Add(this.unencodedCallbackUrl);
                 lines.Add(string.Empty);
 

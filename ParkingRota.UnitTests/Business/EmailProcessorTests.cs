@@ -4,7 +4,7 @@
     using Microsoft.Extensions.Logging;
     using Moq;
     using ParkingRota.Business;
-    using ParkingRota.Business.Emails;
+    using ParkingRota.Business.EmailTemplates;
     using ParkingRota.Business.Model;
     using Xunit;
 
@@ -49,7 +49,7 @@
                 .SetupGet(s => s.CanSend)
                 .Returns(true);
             enabledMockEmailSender
-                .Setup(s => s.Send(It.IsAny<IEmail>()))
+                .Setup(s => s.Send(It.IsAny<IEmailTemplate>()))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -64,7 +64,7 @@
             foreach (var emailQueueItem in unsentEmails)
             {
                 enabledMockEmailSender.Verify(
-                    s => s.Send(It.Is<IEmail>(e =>
+                    s => s.Send(It.Is<IEmailTemplate>(e =>
                         e.To == emailQueueItem.To &&
                         e.Subject == emailQueueItem.Subject &&
                         e.HtmlBody == emailQueueItem.HtmlBody &&

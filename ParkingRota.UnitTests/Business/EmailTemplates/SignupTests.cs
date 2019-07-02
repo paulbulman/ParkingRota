@@ -1,7 +1,7 @@
-﻿namespace ParkingRota.UnitTests.Business.Emails
+﻿namespace ParkingRota.UnitTests.Business.EmailTemplates
 {
     using System;
-    using ParkingRota.Business.Emails;
+    using ParkingRota.Business.EmailTemplates;
     using Xunit;
 
     public static class SignupTests

@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Emails;
+    using EmailTemplates;
     using Microsoft.Extensions.Logging;
     using Model;
 
@@ -48,7 +48,7 @@
             }
         }
 
-        private class Email : IEmail
+        private class Email : IEmailTemplate
         {
             public Email(string to, string subject, string htmlBody, string plainTextBody)
             {

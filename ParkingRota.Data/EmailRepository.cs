@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using AutoMapper;
-    using Business.Emails;
+    using Business.EmailTemplates;
     using Business.Model;
     using NodaTime;
 
@@ -20,14 +20,14 @@
             this.mapper = mapper;
         }
 
-        public void AddToQueue(IEmail email)
+        public void AddToQueue(IEmailTemplate emailTemplate)
         {
             var emailQueueItem = new EmailQueueItem
             {
-                To = email.To,
-                Subject = email.Subject,
-                HtmlBody = email.HtmlBody,
-                PlainTextBody = email.PlainTextBody,
+                To = emailTemplate.To,
+                Subject = emailTemplate.Subject,
+                HtmlBody = emailTemplate.HtmlBody,
+                PlainTextBody = emailTemplate.PlainTextBody,
                 AddedTime = this.clock.GetCurrentInstant()
             };
 

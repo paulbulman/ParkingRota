@@ -1,4 +1,4 @@
-﻿namespace ParkingRota.Business.Emails
+﻿namespace ParkingRota.Business.EmailTemplates
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@
     using System.Text;
     using Model;
 
-    public class DailySummary : IEmail
+    public class DailySummary : IEmailTemplate
     {
         private readonly ApplicationUser recipient;
         private readonly IReadOnlyList<Allocation> allocations;

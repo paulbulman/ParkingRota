@@ -3,7 +3,7 @@
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
     using Business;
-    using Business.Emails;
+    using Business.EmailTemplates;
     using Business.Model;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;

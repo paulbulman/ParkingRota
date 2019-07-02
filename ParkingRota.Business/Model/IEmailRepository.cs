@@ -1,11 +1,11 @@
 ﻿namespace ParkingRota.Business.Model
 {
     using System.Collections.Generic;
-    using Emails;
+    using EmailTemplates;
 
     public interface IEmailRepository
     {
-        void AddToQueue(IEmail email);
+        void AddToQueue(IEmailTemplate emailTemplate);
 
         IReadOnlyList<EmailQueueItem> GetRecent();
 

@@ -35,7 +35,7 @@
 
             foreach (var recipient in requests.Where(r => !r.ApplicationUser.IsVisitor).Select(r => r.ApplicationUser))
             {
-                this.emailRepository.AddToQueue(new Emails.DailySummary(recipient, allocations, requests));
+                this.emailRepository.AddToQueue(new EmailTemplates.DailySummary(recipient, allocations, requests));
             }
 
             return Task.CompletedTask;

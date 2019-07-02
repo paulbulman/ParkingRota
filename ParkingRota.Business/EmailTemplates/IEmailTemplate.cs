@@ -1,6 +1,6 @@
-﻿namespace ParkingRota.Business.Emails
+﻿namespace ParkingRota.Business.EmailTemplates
 {
-    public interface IEmail
+    public interface IEmailTemplate
     {
         string To { get; }
 

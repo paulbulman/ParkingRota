@@ -1,12 +1,12 @@
 ﻿namespace ParkingRota.Business
 {
     using System.Threading.Tasks;
-    using Emails;
+    using EmailTemplates;
 
     public interface IEmailSender
     {
         bool CanSend { get; }
 
-        Task Send(IEmail email);
+        Task Send(IEmailTemplate emailTemplate);
     }
 }

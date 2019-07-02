@@ -1,9 +1,9 @@
-﻿namespace ParkingRota.Business.Emails
+﻿namespace ParkingRota.Business.EmailTemplates
 {
     using System.Collections.Generic;
     using System.Text.Encodings.Web;
 
-    public class ConfirmEmailAddress : IEmail
+    public class ConfirmEmailAddress : IEmailTemplate
     {
         private readonly string unencodedCallbackUrl;
         private readonly string originatingIpAddress;

@@ -2,7 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Emails;
+    using EmailTemplates;
     using Model;
     using SendGrid;
     using SendGrid.Helpers.Mail;
@@ -18,7 +18,7 @@
 
         private static string ApiKey => Environment.GetEnvironmentVariable("SendGridApiKey");
 
-        public async Task Send(IEmail email)
+        public async Task Send(IEmailTemplate emailTemplate)
         {
             var client = new SendGridClient(ApiKey);
 
@@ -27,10 +27,10 @@
             await client.SendEmailAsync(
                 MailHelper.CreateSingleEmail(
                     new EmailAddress(fromEmailAddress),
-                    new EmailAddress(email.To),
-                    email.Subject,
-                    email.PlainTextBody,
-                    email.HtmlBody));
+                    new EmailAddress(emailTemplate.To),
+                    emailTemplate.Subject,
+                    emailTemplate.PlainTextBody,
+                    emailTemplate.HtmlBody));
         }
     }
 }
