@@ -1,6 +1,9 @@
 ﻿namespace ParkingRota.Service
 {
+    using System.Diagnostics;
     using System.ServiceProcess;
+    using System.Threading;
+    using NodaTime;
 
     public static class Program
     {
@@ -8,7 +11,15 @@
         {
             using (var service = new Service())
             {
-                ServiceBase.Run(service);
+                if (Debugger.IsAttached)
+                {
+                    service.Start(Duration.FromSeconds(10));
+                    Thread.Sleep(-1);
+                }
+                else
+                {
+                    ServiceBase.Run(service);
+                }
             }
         }
     }

@@ -26,11 +26,19 @@ namespace ParkingRota.Service
 
         public Service()
         {
-            this.serviceProvider = BuildServiceProvider();
+            this.serviceProvider = this.BuildServiceProvider();
+         
             this.timer = new Timer(Duration.FromMinutes(1).TotalMilliseconds);
         }
 
         public Service(string connectionString) : this() => this.connectionString = connectionString;
+
+        public void Start(Duration timerInterval)
+        {
+            this.timer.Interval = timerInterval.TotalMilliseconds;
+
+            this.OnStart(null);
+        }
 
         protected override void OnStart(string[] args)
         {
