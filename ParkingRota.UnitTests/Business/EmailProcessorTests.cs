@@ -4,6 +4,7 @@
     using Microsoft.Extensions.Logging;
     using Moq;
     using ParkingRota.Business;
+    using ParkingRota.Business.EmailSenders;
     using ParkingRota.Business.EmailTemplates;
     using ParkingRota.Business.Model;
     using Xunit;

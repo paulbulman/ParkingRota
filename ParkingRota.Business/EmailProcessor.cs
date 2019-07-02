@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EmailSenders;
     using EmailTemplates;
     using Microsoft.Extensions.Logging;
     using Model;

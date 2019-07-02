@@ -1,4 +1,4 @@
-﻿namespace ParkingRota.Business
+﻿namespace ParkingRota.Business.EmailSenders
 {
     using System;
     using System.Threading.Tasks;

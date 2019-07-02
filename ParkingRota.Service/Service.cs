@@ -6,6 +6,7 @@ namespace ParkingRota.Service
     using System.Timers;
     using AutoMapper;
     using Business;
+    using Business.EmailSenders;
     using Business.Model;
     using Business.ScheduledTasks;
     using Data;
