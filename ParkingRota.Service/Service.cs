@@ -26,7 +26,7 @@ namespace ParkingRota.Service
         public Service()
         {
             this.serviceProvider = BuildServiceProvider();
-            this.timer = new Timer(Duration.FromSeconds(20).TotalMilliseconds);
+            this.timer = new Timer(Duration.FromMinutes(1).TotalMilliseconds);
         }
 
         public Service(string connectionString) : this() => this.connectionString = connectionString;
