@@ -1,38 +1,44 @@
 ﻿namespace ParkingRota.UnitTests.Business
 {
-    using Moq;
+    using System.Linq;
+    using Data;
     using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
-    using ParkingRota.Business.Model;
     using Xunit;
+    using DataSystemParameterList = ParkingRota.Data.SystemParameterList;
 
-    public static class LastServiceRunTimeUpdaterTests
+    public class LastServiceRunTimeUpdaterTests : DatabaseTests
     {
         [Fact]
-        public static void Test_Update()
+        public void Test_Update()
         {
             // Arrange
             var previousInstant = 28.June(2019).At(7, 40, 58).Utc();
-
-            var mockSystemParameterListRepository = new Mock<ISystemParameterListRepository>(MockBehavior.Strict);
-
-            mockSystemParameterListRepository.Setup(r => r.GetSystemParameterList())
-                .Returns(new SystemParameterList {LastServiceRunTime = previousInstant});
-            mockSystemParameterListRepository.Setup(r => r.UpdateSystemParameterList(It.IsAny<SystemParameterList>()));
+            using (var context = this.CreateContext())
+            {
+                context.SystemParameterLists.Add(new DataSystemParameterList { LastServiceRunTime = previousInstant });
+                context.SaveChanges();
+            }
 
             var currentInstant = 28.June(2019).At(7, 41, 19).Utc();
-            var fakeClock = new FakeClock(currentInstant);
-            
+
             // Act
-            new LastServiceRunTimeUpdater(fakeClock, mockSystemParameterListRepository.Object)
-                .Update();
+            using (var context = this.CreateContext())
+            {
+                new LastServiceRunTimeUpdater(
+                        new FakeClock(currentInstant),
+                        SystemParameterListRepositoryTests.CreateRepository(context))
+                    .Update();
+            }
 
             // Assert
-            mockSystemParameterListRepository.Verify(
-                r => r.UpdateSystemParameterList(
-                    It.Is<SystemParameterList>(p => p.LastServiceRunTime == currentInstant)),
-                Times.Once);
+            using (var context = this.CreateContext())
+            {
+                var result = context.SystemParameterLists.Single();
+                
+                Assert.Equal(currentInstant, result.LastServiceRunTime);
+            }
         }
     }
 }

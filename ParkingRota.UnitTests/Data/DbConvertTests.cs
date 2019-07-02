@@ -37,7 +37,6 @@ namespace ParkingRota.UnitTests.Data
 
         public static IEnumerable<object[]> Utc_FromDb_Data()
         {
-
             // Winter, UTC
             yield return new object[]
             {

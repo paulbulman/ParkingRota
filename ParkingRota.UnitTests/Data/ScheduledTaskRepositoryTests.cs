@@ -1,11 +1,7 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-    using AutoMapper;
-    using Microsoft.EntityFrameworkCore;
-    using Moq;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Model;
     using ParkingRota.Data;
@@ -13,14 +9,10 @@
     using DataScheduledTask = ParkingRota.Data.ScheduledTask;
     using ModelScheduledTask = ParkingRota.Business.Model.ScheduledTask;
 
-    public class ScheduledTaskRepositoryTests
+    public class ScheduledTaskRepositoryTests : DatabaseTests
     {
-        private readonly DbContextOptions<ApplicationDbContext> contextOptions;
-
-        public ScheduledTaskRepositoryTests() =>
-            this.contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
+        public static ScheduledTaskRepository CreateRepository(IApplicationDbContext context) =>
+            new ScheduledTaskRepository(context, MapperBuilder.Build());
 
         [Fact]
         public void Test_GetScheduledTasks()
@@ -42,15 +34,10 @@
 
             this.SeedDatabase(scheduledTasks);
 
-            var mapperConfiguration = new MapperConfiguration(c =>
-            {
-                c.CreateMap<DataScheduledTask, ModelScheduledTask>();
-            });
-
             using (var context = this.CreateContext())
             {
                 // Act
-                var result = new ScheduledTaskRepository(context, new Mapper(mapperConfiguration)).GetScheduledTasks();
+                var result = CreateRepository(context).GetScheduledTasks();
 
                 // Assert
                 Assert.Equal(scheduledTasks.Length, result.Count);
@@ -93,7 +80,7 @@
             // Act
             using (var context = this.CreateContext())
             {
-                new ScheduledTaskRepository(context, Mock.Of<IMapper>()).UpdateScheduledTask(updatedReservationReminder);
+                CreateRepository(context).UpdateScheduledTask(updatedReservationReminder);
             }
 
             // Assert
@@ -112,8 +99,6 @@
                     t.NextRunTime == requestReminder.NextRunTime));
             }
         }
-
-        private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
 
         private void SeedDatabase(IReadOnlyList<DataScheduledTask> scheduledTasks)
         {

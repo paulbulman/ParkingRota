@@ -1,43 +1,27 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
-    using System;
     using System.Linq;
-    using AutoMapper;
-    using Microsoft.EntityFrameworkCore;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Data;
     using Xunit;
     using DataSystemParameterList = ParkingRota.Data.SystemParameterList;
     using ModelSystemParameterList = ParkingRota.Business.Model.SystemParameterList;
 
-    public class SystemParameterListRepositoryTests
+    public class SystemParameterListRepositoryTests : DatabaseTests
     {
-        private readonly DbContextOptions<ApplicationDbContext> contextOptions;
-
-        public SystemParameterListRepositoryTests() =>
-            this.contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
+        public static SystemParameterListRepository CreateRepository(ApplicationDbContext context) =>
+            new SystemParameterListRepository(context, MapperBuilder.Build());
 
         [Fact]
         public void Test_GetSystemParameterList()
         {
             // Arrange
-            var systemParameterList = SeedDatabase();
-
-            var mapperConfiguration = new MapperConfiguration(c =>
-            {
-                c.CreateMap<DataSystemParameterList, ModelSystemParameterList>();
-            });
+            var systemParameterList = this.SeedDatabase();
 
             using (var context = this.CreateContext())
             {
                 // Act
-                var repository = new SystemParameterListRepository(
-                    context,
-                    new Mapper(mapperConfiguration));
-
-                var result = repository.GetSystemParameterList();
+                var result = CreateRepository(context).GetSystemParameterList();
 
                 // Assert
                 Assert.NotNull(result);
@@ -68,8 +52,7 @@
             // Act
             using (var context = this.CreateContext())
             {
-                new SystemParameterListRepository(context, default)
-                    .UpdateSystemParameterList(updatedSystemParameterList);
+                CreateRepository(context).UpdateSystemParameterList(updatedSystemParameterList);
             }
 
             // Assert
@@ -110,7 +93,5 @@
 
             return systemParameterList;
         }
-
-        private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
     }
 }

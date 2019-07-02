@@ -1,27 +1,15 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
-    using System;
     using System.Linq;
-    using AutoMapper;
     using Microsoft.EntityFrameworkCore;
-    using Moq;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business;
     using ParkingRota.Business.Model;
-    using ParkingRota.Data;
     using Xunit;
     using DataReservation = ParkingRota.Data.Reservation;
     using ModelReservation = ParkingRota.Business.Model.Reservation;
 
-    public class ReservationRepositoryTests
+    public class ReservationRepositoryTests : DatabaseTests
     {
-        private readonly DbContextOptions<ApplicationDbContext> contextOptions;
-
-        public ReservationRepositoryTests() =>
-            this.contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-
         [Fact]
         public void Test_GetReservations()
         {
@@ -29,8 +17,8 @@
             var user1 = new ApplicationUser();
             var user2 = new ApplicationUser();
 
-            var firstDate = 3.November(2018);
-            var lastDate = 5.November(2018);
+            var firstDate = 6.November(2018);
+            var lastDate = 8.November(2018);
 
             var matchingReservations = new[]
             {
@@ -47,20 +35,12 @@
 
             this.SeedDatabase(matchingReservations.Concat(filteredOutReservations).ToArray());
 
-            var mapperConfiguration = new MapperConfiguration(c =>
-            {
-                c.CreateMap<DataReservation, ModelReservation>();
-            });
-
-            // Act
             using (var context = this.CreateContext())
             {
-                var repository = new ReservationRepository(
-                    context,
-                    Mock.Of<IDateCalculator>(),
-                    new Mapper(mapperConfiguration));
-
-                var result = repository.GetReservations(firstDate, lastDate);
+                // Act
+                var result = new ReservationRepositoryBuilder()
+                    .Build(context)
+                    .GetReservations(firstDate, lastDate);
 
                 // Assert
                 Assert.Equal(matchingReservations.Length, result.Count);
@@ -79,19 +59,13 @@
         public void Test_UpdateReservations()
         {
             // Arrange
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-
-            mockDateCalculator
-                .Setup(d => d.GetActiveDates())
-                .Returns(new[] { 3.November(2018), 4.November(2018), 5.November(2018) });
-
             var user1 = new ApplicationUser();
             var user2 = new ApplicationUser();
 
-            var existingReservationToRemove = new DataReservation { ApplicationUser = user1, Date = 3.November(2018), Order = 0 };
-            var existingReservationToKeep = new DataReservation { ApplicationUser = user2, Date = 4.November(2018), Order = 1 };
+            var existingReservationToRemove = new DataReservation { ApplicationUser = user1, Date = 6.November(2018), Order = 0 };
+            var existingReservationToKeep = new DataReservation { ApplicationUser = user2, Date = 8.November(2018), Order = 1 };
 
-            var existingReservationOutsideActivePeriod = new DataReservation { ApplicationUser = user1, Date = 6.November(2018), Order = 0 };
+            var existingReservationOutsideActivePeriod = new DataReservation { ApplicationUser = user1, Date = 5.November(2018), Order = 0 };
 
             this.SeedDatabase(existingReservationToRemove, existingReservationToKeep, existingReservationOutsideActivePeriod);
 
@@ -112,7 +86,9 @@
 
             using (var context = this.CreateContext())
             {
-                new ReservationRepository(context, mockDateCalculator.Object, Mock.Of<IMapper>())
+                new ReservationRepositoryBuilder()
+                    .WithCurrentInstant(6.November(2018).At(10, 0, 0).Utc())
+                    .Build(context)
                     .UpdateReservations(new[] { existingReservation, newReservation });
             }
 
@@ -146,8 +122,6 @@
                         r => r.ApplicationUser.Id == e.ApplicationUser.Id && r.Date == e.Date && r.Order == e.Order));
             }
         }
-
-        private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
 
         private void SeedDatabase(params DataReservation[] reservations)
         {

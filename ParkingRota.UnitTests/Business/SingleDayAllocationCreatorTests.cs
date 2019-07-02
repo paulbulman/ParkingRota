@@ -10,7 +10,7 @@ namespace ParkingRota.UnitTests.Business
     using ParkingRota.Business.Model;
     using Xunit;
 
-    public class SingleDayAllocationCreatorTests
+    public static class SingleDayAllocationCreatorTests
     {
         public static IEnumerable<object[]> AllocateData
         {

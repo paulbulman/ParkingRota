@@ -152,20 +152,7 @@ namespace ParkingRota.Service
             services.AddScoped<IScheduledTask, ReservationReminder>();
             services.AddScoped<IScheduledTask, WeeklySummary>();
 
-            var mapperConfiguration = new MapperConfiguration(
-                c =>
-                {
-                    c.CreateMap<Data.Allocation, Business.Model.Allocation>();
-                    c.CreateMap<Data.BankHoliday, Business.Model.BankHoliday>();
-                    c.CreateMap<Data.EmailQueueItem, Business.Model.EmailQueueItem>();
-                    c.CreateMap<Data.RegistrationToken, Business.Model.RegistrationToken>();
-                    c.CreateMap<Data.Request, Business.Model.Request>();
-                    c.CreateMap<Data.Reservation, Business.Model.Reservation>();
-                    c.CreateMap<Data.ScheduledTask, Business.Model.ScheduledTask>();
-                    c.CreateMap<Data.SystemParameterList, Business.Model.SystemParameterList>();
-                });
-
-            services.AddSingleton<IMapper>(new Mapper(mapperConfiguration));
+            services.AddSingleton<IMapper>(MapperBuilder.Build());
 
             return services.BuildServiceProvider();
         }

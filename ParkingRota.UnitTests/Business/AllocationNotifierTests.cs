@@ -1,175 +1,196 @@
 ﻿namespace ParkingRota.UnitTests.Business
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Moq;
+    using Data;
     using NodaTime;
+    using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
-    using ParkingRota.Business.Emails;
     using ParkingRota.Business.Model;
+    using ParkingRota.Data;
     using Xunit;
+    using Allocation = ParkingRota.Business.Model.Allocation;
+    using DataScheduledTask = ParkingRota.Data.ScheduledTask;
 
-    public static class AllocationNotifierTests
+    public class AllocationNotifierTests : DatabaseTests
     {
-        private static readonly Instant CurrentInstant = 27.December(2018).At(15, 48, 14).Utc();
-
-        [Theory]
-        [InlineData(false, false)]
-        [InlineData(false, true)]
-        [InlineData(true, false)]
-        [InlineData(true, true)]
-        public static void Test_Notify(bool dailySummaryDue, bool weeklySummaryDue)
+        [Fact]
+        public void Test_Notify()
         {
             // Arrange
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator.SetupGet(d => d.CurrentInstant).Returns(CurrentInstant);
-
-            if (dailySummaryDue)
-            {
-                mockDateCalculator
-                    .Setup(d => d.GetNextWorkingDate())
-                    .Returns(28.December(2018));
-            }
-
-            if (weeklySummaryDue)
-            {
-                mockDateCalculator
-                    .Setup(d => d.GetWeeklySummaryDates())
-                    .Returns(new[] { 31.December(2018), 2.January(2019), 3.January(2019), 4.January(2019) });
-            }
-
-            var mockScheduledTaskRepository = CreateMockScheduledTaskRepository(dailySummaryDue, weeklySummaryDue);
-
-            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
-            mockEmailRepository.Setup(e => e.AddToQueue(It.IsAny<IEmail>()));
-
             var user = new ApplicationUser { Email = "a@b.c" };
             var otherUser = new ApplicationUser { Email = "x@y.z" };
 
             var allUsers = new[] { user, otherUser };
 
-            var alwaysNotifiedAllocations = Create.Allocations(allUsers, 27.December(2018));
-
-            var dailySummaryAllocations = Create.Allocations(allUsers, 28.December(2018));
-
-            var weeklySummaryAllocations = new[]
-            {
-                new Allocation { ApplicationUser = user, Date = 31.December(2018) },
-                new Allocation { ApplicationUser = user, Date = 2.January(2019) },
-                new Allocation { ApplicationUser = user, Date = 4.January(2019) },
-                new Allocation { ApplicationUser = otherUser, Date = 2.January(2019) },
-                new Allocation { ApplicationUser = otherUser, Date = 4.January(2019) }
-            };
-
-            // Act
-            var allocationNotifier = new AllocationNotifier(
-                mockDateCalculator.Object,
-                mockEmailRepository.Object,
-                mockScheduledTaskRepository.Object);
-
-            var allAllocations = alwaysNotifiedAllocations
-                .Concat(dailySummaryAllocations)
-                .Concat(weeklySummaryAllocations)
+            var allocations = Create.Allocations(allUsers, 27.December(2018))
+                .Concat(Create.Allocations(allUsers, 28.December(2018)))
                 .ToArray();
 
-            allocationNotifier.Notify(allAllocations);
+            var currentInstant = 27.December(2018).At(15, 48, 14).Utc();
+
+            const bool DailySummaryDue = false;
+            const bool WeeklySummaryDue = false;
+
+            this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
+
+            // Act
+            using (var context = this.CreateContext())
+            {
+                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+            }
 
             // Assert
-            var expectedNotifiedAllocations = new List<Allocation>(alwaysNotifiedAllocations);
-
-            if (!dailySummaryDue)
-            {
-                expectedNotifiedAllocations.AddRange(dailySummaryAllocations);
-            }
-
-            if (!weeklySummaryDue)
-            {
-                expectedNotifiedAllocations.AddRange(weeklySummaryAllocations);
-            }
-
-            mockEmailRepository.Verify(
-                e => e.AddToQueue(It.IsAny<SingleAllocation>()),
-                Times.Exactly(expectedNotifiedAllocations.Count));
-
-            foreach (var expectedNotifiedAllocation in expectedNotifiedAllocations)
-            {
-                mockEmailRepository.Verify(
-                    e => e.AddToQueue(It.Is<SingleAllocation>(s => Match(s, expectedNotifiedAllocation))),
-                    Times.Once);
-            }
+            this.CheckNotifiedAllocations(allocations);
         }
 
         [Fact]
-        public static void Test_Notify_ExcludesVisitorAccounts()
+        public void Test_Notify_DailySummaryDue()
         {
             // Arrange
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator.SetupGet(d => d.CurrentInstant).Returns(CurrentInstant);
+            var user = new ApplicationUser { Email = "a@b.c" };
+            var otherUser = new ApplicationUser { Email = "x@y.z" };
 
-            var mockScheduledTaskRepository =
-                CreateMockScheduledTaskRepository(dailySummaryDue: false, weeklySummaryDue: false);
+            var allUsers = new[] { user, otherUser };
 
-            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
-            mockEmailRepository.Setup(e => e.AddToQueue(It.IsAny<IEmail>()));
+            var nextDayAllocations = Create.Allocations(allUsers, 27.December(2018));
+            var futureDayAllocations = Create.Allocations(allUsers, 28.December(2018));
 
+            var allocations = nextDayAllocations
+                .Concat(futureDayAllocations)
+                .ToArray();
+
+            var currentInstant = 26.December(2018).At(11, 0, 1).Utc();
+
+            const bool DailySummaryDue = true;
+            const bool WeeklySummaryDue = false;
+
+            this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
+
+            // Act
+            using (var context = this.CreateContext())
+            {
+                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+            }
+
+            // Assert
+            this.CheckNotifiedAllocations(futureDayAllocations);
+        }
+
+        [Fact]
+        public void Test_Notify_WeeklySummaryDue()
+        {
+            // Arrange
+            var user = new ApplicationUser { Email = "a@b.c" };
+            var otherUser = new ApplicationUser { Email = "x@y.z" };
+
+            var allUsers = new[] { user, otherUser };
+
+            var nextDayAllocations = Create.Allocations(allUsers, 28.December(2018));
+            var futureWeekAllocations =
+                Create.Allocations(allUsers, 7.January(2019))
+                    .Concat(Create.Allocations(allUsers, 7.January(2019)))
+                    .Concat(Create.Allocations(allUsers, 11.January(2019)));
+
+            var allocations = nextDayAllocations
+                .Concat(futureWeekAllocations)
+                .ToArray();
+
+            var currentInstant = 27.December(2018).At(0, 0, 1).Utc();
+
+            const bool DailySummaryDue = false;
+            const bool WeeklySummaryDue = true;
+
+            this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
+
+            // Act
+            using (var context = this.CreateContext())
+            {
+                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+            }
+
+            // Assert
+            this.CheckNotifiedAllocations(nextDayAllocations);
+        }
+
+        [Fact]
+        public void Test_Notify_ExcludesVisitorAccounts()
+        {
+            // Arrange
             var user = new ApplicationUser { Email = "a@b.c", IsVisitor = false };
             var visitorUser = new ApplicationUser { Email = "x@y.z", IsVisitor = true };
 
             var allUsers = new[] { user, visitorUser };
 
+            var allocations = Create.Allocations(allUsers, 27.December(2018));
+
+            var currentInstant = 27.December(2018).At(15, 48, 14).Utc();
+
+            const bool DailySummaryDue = false;
+            const bool WeeklySummaryDue = false;
+
+            this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
+
             // Act
-            var allocationNotifier = new AllocationNotifier(
-                mockDateCalculator.Object,
-                mockEmailRepository.Object,
-                mockScheduledTaskRepository.Object);
-
-            var allocations = Create.Allocations(allUsers, 27.December(2018)).ToArray();
-
-            allocationNotifier.Notify(allocations);
+            using (var context = this.CreateContext())
+            {
+                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+            }
 
             // Assert
-            var expectedNotifiedAllocations = allocations
-                .Where(a => a.ApplicationUser == user)
-                .ToArray();
+            var expectedNotifiedAllocations = allocations.Where(a => a.ApplicationUser == user);
 
-            mockEmailRepository.Verify(
-                e => e.AddToQueue(It.IsAny<SingleAllocation>()),
-                Times.Exactly(expectedNotifiedAllocations.Length));
+            this.CheckNotifiedAllocations(expectedNotifiedAllocations.ToArray());
+        }
 
-            foreach (var expectedNotifiedAllocation in expectedNotifiedAllocations)
+        private void SetupScheduledTasks(Instant currentInstant, bool dailySummaryDue, bool weeklySummaryDue)
+        {
+            var dailySummary = CreateScheduledTask(currentInstant, ScheduledTaskType.DailySummary, dailySummaryDue);
+            var weeklySummary = CreateScheduledTask(currentInstant, ScheduledTaskType.WeeklySummary, weeklySummaryDue);
+
+            using (var context = this.CreateContext())
             {
-                mockEmailRepository.Verify(
-                    e => e.AddToQueue(It.Is<SingleAllocation>(s => Match(s, expectedNotifiedAllocation))),
-                    Times.Once);
+                context.ScheduledTasks.AddRange(dailySummary, weeklySummary);
+                context.SaveChanges();
             }
         }
 
-        private static Mock<IScheduledTaskRepository> CreateMockScheduledTaskRepository(
-            bool dailySummaryDue,
-            bool weeklySummaryDue)
+        private static DataScheduledTask CreateScheduledTask(Instant currentInstant, ScheduledTaskType scheduledTaskType, bool isDue)
         {
-            var dailySummaryTask = CreateScheduledTask(ScheduledTaskType.DailySummary, dailySummaryDue);
-            var weeklySummaryTask = CreateScheduledTask(ScheduledTaskType.WeeklySummary, weeklySummaryDue);
+            var nextRunTimeOffset = isDue ? -1.Seconds() : 1.Seconds();
 
-            var mockScheduledTaskRepository = new Mock<IScheduledTaskRepository>(MockBehavior.Strict);
-            mockScheduledTaskRepository
-                .Setup(s => s.GetScheduledTasks())
-                .Returns(new[] {dailySummaryTask, weeklySummaryTask});
-
-            return mockScheduledTaskRepository;
-        }
-
-        private static bool Match(IEmail email, Allocation expectedNotifiedAllocation) =>
-            email.To == expectedNotifiedAllocation.ApplicationUser.Email &&
-            email.Subject.Contains(expectedNotifiedAllocation.Date.ForDisplay(), StringComparison.OrdinalIgnoreCase);
-
-        private static ScheduledTask CreateScheduledTask(ScheduledTaskType scheduledTaskType, bool isDue) =>
-            new ScheduledTask
+            return new DataScheduledTask
             {
-                NextRunTime = isDue ? CurrentInstant : CurrentInstant.Plus(1.Seconds()),
+                NextRunTime = currentInstant.Plus(nextRunTimeOffset),
                 ScheduledTaskType = scheduledTaskType
             };
+        }
+
+        private static AllocationNotifier CreateAllocationNotifier(IApplicationDbContext context, Instant currentInstant) =>
+            new AllocationNotifier(
+                new DateCalculator(
+                    new FakeClock(currentInstant),
+                    BankHolidayRepositoryTests.CreateRepository(context)),
+                new EmailRepositoryBuilder().WithCurrentInstant(currentInstant).Build(context),
+                ScheduledTaskRepositoryTests.CreateRepository(context));
+
+        private void CheckNotifiedAllocations(IReadOnlyList<Allocation> expectedNotifiedAllocations)
+        {
+            using (var context = this.CreateContext())
+            {
+                Assert.Equal(expectedNotifiedAllocations.Count, context.EmailQueueItems.ToArray().Length);
+
+                foreach (var allocation in expectedNotifiedAllocations)
+                {
+                    var allocationEmail = context.EmailQueueItems.Where(
+                        e =>
+                            e.To == allocation.ApplicationUser.Email &&
+                            e.Subject == $"Space available on {allocation.Date.ForDisplay()}");
+
+                    Assert.Single(allocationEmail);
+                }
+            }
+        }
     }
 }

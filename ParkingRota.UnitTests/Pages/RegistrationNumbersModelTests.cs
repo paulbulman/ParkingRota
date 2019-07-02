@@ -2,7 +2,6 @@
 
 namespace ParkingRota.UnitTests.Pages
 {
-    using System.Linq;
     using ParkingRota.Business.Model;
     using ParkingRota.Pages;
     using Xunit;

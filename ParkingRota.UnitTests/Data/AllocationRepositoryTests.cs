@@ -1,10 +1,7 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
-    using System;
     using System.Linq;
-    using AutoMapper;
     using Microsoft.EntityFrameworkCore;
-    using Moq;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Model;
     using ParkingRota.Data;
@@ -12,14 +9,10 @@
     using DataAllocation = ParkingRota.Data.Allocation;
     using ModelAllocation = ParkingRota.Business.Model.Allocation;
 
-    public class AllocationRepositoryTests
+    public class AllocationRepositoryTests : DatabaseTests
     {
-        private readonly DbContextOptions<ApplicationDbContext> contextOptions;
-
-        public AllocationRepositoryTests() =>
-            this.contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
+        public static AllocationRepository CreateRepository(IApplicationDbContext context) =>
+            new AllocationRepository(context, MapperBuilder.Build());
 
         [Fact]
         public void Test_GetAllocations()
@@ -46,19 +39,10 @@
 
             this.SeedDatabase(matchingAllocations.Concat(filteredOutAllocations).ToArray());
 
-            var mapperConfiguration = new MapperConfiguration(c =>
-            {
-                c.CreateMap<DataAllocation, ModelAllocation>();
-            });
-
             using (var context = this.CreateContext())
             {
                 // Act
-                var repository = new AllocationRepository(
-                    context,
-                    new Mapper(mapperConfiguration));
-
-                var result = repository.GetAllocations(firstDate, lastDate);
+                var result = CreateRepository(context).GetAllocations(firstDate, lastDate);
 
                 // Assert
                 Assert.Equal(matchingAllocations.Length, result.Count);
@@ -95,7 +79,7 @@
             // Act
             using (var context = this.CreateContext())
             {
-                new AllocationRepository(context, Mock.Of<IMapper>()).AddAllocations(newAllocations);
+                CreateRepository(context).AddAllocations(newAllocations);
             }
 
             // Assert
@@ -123,8 +107,6 @@
                 }
             }
         }
-
-        private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
 
         private void SeedDatabase(params DataAllocation[] allocations)
         {

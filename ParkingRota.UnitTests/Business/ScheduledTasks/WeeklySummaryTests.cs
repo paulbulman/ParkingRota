@@ -1,31 +1,32 @@
 ﻿namespace ParkingRota.UnitTests.Business.ScheduledTasks
 {
     using System.Collections.Generic;
-    using Moq;
-    using NodaTime;
+    using System.Linq;
+    using Data;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
-    using ParkingRota.Business.Emails;
     using ParkingRota.Business.Model;
     using Xunit;
-    using WeeklySummary = ParkingRota.Business.ScheduledTasks.WeeklySummary;
+    using DataAllocation = ParkingRota.Data.Allocation;
+    using DataRequest = ParkingRota.Data.Request;
 
-    public static class WeeklySummaryTests
+    public class WeeklySummaryTests : DatabaseTests
     {
         [Fact]
-        public static void Test_ScheduledTaskType()
+        public void Test_ScheduledTaskType()
         {
-            var result = new WeeklySummary(
-                Mock.Of<IAllocationRepository>(),
-                Mock.Of<IDateCalculator>(),
-                Mock.Of<IEmailRepository>(),
-                Mock.Of<IRequestRepository>()).ScheduledTaskType;
+            using (var context = this.CreateContext())
+            {
+                var result = new WeeklySummaryBuilder()
+                    .Build(context)
+                    .ScheduledTaskType;
 
-            Assert.Equal(ScheduledTaskType.WeeklySummary, result);
+                Assert.Equal(ScheduledTaskType.WeeklySummary, result);
+            }
         }
 
         [Fact]
-        public static async void Test_Run()
+        public async void Test_Run()
         {
             // Arrange
             var firstDate = 24.December(2018);
@@ -36,57 +37,45 @@
 
             var allocations = new[]
             {
-                new Allocation { ApplicationUser = allocatedUser, Date = firstDate },
-                new Allocation { ApplicationUser = allocatedUser, Date = lastDate }
+                new DataAllocation { ApplicationUser = allocatedUser, Date = firstDate },
+                new DataAllocation { ApplicationUser = allocatedUser, Date = lastDate }
             };
 
             var requests = new[]
             {
-                new Request { ApplicationUser = allocatedUser, Date = firstDate },
-                new Request { ApplicationUser = allocatedUser, Date = lastDate },
-                new Request { ApplicationUser = interruptedUser, Date = firstDate },
-                new Request { ApplicationUser = interruptedUser, Date = lastDate }
+                new DataRequest { ApplicationUser = allocatedUser, Date = firstDate },
+                new DataRequest { ApplicationUser = allocatedUser, Date = lastDate },
+                new DataRequest { ApplicationUser = interruptedUser, Date = firstDate },
+                new DataRequest { ApplicationUser = interruptedUser, Date = lastDate }
             };
 
-            var mockAllocationRepository = new Mock<IAllocationRepository>(MockBehavior.Strict);
-            mockAllocationRepository
-                .Setup(a => a.GetAllocations(firstDate, lastDate))
-                .Returns(allocations);
-
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator
-                .Setup(d => d.GetWeeklySummaryDates())
-                .Returns(new[] { firstDate, lastDate });
-
-            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
-            mockEmailRepository.Setup(e => e.AddToQueue(It.IsAny<IEmail>()));
-
-            var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
-            mockRequestRepository
-                .Setup(r => r.GetRequests(firstDate, lastDate))
-                .Returns(requests);
+            this.SeedDatabase(requests, allocations);
 
             // Act
-            var weeklySummary = new WeeklySummary(
-                mockAllocationRepository.Object,
-                mockDateCalculator.Object,
-                mockEmailRepository.Object,
-                mockRequestRepository.Object);
-
-            await weeklySummary.Run();
+            using (var context = this.CreateContext())
+            {
+                await new WeeklySummaryBuilder()
+                    .WithCurrentInstant(13.December(2018).AtMidnight().Utc())
+                    .Build(context)
+                    .Run();
+            }
 
             // Assert
-            foreach (var applicationUser in new[] { allocatedUser, interruptedUser })
+            using (var context = this.CreateContext())
             {
-                mockEmailRepository.Verify(
-                    e => e.AddToQueue(
-                        It.Is<ParkingRota.Business.Emails.WeeklySummary>(s => s.To == applicationUser.Email)),
-                    Times.Once);
+                foreach (var applicationUser in new[] { allocatedUser, interruptedUser })
+                {
+                    var userEmails = context.EmailQueueItems.Where(e =>
+                        e.To == applicationUser.Email &&
+                        e.Subject == $"Weekly provisional allocations summary for {firstDate.ForDisplay()} - {lastDate.ForDisplay()}");
+
+                    Assert.Single(userEmails);
+                }
             }
         }
 
         [Fact]
-        public static async void Test_Run_ExcludesVisitorAccounts()
+        public async void Test_Run_ExcludesVisitorAccounts()
         {
             // Arrange
             var firstDate = 24.December(2018);
@@ -96,62 +85,61 @@
 
             var requests = new[]
             {
-                new Request { ApplicationUser = visitorUser, Date = firstDate },
-                new Request { ApplicationUser = visitorUser, Date = lastDate }
+                new DataRequest { ApplicationUser = visitorUser, Date = firstDate },
+                new DataRequest { ApplicationUser = visitorUser, Date = lastDate }
             };
 
-            var mockAllocationRepository = new Mock<IAllocationRepository>(MockBehavior.Strict);
-            mockAllocationRepository
-                .Setup(a => a.GetAllocations(firstDate, lastDate))
-                .Returns(new List<Allocation>());
+            this.SeedDatabase(requests, new List<DataAllocation>());
 
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator
-                .Setup(d => d.GetWeeklySummaryDates())
-                .Returns(new[] { firstDate, lastDate });
+            // Act
+            using (var context = this.CreateContext())
+            {
+                await new WeeklySummaryBuilder()
+                    .WithCurrentInstant(13.December(2018).AtMidnight().Utc())
+                    .Build(context)
+                    .Run();
+            }
 
-            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
-
-            var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
-            mockRequestRepository
-                .Setup(r => r.GetRequests(firstDate, lastDate))
-                .Returns(requests);
-
-            // Act/Assert (Mock.Strict ensures no emails were sent)
-            var weeklySummary = new WeeklySummary(
-                mockAllocationRepository.Object,
-                mockDateCalculator.Object,
-                mockEmailRepository.Object,
-                mockRequestRepository.Object);
-
-            await weeklySummary.Run();
+            // Assert
+            using (var context = this.CreateContext())
+            {
+                Assert.Empty(context.EmailQueueItems);
+            }
         }
 
         [Theory]
         [InlineData(15, 0, 22, 0)]
         [InlineData(16, 0, 22, 0)]
         [InlineData(22, 0, 28, 23)]
-        public static void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
+        public void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
         {
             // Arrange
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator
-                .SetupGet(d => d.TimeZone)
-                .Returns(DateTimeZoneProviders.Tzdb["Europe/London"]);
+            var currentInstant = currentDay.March(2018).At(currentHour, 00, 00).Utc();
 
-            var requestReminder = new WeeklySummary(
-                Mock.Of<IAllocationRepository>(),
-                mockDateCalculator.Object,
-                Mock.Of<IEmailRepository>(),
-                Mock.Of<IRequestRepository>());
+            using (var context = this.CreateContext())
+            {
+                // Act
+                var result = new WeeklySummaryBuilder()
+                    .WithCurrentInstant(currentInstant)
+                    .Build(context)
+                    .GetNextRunTime(currentInstant);
 
-            // Act
-            var result = requestReminder.GetNextRunTime(currentDay.March(2018).At(currentHour, 00, 00).Utc());
+                // Assert
+                var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
 
-            // Assert
-            var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
+                Assert.Equal(expected, result);
+            }
+        }
 
-            Assert.Equal(expected, result);
+        private void SeedDatabase(IReadOnlyList<DataRequest> requests, IReadOnlyList<DataAllocation> allocations)
+        {
+            using (var context = this.CreateContext())
+            {
+                context.Requests.AddRange(requests);
+                context.Allocations.AddRange(allocations);
+
+                context.SaveChanges();
+            }
         }
     }
 }

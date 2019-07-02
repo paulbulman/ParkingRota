@@ -1,134 +1,113 @@
 ﻿namespace ParkingRota.UnitTests.Business.ScheduledTasks
 {
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
-    using Moq;
-    using NodaTime;
+    using Data;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
-    using ParkingRota.Business.ScheduledTasks;
     using Xunit;
+    using DataReservation = ParkingRota.Data.Reservation;
 
-    public static class ReservationReminderTests
+    public class ReservationReminderTests : DatabaseTests
     {
         [Fact]
-        public static void Test_ScheduledTaskType()
+        public void Test_ScheduledTaskType()
         {
-            var result = new ReservationReminder(
-                Mock.Of<IDateCalculator>(),
-                Mock.Of<IEmailRepository>(),
-                Mock.Of<IReservationRepository>(),
-                TestHelpers.CreateMockUserManager().Object).ScheduledTaskType;
+            using (var context = this.CreateContext())
+            {
+                var result = new ReservationReminderBuilder()
+                    .Build(context)
+                    .ScheduledTaskType;
 
-            Assert.Equal(ScheduledTaskType.ReservationReminder, result);
+                Assert.Equal(ScheduledTaskType.ReservationReminder, result);
+            }
         }
 
         [Fact]
-        public static async Task Test_Run_NoReservationsEntered()
+        public async Task Test_Run_NoReservationsEntered()
         {
             // Arrange
-            var date = 14.December(2018);
+            var date = 13.December(2018);
 
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator
-                .Setup(d => d.GetNextWorkingDate())
-                .Returns(date);
-
-            var mockReservationRepository = new Mock<IReservationRepository>(MockBehavior.Strict);
-            mockReservationRepository
-                .Setup(r => r.GetReservations(date, date))
-                .Returns(new List<Reservation>());
-
-            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict);
-            mockEmailRepository
-                .Setup(e => e.AddToQueue(It.IsAny<ParkingRota.Business.Emails.ReservationReminder>()));
-
-            IList<ApplicationUser> teamLeaderUsers = new[]
+            var teamLeaderUsers = new[]
             {
                 new ApplicationUser { Email = "a@b.c" },
                 new ApplicationUser { Email = "x@y.z" }
             };
 
-            var mockUserManager = TestHelpers.CreateMockUserManager();
-            mockUserManager
-                .Setup(u => u.GetUsersInRoleAsync(UserRole.TeamLeader))
-                .Returns(Task.FromResult(teamLeaderUsers));
-
             // Act
-            var reservationReminder = new ReservationReminder(
-                mockDateCalculator.Object,
-                mockEmailRepository.Object,
-                mockReservationRepository.Object,
-                mockUserManager.Object);
-
-            await reservationReminder.Run();
+            using (var context = this.CreateContext())
+            {
+                await new ReservationReminderBuilder()
+                    .WithCurrentInstant(date.At(10, 0, 0).Utc())
+                    .WithTeamLeaderUsers(teamLeaderUsers)
+                    .Build(context)
+                    .Run();
+            }
 
             // Assert
-            foreach (var teamLeaderUser in teamLeaderUsers)
+            using (var context = this.CreateContext())
             {
-                mockEmailRepository.Verify(
-                    r => r.AddToQueue(
-                        It.Is<ParkingRota.Business.Emails.ReservationReminder>(e => e.To == teamLeaderUser.Email)),
-                    Times.Once);
+                foreach (var teamLeaderUser in teamLeaderUsers)
+                {
+                    var userEmails = context.EmailQueueItems.Where(e =>
+                        e.To == teamLeaderUser.Email &&
+                        e.Subject == $"No reservations entered for {date.PlusDays(1).ForDisplay()}");
+
+                    Assert.Single(userEmails);
+                }
             }
         }
 
         [Fact]
-        public static async Task Test_Run_ReservationsAlreadyEntered()
+        public async Task Test_Run_ReservationsAlreadyEntered()
         {
             // Arrange
-            var date = 14.December(2018);
+            var date = 13.December(2018);
 
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator
-                .Setup(d => d.GetNextWorkingDate())
-                .Returns(date);
+            using (var context = this.CreateContext())
+            {
+                context.Reservations.Add(new DataReservation { Date = date.PlusDays(1) });
+            }
 
-            var mockReservationRepository = new Mock<IReservationRepository>(MockBehavior.Strict);
-            mockReservationRepository
-                .Setup(r => r.GetReservations(date, date))
-                .Returns(new[] { new Reservation() });
+            // Act
+            using (var context = this.CreateContext())
+            {
+                await new ReservationReminderBuilder()
+                    .WithCurrentInstant(date.At(10, 0, 0).Utc())
+                    .Build(context)
+                    .Run();
+            }
 
-            var mockEmailRepository = new Mock<IEmailRepository>(MockBehavior.Strict).Object;
-
-            // Act and assert: mock strict on email repository ensures nothing has been done.
-            var reservationReminder = new ReservationReminder(
-                mockDateCalculator.Object,
-                mockEmailRepository,
-                mockReservationRepository.Object,
-                TestHelpers.CreateMockUserManager().Object);
-
-            await reservationReminder.Run();
+            // Assert
+            using (var context = this.CreateContext())
+            {
+                Assert.Empty(context.EmailQueueItems);
+            }
         }
 
         [Theory]
         [InlineData(22, 10, 23, 10)]
         [InlineData(23, 10, 26, 9)]
-        public static void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
+        public void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
         {
             // Arrange
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator
-                .SetupGet(d => d.TimeZone)
-                .Returns(DateTimeZoneProviders.Tzdb["Europe/London"]);
-            mockDateCalculator
-                .Setup(d => d.GetNextWorkingDate())
-                .Returns(expectedDay.March(2018));
+            var currentInstant = currentDay.March(2018).At(currentHour, 00, 00).Utc();
 
-            var reservationReminder = new ReservationReminder(
-                mockDateCalculator.Object,
-                Mock.Of<IEmailRepository>(),
-                Mock.Of<IReservationRepository>(),
-                TestHelpers.CreateMockUserManager().Object);
+            using (var context = this.CreateContext())
+            {
+                // Act
+                var result = new ReservationReminderBuilder()
+                    .WithCurrentInstant(currentInstant)
+                    .Build(context)
+                    .GetNextRunTime(currentInstant);
 
-            // Act
-            var result = reservationReminder.GetNextRunTime(currentDay.March(2018).At(currentHour, 00, 00).Utc());
+                // Assert
+                var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
 
-            // Assert
-            var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
-
-            Assert.Equal(expected, result);
+                Assert.Equal(expected, result);
+            }
         }
     }
 }

@@ -1,13 +1,11 @@
 ﻿namespace ParkingRota.UnitTests.Business
 {
-    using Moq;
-    using NodaTime.Testing;
+    using Data;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business;
-    using ParkingRota.Business.Model;
+    using ParkingRota.Data;
     using Xunit;
 
-    public class RegistrationTokenValidatorTests
+    public class RegistrationTokenValidatorTests : DatabaseTests
     {
         [Theory]
         [InlineData("A", true)]
@@ -17,6 +15,7 @@
         [InlineData("", false)]
         public void Test_TokenIsValid_StringExists(string token, bool expectedIsValid)
         {
+            // Arrange
             var currentInstant = 15.September(2018).At(17, 37, 01).Utc();
 
             var registrationTokens = new[]
@@ -25,16 +24,19 @@
                 new RegistrationToken { Token = "B", ExpiryTime = currentInstant.Plus(1.Seconds()) }
             };
 
-            var mockRegistrationTokenRepository = new Mock<IRegistrationTokenRepository>(MockBehavior.Strict);
+            this.SeedDatabase(registrationTokens);
 
-            mockRegistrationTokenRepository
-                .Setup(r => r.GetRegistrationTokens())
-                .Returns(registrationTokens);
+            using (var context = this.CreateContext())
+            {
+                // Act
+                var result = new RegistrationTokenValidatorBuilder()
+                    .WithCurrentInstant(currentInstant)
+                    .Build(context)
+                    .TokenIsValid(token);
 
-            var validator = new RegistrationTokenValidator(
-                new FakeClock(currentInstant), mockRegistrationTokenRepository.Object);
-
-            Assert.Equal(expectedIsValid, validator.TokenIsValid(token));
+                // Assert
+                Assert.Equal(expectedIsValid, result);
+            }
         }
 
         [Theory]
@@ -46,21 +48,34 @@
 
             var currentInstant = 15.September(2018).At(17, 37, 01).Utc();
 
-            var registrationTokens = new[]
+            var registrationToken = new RegistrationToken
             {
-                new RegistrationToken { Token = Token, ExpiryTime = currentInstant.Plus(expiryOffsetSeconds.Seconds()) }
+                Token = Token,
+                ExpiryTime = currentInstant.Plus(expiryOffsetSeconds.Seconds())
             };
+            
+            this.SeedDatabase(registrationToken);
 
-            var mockRegistrationTokenRepository = new Mock<IRegistrationTokenRepository>(MockBehavior.Strict);
+            using (var context = this.CreateContext())
+            {
+                // Act
+                var result = new RegistrationTokenValidatorBuilder()
+                    .WithCurrentInstant(currentInstant)
+                    .Build(context)
+                    .TokenIsValid(Token);
 
-            mockRegistrationTokenRepository
-                .Setup(r => r.GetRegistrationTokens())
-                .Returns(registrationTokens);
+                // Assert
+                Assert.Equal(expectedIsValid, result);
+            }
+        }
 
-            var validator = new RegistrationTokenValidator(
-                new FakeClock(currentInstant), mockRegistrationTokenRepository.Object);
-
-            Assert.Equal(expectedIsValid, validator.TokenIsValid(Token));
+        private void SeedDatabase(params RegistrationToken[] registrationTokens)
+        {
+            using (var context = this.CreateContext())
+            {
+                context.RegistrationTokens.AddRange(registrationTokens);
+                context.SaveChanges();
+            }
         }
     }
 }

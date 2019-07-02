@@ -1,25 +1,17 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-    using AutoMapper;
-    using Microsoft.EntityFrameworkCore;
-    using Moq;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Data;
     using Xunit;
     using DataBankHoliday = ParkingRota.Data.BankHoliday;
     using ModelBankHoliday = ParkingRota.Business.Model.BankHoliday;
 
-    public class BankHolidayRepositoryTests
+    public class BankHolidayRepositoryTests : DatabaseTests
     {
-        private readonly DbContextOptions<ApplicationDbContext> contextOptions;
-
-        public BankHolidayRepositoryTests() =>
-            this.contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
+        public static BankHolidayRepository CreateRepository(IApplicationDbContext context) =>
+            new BankHolidayRepository(context, MapperBuilder.Build());
 
         [Fact]
         public void Test_GetBankHolidays()
@@ -33,17 +25,10 @@
 
             this.SeedDatabase(existingBankHolidays);
 
-            var mapperConfiguration = new MapperConfiguration(c =>
-            {
-                c.CreateMap<DataBankHoliday, ModelBankHoliday>();
-            });
-
-            var mapper = new Mapper(mapperConfiguration);
-
             using (var context = this.CreateContext())
             {
                 // Act
-                var result = new BankHolidayRepository(context, mapper).GetBankHolidays();
+                var result = CreateRepository(context).GetBankHolidays();
 
                 // Assert
                 Assert.Equal(existingBankHolidays.Length, result.Count);
@@ -76,9 +61,7 @@
             // Act
             using (var context = this.CreateContext())
             {
-                var repository = new BankHolidayRepository(context, Mock.Of<IMapper>());
-
-                repository.AddBankHolidays(newBankHolidays);
+                CreateRepository(context).AddBankHolidays(newBankHolidays);
             }
 
             // Assert
@@ -98,8 +81,6 @@
                 }
             }
         }
-
-        private ApplicationDbContext CreateContext() => new ApplicationDbContext(this.contextOptions);
 
         private void SeedDatabase(IReadOnlyList<DataBankHoliday> bankHolidays)
         {

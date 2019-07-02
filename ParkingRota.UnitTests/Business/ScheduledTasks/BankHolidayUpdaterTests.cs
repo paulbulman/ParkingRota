@@ -3,89 +3,100 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Moq;
+    using Data;
     using NodaTime;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Business;
     using ParkingRota.Business.Model;
-    using ParkingRota.Business.ScheduledTasks;
     using Xunit;
+    using DataBankHoliday = ParkingRota.Data.BankHoliday;
 
-    public static class BankHolidayUpdaterTests
+    public class BankHolidayUpdaterTests : DatabaseTests
     {
         [Fact]
-        public static void Test_ScheduledTaskType()
+        public void Test_ScheduledTaskType()
         {
-            var result = new BankHolidayUpdater(
-                Mock.Of<IBankHolidayFetcher>(),
-                Mock.Of<IBankHolidayRepository>(),
-                Mock.Of<IDateCalculator>()).ScheduledTaskType;
+            using (var context = this.CreateContext())
+            {
+                var result = new BankHolidayUpdaterBuilder()
+                    .Build(context)
+                    .ScheduledTaskType;
 
-            Assert.Equal(ScheduledTaskType.BankHolidayUpdater, result);
+                Assert.Equal(ScheduledTaskType.BankHolidayUpdater, result);
+            }
         }
 
         [Fact]
-        public static async Task Test_Run()
+        public async Task Test_Run()
         {
             // Arrange
             var existingBankHolidays = new[]
             {
-                new BankHoliday { Date = 25.December(2018) },
-                new BankHoliday { Date = 26.December(2018) }
+                new DataBankHoliday { Date = 25.December(2019) },
+                new DataBankHoliday { Date = 26.December(2019) }
             };
 
-            var mockBankHolidayRepository = new Mock<IBankHolidayRepository>(MockBehavior.Strict);
-            mockBankHolidayRepository.Setup(r => r.GetBankHolidays()).Returns(existingBankHolidays);
-            mockBankHolidayRepository.Setup(r => r.AddBankHolidays(It.IsAny<IReadOnlyList<BankHoliday>>()));
+            this.SeedDatabase(existingBankHolidays);
 
-            var newBankHolidayDates = new[] { 25.December(2019), 26.December(2019) };
+            var newBankHolidayDates = new[] { 1.January(2020), 2.January(2020) };
 
-            var bankHolidayDates = existingBankHolidays.Select(b => b.Date)
+            var allBankHolidayDates = existingBankHolidays.Select(b => b.Date)
                 .Concat(newBankHolidayDates)
                 .ToArray();
 
-            var mockBankHolidayFetcher = new Mock<IBankHolidayFetcher>(MockBehavior.Strict);
-            mockBankHolidayFetcher
-                .Setup(f => f.Fetch())
-                .Returns(Task.FromResult((IReadOnlyList<LocalDate>)bankHolidayDates));
-
             // Act
-            await new BankHolidayUpdater(
-                mockBankHolidayFetcher.Object,
-                mockBankHolidayRepository.Object,
-                Mock.Of<IDateCalculator>()).Run();
+            using (var context = this.CreateContext())
+            {
+                await new BankHolidayUpdaterBuilder()
+                    .WithReturnedBankHolidayDates(allBankHolidayDates)
+                    .Build(context)
+                    .Run();
+            }
 
             // Assert
-            mockBankHolidayRepository.Verify(
-                r => r.AddBankHolidays(It.Is<IReadOnlyList<BankHoliday>>(actual =>
-                    actual.Select(b => b.Date).SequenceEqual(newBankHolidayDates))),
-                Times.Once);
+            using (var context = this.CreateContext())
+            {
+                var result = context.BankHolidays.ToArray();
+                Assert.Equal(allBankHolidayDates.Length, result.Length);
+
+                foreach (var expectedDate in allBankHolidayDates)
+                {
+                    Assert.Single(result.Where(b => b.Date == expectedDate));
+                }
+            }
         }
 
         [Theory]
         [InlineData(18, 0, 25, 0)]
         [InlineData(19, 0, 25, 0)]
         [InlineData(25, 0, 31, 23)]
-        public static void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
+        public void Test_GetNextRunTime(int currentDay, int currentHour, int expectedDay, int expectedHour)
         {
             // Arrange
-            var mockDateCalculator = new Mock<IDateCalculator>(MockBehavior.Strict);
-            mockDateCalculator
-                .SetupGet(d => d.TimeZone)
-                .Returns(DateTimeZoneProviders.Tzdb["Europe/London"]);
-
-            var bankHolidayUpdater = new BankHolidayUpdater(
-                Mock.Of<IBankHolidayFetcher>(),
-                Mock.Of<IBankHolidayRepository>(),
-                mockDateCalculator.Object);
+            var currentInstant = currentDay.March(2019).At(currentHour, 00, 00).Utc();
 
             // Act
-            var result = bankHolidayUpdater.GetNextRunTime(currentDay.March(2019).At(currentHour, 00, 00).Utc());
+            Instant result;
+            using (var context = this.CreateContext())
+            {
+                result = new BankHolidayUpdaterBuilder()
+                    .WithCurrentInstant(currentInstant)
+                    .Build(context)
+                    .GetNextRunTime(currentInstant);
+            }
 
             // Assert
             var expected = expectedDay.March(2019).At(expectedHour, 00, 00).Utc();
 
             Assert.Equal(expected, result);
+        }
+
+        private void SeedDatabase(IReadOnlyList<DataBankHoliday> bankHolidays)
+        {
+            using (var context = this.CreateContext())
+            {
+                context.BankHolidays.AddRange(bankHolidays);
+                context.SaveChanges();
+            }
         }
     }
 }
