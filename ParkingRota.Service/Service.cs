@@ -133,6 +133,7 @@ namespace ParkingRota.Service
             services.AddScoped<IDateCalculator, DateCalculator>();
             services.AddScoped<EmailProcessor>();
             services.AddScoped<IEmailRepository, EmailRepository>();
+            services.AddScoped<IEmailSender, LocalPapercutEmailSender>();
             services.AddScoped<IEmailSender, SendGridEmailSender>();
             services.AddScoped<IEmailSender, AwsSesEmailSender>();
             services.AddScoped<LastServiceRunTimeUpdater>();
