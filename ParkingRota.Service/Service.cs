@@ -170,6 +170,6 @@ namespace ParkingRota.Service
         private static IConfiguration GetConfiguration() =>
             new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("AppSettings.json.temp").Build();
+                .AddJsonFile("appsettings.json").Build();
     }
 }
