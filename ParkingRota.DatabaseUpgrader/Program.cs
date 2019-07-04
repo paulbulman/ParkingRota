@@ -3,27 +3,51 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using CommandLine;
     using Data;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
 
     internal static class Program
     {
+        private class Options
+        {
+            private const string HelpText =
+                "The name of an environment variable containing a connection string for the database to upgrade.";
+
+            [Option('e', "environmentVariableName", Required = false, HelpText = HelpText)]
+            public string EnvironmentVariableName { get; set; }
+        }
+
         private static async Task Main(string[] args)
         {
-            var connectionStringEnvironmentVariableName = args.Any() ? args[0] : string.Empty;
+            string environmentVariableName = null;
+            string connectionString = null;
 
-            if (string.IsNullOrEmpty(connectionStringEnvironmentVariableName))
+            Parser.Default
+                .ParseArguments<Options>(args)
+                .WithParsed(o => environmentVariableName = o.EnvironmentVariableName);
+
+            if (!string.IsNullOrEmpty(environmentVariableName))
             {
-                throw new InvalidOperationException("Connection string environment variable name not set");
+                connectionString = Environment.GetEnvironmentVariable(environmentVariableName);
             }
-
-            var connectionString = Environment.GetEnvironmentVariable(connectionStringEnvironmentVariableName);
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("Connection string environment variable not set");
+                connectionString = GetConfiguration().GetConnectionString("DefaultConnection");
             }
 
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("Connection string not set.");
+            }
+
+            await UpgradeDatabase(connectionString);
+        }
+
+        private static async Task UpgradeDatabase(string connectionString)
+        {
             var dbContextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseSqlServer(connectionString);
 
@@ -50,6 +74,17 @@
                     Console.WriteLine("Database already up-to-date.");
                 }
             }
+        }
+
+        private static IConfiguration GetConfiguration()
+        {
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            return new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile($"appsettings.{environmentName}.json", true, true)
+                .Build();
         }
     }
 }

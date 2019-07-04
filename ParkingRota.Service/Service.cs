@@ -95,6 +95,9 @@ namespace ParkingRota.Service
         {
             using (var scope = this.serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Service>>();
+                logger.LogDebug("Running task loop...");
+                
                 var allocationCreator = scope.ServiceProvider.GetRequiredService<AllocationCreator>();
                 var newAllocations = allocationCreator.Create();
 
@@ -114,16 +117,18 @@ namespace ParkingRota.Service
 
         private ServiceProvider BuildServiceProvider()
         {
-            Console.WriteLine("Building service provider");
-
             var services = new ServiceCollection();
 
-            services.AddLogging(configure => configure.AddConsole());
+            var configuration = GetConfiguration();
+
+            services.AddLogging(configure => configure
+                .AddConsole()
+                .AddConfiguration(configuration.GetSection("Logging")));
 
             var databaseConnectionString =
                 this.connectionString ??
                 Environment.GetEnvironmentVariable("ParkingRotaConnectionString") ??
-                GetConfiguration().GetConnectionString("DefaultConnection");
+                configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(databaseConnectionString));
 
@@ -167,9 +172,15 @@ namespace ParkingRota.Service
             return services.BuildServiceProvider();
         }
 
-        private static IConfiguration GetConfiguration() =>
-            new ConfigurationBuilder()
+        private static IConfiguration GetConfiguration()
+        {
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            return new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json").Build();
+                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile($"appsettings.{environmentName}.json", true, true)
+                .Build();
+        }
     }
 }
