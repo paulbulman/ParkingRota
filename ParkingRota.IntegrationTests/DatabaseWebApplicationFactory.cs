@@ -19,14 +19,14 @@
         protected override void ConfigureWebHost(IWebHostBuilder builder) =>
             builder.ConfigureServices(services =>
             {
-                var contextServiceProviider = new ServiceCollection()
+                var contextServiceProvider = new ServiceCollection()
                     .AddEntityFrameworkInMemoryDatabase()
                     .BuildServiceProvider();
 
                 services.AddDbContext<ApplicationDbContext>(options =>
                 {
                     options.UseInMemoryDatabase("InMemoryDbForTesting");
-                    options.UseInternalServiceProvider(contextServiceProviider);
+                    options.UseInternalServiceProvider(contextServiceProvider);
                 });
 
                 using (var serviceScope = services.BuildServiceProvider().CreateScope())

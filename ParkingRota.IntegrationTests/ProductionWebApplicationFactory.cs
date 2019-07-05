@@ -1,11 +1,14 @@
 ﻿namespace ParkingRota.IntegrationTests
 {
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc.Testing;
 
-    public class ProductionWebApplicationFactory<TProgram> : WebApplicationFactory<Program>
+    public class ProductionWebApplicationFactory<TProgram> : DatabaseWebApplicationFactory<Program>
     {
-        protected override void ConfigureWebHost(IWebHostBuilder builder) =>
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            base.ConfigureWebHost(builder);
+
             builder.UseSetting("Environment", "Production");
+        }
     }
 }
