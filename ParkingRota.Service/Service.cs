@@ -27,7 +27,7 @@ namespace ParkingRota.Service
         public Service()
         {
             this.serviceProvider = this.BuildServiceProvider();
-         
+
             this.timer = new Timer(Duration.FromMinutes(1).TotalMilliseconds);
         }
 
@@ -96,22 +96,30 @@ namespace ParkingRota.Service
             using (var scope = this.serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Service>>();
-                logger.LogDebug("Running task loop...");
-                
-                var allocationCreator = scope.ServiceProvider.GetRequiredService<AllocationCreator>();
-                var newAllocations = allocationCreator.Create();
 
-                var allocationNotifier = scope.ServiceProvider.GetRequiredService<AllocationNotifier>();
-                allocationNotifier.Notify(newAllocations);
+                try
+                {
+                    logger.LogDebug("Running task loop...");
 
-                var scheduledTaskRunner = scope.ServiceProvider.GetRequiredService<ScheduledTaskRunner>();
-                await scheduledTaskRunner.Run();
+                    var allocationCreator = scope.ServiceProvider.GetRequiredService<AllocationCreator>();
+                    var newAllocations = allocationCreator.Create();
 
-                var emailProcessor = scope.ServiceProvider.GetRequiredService<EmailProcessor>();
-                await emailProcessor.SendPending();
+                    var allocationNotifier = scope.ServiceProvider.GetRequiredService<AllocationNotifier>();
+                    allocationNotifier.Notify(newAllocations);
 
-                var lastServiceRunTimeUpdater = scope.ServiceProvider.GetRequiredService<LastServiceRunTimeUpdater>();
-                lastServiceRunTimeUpdater.Update();
+                    var scheduledTaskRunner = scope.ServiceProvider.GetRequiredService<ScheduledTaskRunner>();
+                    await scheduledTaskRunner.Run();
+
+                    var emailProcessor = scope.ServiceProvider.GetRequiredService<EmailProcessor>();
+                    await emailProcessor.SendPending();
+
+                    var lastServiceRunTimeUpdater = scope.ServiceProvider.GetRequiredService<LastServiceRunTimeUpdater>();
+                    lastServiceRunTimeUpdater.Update();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Exception whilst running task loop");
+                }
             }
         }
 
