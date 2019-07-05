@@ -4,7 +4,6 @@ env:
   parameter-store:
     AWS_ACCESS_KEY_ID: "AccessKeyId"
     AWS_SECRET_ACCESS_KEY: "AccessKey"
-    ParkingRotaAdminConnectionString: "ParkingRotaAdminConnectionString"
 
 phases:
   install:
