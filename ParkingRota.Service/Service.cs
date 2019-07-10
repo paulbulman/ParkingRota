@@ -3,6 +3,7 @@ namespace ParkingRota.Service
     using System;
     using System.ServiceProcess;
     using System.Threading;
+    using System.Threading.Tasks;
     using System.Timers;
     using AutoMapper;
     using Business;
@@ -91,7 +92,9 @@ namespace ParkingRota.Service
             this.timer.Dispose();
         }
 
-        public async void RunTasks()
+        public async void RunTasks() => await RunTasksAsync();
+
+        public async Task RunTasksAsync()
         {
             using (var scope = this.serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
