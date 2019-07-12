@@ -4,6 +4,9 @@ env:
   parameter-store:
     AWS_ACCESS_KEY_ID: "AccessKeyId"
     AWS_SECRET_ACCESS_KEY: "AccessKey"
+    ParkingRotaTestAdminConnectionString: "ParkingRotaTestAdminConnectionString"
+    ParkingRotaTestConnectionString: "ParkingRotaTestConnectionString"
+    ParkingRotaAdminConnectionString: "ParkingRotaAdminConnectionString"
 
 phases:
   install:
@@ -13,6 +16,7 @@ phases:
     commands:
       - dotnet build
       - dotnet test ParkingRota.UnitTests
+      - dotnet run --project ParkingRota.DatabaseUpgrader -e=ParkingRotaTestAdminConnectionString
       - dotnet test ParkingRota.IntegrationTests
   post_build:
     commands:
