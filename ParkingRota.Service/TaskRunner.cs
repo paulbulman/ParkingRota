@@ -17,15 +17,13 @@
 
     public class TaskRunner : IDisposable
     {
-        private readonly string connectionString;
-
         private readonly ServiceProvider serviceProvider;
 
-        public TaskRunner(string connectionString) : this() => this.connectionString = connectionString;
+        public TaskRunner(string connectionString) => this.serviceProvider = this.BuildServiceProvider(connectionString);
 
-        public TaskRunner() => this.serviceProvider = this.BuildServiceProvider();
+        public TaskRunner() => this.serviceProvider = this.BuildServiceProvider(null);
 
-        public async Task RunTasksAsync()
+        public async Task<bool> RunTasksAsync()
         {
             using (var scope = this.serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
@@ -53,11 +51,14 @@
                 catch (Exception e)
                 {
                     logger.LogError(e, "Exception whilst running task loop");
+                    return false;
                 }
             }
+
+            return true;
         }
 
-        private ServiceProvider BuildServiceProvider()
+        private ServiceProvider BuildServiceProvider(string connectionString)
         {
             var services = new ServiceCollection();
 
@@ -68,7 +69,7 @@
                 .AddConfiguration(configuration.GetSection("Logging")));
 
             var databaseConnectionString =
-                this.connectionString ??
+                connectionString ??
                 Environment.GetEnvironmentVariable("ParkingRotaConnectionString") ??
                 configuration.GetConnectionString("DefaultConnection");
 

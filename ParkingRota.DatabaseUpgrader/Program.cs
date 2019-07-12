@@ -30,11 +30,15 @@
 
             if (!string.IsNullOrEmpty(environmentVariableName))
             {
+                Console.WriteLine($"Reading connection string from environment variable {environmentVariableName}");
+
                 connectionString = Environment.GetEnvironmentVariable(environmentVariableName);
             }
 
             if (string.IsNullOrEmpty(connectionString))
             {
+                Console.WriteLine("Reading connection string from DefaultConnection setting in appSettings");
+
                 connectionString = GetConfiguration().GetConnectionString("DefaultConnection");
             }
 

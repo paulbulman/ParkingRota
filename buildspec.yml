@@ -16,7 +16,7 @@ phases:
     commands:
       - dotnet build
       - dotnet test ParkingRota.UnitTests
-      - dotnet run --project ParkingRota.DatabaseUpgrader -e=ParkingRotaTestAdminConnectionString
+      - dotnet run --project ParkingRota.DatabaseUpgrader -e ParkingRotaTestAdminConnectionString
       - dotnet test ParkingRota.IntegrationTests
   post_build:
     commands:

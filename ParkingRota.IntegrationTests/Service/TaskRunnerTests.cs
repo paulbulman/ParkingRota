@@ -5,25 +5,38 @@
     using Microsoft.Extensions.Configuration;
     using ParkingRota.Service;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class TaskRunnerTests
     {
+        private readonly ITestOutputHelper testOutputHelper;
+
+        public TaskRunnerTests(ITestOutputHelper testOutputHelper) => this.testOutputHelper = testOutputHelper;
+
         [Fact]
         public async Task Test_RunTasks()
         {
+            this.testOutputHelper.WriteLine("Reading connection string from environment variable ParkingRotaTestConnectionString");
+
             var connectionString = Environment.GetEnvironmentVariable("ParkingRotaTestConnectionString");
 
             if (string.IsNullOrEmpty(connectionString))
             {
+                this.testOutputHelper.WriteLine("Reading connection string from DefaultConnection setting in appSettings");
+
                 connectionString = GetConfiguration().GetConnectionString("DefaultConnection");
             }
 
             if (string.IsNullOrEmpty(connectionString))
             {
+                this.testOutputHelper.WriteLine("Connection string not set. Skipping test.");
+
                 return;
             }
 
-            await new TaskRunner(connectionString).RunTasksAsync();
+            var success = await new TaskRunner(connectionString).RunTasksAsync();
+
+            Assert.True(success);
         }
 
         private static IConfiguration GetConfiguration()
