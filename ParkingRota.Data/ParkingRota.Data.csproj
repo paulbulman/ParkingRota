@@ -6,8 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.4" AllowExplicitVersion="true" />
-    <PackageReference Include="NodaTime" Version="2.4.5" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.12" AllowExplicitVersion="true" />
+    <PackageReference Include="NodaTime" Version="2.4.6" />
   </ItemGroup>
 
   <ItemGroup>

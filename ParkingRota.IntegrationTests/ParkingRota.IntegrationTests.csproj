@@ -8,10 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.12.1" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.4" AllowExplicitVersion="true" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.5" AllowExplicitVersion="true" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.2.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.1" />
-    <PackageReference Include="NodaTime.Testing" Version="2.4.5" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="NodaTime.Testing" Version="2.4.6" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>
