@@ -1,14 +1,15 @@
 ﻿namespace ParkingRota.IntegrationTests.Service
 {
     using System;
+    using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
     using ParkingRota.Service;
     using Xunit;
 
-    public class ServiceTests
+    public class TaskRunnerTests
     {
         [Fact]
-        public void Test_RunTasks()
+        public async Task Test_RunTasks()
         {
             var connectionString = Environment.GetEnvironmentVariable("ParkingRotaTestConnectionString");
 
@@ -22,7 +23,7 @@
                 return;
             }
 
-            new Service(connectionString).RunTasks();
+            await new TaskRunner(connectionString).RunTasksAsync();
         }
 
         private static IConfiguration GetConfiguration()

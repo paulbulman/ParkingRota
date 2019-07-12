@@ -5,7 +5,7 @@
     "configuration" : "Release",
     "framework"     : "netcoreapp2.1",
     "function-name" : "parkingrota-service",
-    "function-handler" : "ParkingRota.Service::LambdaEntryPoint::RunTasks",
+    "function-handler" : "ParkingRota.Service::ParkingRota.Service.LambdaEntryPoint::RunTasks",
     "function-memory-size" : 256,
     "function-role"        : "arn:aws:iam::059500287549:role/lambda_exec_parkingrota-service",
     "function-timeout"     : 55,

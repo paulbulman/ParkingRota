@@ -37,20 +37,26 @@
                     runAsConsoleApp = o.RunAsConsoleApp;
                 });
 
-            using (var service = new Service())
+            if (runOnce)
             {
-                if (runOnce)
+                using (var taskRunner = new TaskRunner())
                 {
-                    await service.RunTasksAsync();
+                    await taskRunner.RunTasksAsync();
                 }
-                else if (Debugger.IsAttached || runAsConsoleApp)
+            }
+            else
+            {
+                using (var service = new Service())
                 {
-                    service.Start(Duration.FromSeconds(10));
-                    Thread.Sleep(-1);
-                }
-                else
-                {
-                    ServiceBase.Run(service);
+                    if (Debugger.IsAttached || runAsConsoleApp)
+                    {
+                        service.Start(Duration.FromSeconds(10));
+                        Thread.Sleep(-1);
+                    }
+                    else
+                    {
+                        ServiceBase.Run(service);
+                    }
                 }
             }
         }

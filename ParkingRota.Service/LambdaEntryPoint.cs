@@ -5,10 +5,10 @@
 
     public class LambdaEntryPoint
     {
-        private readonly Service service;
+        private readonly TaskRunner taskRunner;
 
-        public LambdaEntryPoint() => this.service = new Service();
+        public LambdaEntryPoint() => this.taskRunner = new TaskRunner();
 
-        public async Task RunTasks(ILambdaContext context) => await this.service.RunTasksAsync();
+        public async Task RunTasks(ILambdaContext context) => await this.taskRunner.RunTasksAsync();
     }
 }
