@@ -36,6 +36,7 @@ namespace ParkingRota
 
             var connectionString =
                 Environment.GetEnvironmentVariable("ParkingRotaConnectionString") ??
+                this.Configuration.GetValue<string>("ParkingRotaConnectionString") ??
                 this.Configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
@@ -118,9 +119,7 @@ namespace ParkingRota
                 app.UseHsts();
             }
 
-            var isElasticBeanstalkEnvironmentVariable = Environment.GetEnvironmentVariable("IsElasticBeanstalk");
-
-            if (bool.TryParse(isElasticBeanstalkEnvironmentVariable, out var isElasticBeanstalk) && isElasticBeanstalk)
+            if (Helpers.IsElasticBeanstalk())
             {
                 loggerFactory.AddAWSProvider(this.Configuration.GetAWSLoggingConfigSection());
             }

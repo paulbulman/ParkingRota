@@ -15,9 +15,17 @@
             CreateWebHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
+        {
+            var builder = WebHost.CreateDefaultBuilder(args);
+
+            if (Helpers.IsElasticBeanstalk())
+            {
+                builder.ConfigureAppConfiguration(configure => { configure.AddSystemsManager("/parkingrota/"); });
+            }
+
+            return builder.UseStartup<Startup>();
+        }
 
         private static void SetAwsEnvironmentVariables()
         {
@@ -36,9 +44,9 @@
                     .Select(section => section.Value.Split('=', 2))
                     .ToDictionary(kvp => kvp[0], kvp => kvp[1]);
 
-            foreach (var environmentVariable in environmentVariables)
+            foreach (var (variable, value) in environmentVariables)
             {
-                Environment.SetEnvironmentVariable(environmentVariable.Key, environmentVariable.Value);
+                Environment.SetEnvironmentVariable(variable, value);
             }
         }
     }
