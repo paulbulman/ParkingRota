@@ -24,7 +24,12 @@
         {
             using (var client = new AmazonSimpleSystemsManagementClient(RegionEndpoint.EUWest2))
             {
-                var request = new GetParameterRequest {Name = "/parkingrota/ParkingRotaConnectionString"};
+                var request = new GetParameterRequest
+                {
+                    Name = "/parkingrota/ParkingRotaConnectionString",
+                    WithDecryption = true
+                };
+
                 var response = await client.GetParameterAsync(request);
 
                 var connectionString = response.Parameter.Value;

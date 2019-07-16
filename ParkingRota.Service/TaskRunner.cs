@@ -19,9 +19,9 @@
     {
         private readonly ServiceProvider serviceProvider;
 
-        public TaskRunner(string connectionString) => this.serviceProvider = this.BuildServiceProvider(connectionString);
+        public TaskRunner(string connectionString) => this.serviceProvider = BuildServiceProvider(connectionString);
 
-        public TaskRunner() => this.serviceProvider = this.BuildServiceProvider(null);
+        public TaskRunner() => this.serviceProvider = BuildServiceProvider(null);
 
         public async Task<bool> RunTasksAsync()
         {
@@ -58,7 +58,7 @@
             return true;
         }
 
-        private ServiceProvider BuildServiceProvider(string connectionString)
+        private static ServiceProvider BuildServiceProvider(string connectionString)
         {
             var services = new ServiceCollection();
 
