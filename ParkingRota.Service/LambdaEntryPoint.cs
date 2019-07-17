@@ -1,10 +1,8 @@
 ﻿namespace ParkingRota.Service
 {
     using System.Threading.Tasks;
-    using Amazon;
     using Amazon.Lambda.Core;
-    using Amazon.SimpleSystemsManagement;
-    using Amazon.SimpleSystemsManagement.Model;
+    using Business;
 
     public class LambdaEntryPoint
     {
@@ -22,20 +20,11 @@
 
         private static async Task<TaskRunner> CreateTaskRunner()
         {
-            using (var client = new AmazonSimpleSystemsManagementClient(RegionEndpoint.EUWest2))
-            {
-                var request = new GetParameterRequest
-                {
-                    Name = "/parkingrota/ParkingRotaConnectionString",
-                    WithDecryption = true
-                };
+            var secretsManager = new AwsSsmSecretsManager();
 
-                var response = await client.GetParameterAsync(request);
+            var connectionString = await secretsManager.Fetch("/parkingrota/ParkingRotaConnectionString");
 
-                var connectionString = response.Parameter.Value;
-
-                return new TaskRunner(connectionString);
-            }
+            return new TaskRunner(connectionString);
         }
     }
 }

@@ -11,22 +11,25 @@
 
     public class AwsSesEmailSender : IEmailSender
     {
+        private readonly ISecretsManager secretsManager;
         private readonly ISystemParameterListRepository systemParameterListRepository;
 
-        public AwsSesEmailSender(ISystemParameterListRepository systemParameterListRepository) =>
+        public AwsSesEmailSender(
+            ISecretsManager secretsManager,
+            ISystemParameterListRepository systemParameterListRepository)
+        {
+            this.secretsManager = secretsManager;
             this.systemParameterListRepository = systemParameterListRepository;
+        }
 
         public bool CanSend =>
             !string.IsNullOrEmpty(Host) &&
             !string.IsNullOrEmpty(Username) &&
-            !string.IsNullOrEmpty(Password) &&
             !string.IsNullOrEmpty(ConfigSet);
 
         private static string Host => Environment.GetEnvironmentVariable("SmtpHost");
 
         private static string Username => Environment.GetEnvironmentVariable("SmtpUsername");
-
-        private static string Password => Environment.GetEnvironmentVariable("SmtpPassword");
 
         private static string ConfigSet => Environment.GetEnvironmentVariable("SmtpConfigSet");
 
@@ -43,10 +46,12 @@
 
             message.Headers.Add("X-SES-CONFIGURATION-SET", ConfigSet);
 
+            var password = await this.secretsManager.Fetch("/parkingrota/SmtpPassword");
+
             const int Port = 587;
             using (var client = new SmtpClient(Host, Port))
             {
-                client.Credentials = new NetworkCredential(Username, Password);
+                client.Credentials = new NetworkCredential(Username, password);
                 client.EnableSsl = true;
 
                 // Ensure we stay within AWS sending rate limit

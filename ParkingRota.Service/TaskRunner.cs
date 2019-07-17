@@ -99,6 +99,7 @@
             services.AddScoped<IRequestRepository, RequestRepository>();
             services.AddScoped<IRequestSorter, RequestSorter>();
             services.AddScoped<IReservationRepository, ReservationRepository>();
+            services.AddScoped<ISecretsManager, AwsSsmSecretsManager>();
             services.AddScoped<ISingleDayAllocationCreator, SingleDayAllocationCreator>();
             services.AddScoped<IScheduledTaskRepository, ScheduledTaskRepository>();
             services.AddScoped<ScheduledTaskRunner>();

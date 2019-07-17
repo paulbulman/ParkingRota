@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.SimpleSystemsManagement" Version="3.3.104.10" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.12" AllowExplicitVersion="true" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="2.1.6" />
