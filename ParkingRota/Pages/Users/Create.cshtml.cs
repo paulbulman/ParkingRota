@@ -28,9 +28,6 @@
             this.registrationTokenRepository = registrationTokenRepository;
         }
 
-        [TempData]
-        public string StatusMessage { get; set; }
-
         public IActionResult OnPost()
         {
             if (!this.ModelState.IsValid)
@@ -59,9 +56,9 @@
 
             this.ModelState.Clear();
 
-            this.StatusMessage = "Email will be sent.";
+            this.TempData["Result"] = "Email will be sent.";
 
-            return this.RedirectToPage();
+            return this.RedirectToPage("/Users/Index");
         }
 
         [BindProperty]

@@ -5,6 +5,7 @@
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.AspNetCore.Mvc.Routing;
+    using Microsoft.AspNetCore.Mvc.ViewFeatures;
     using Microsoft.AspNetCore.Routing;
     using Moq;
     using NodaTime.Testing;
@@ -48,6 +49,8 @@
             var actionContext = new ActionContext(
                 httpContext, new RouteData(), new PageActionDescriptor(), new ModelStateDictionary());
 
+            var mockTempDataDictionary = new Mock<ITempDataDictionary>();
+
             var mockUrlHelper = new Mock<UrlHelper>(actionContext);
             mockUrlHelper
                 .Setup(u => u.RouteUrl(It.IsAny<UrlRouteContext>()))
@@ -63,6 +66,7 @@
                 mockRegistrationTokenRepository.Object)
             {
                 Input = new CreateModel.InputModel { Email = EmailAddress, ConfirmEmail = EmailAddress },
+                TempData = mockTempDataDictionary.Object,
                 Url = mockUrlHelper.Object
             };
 
@@ -82,7 +86,7 @@
                     t.ExpiryTime == expectedExpiryInstant)),
                 Times.Once);
 
-            Assert.Equal("Email will be sent.", model.StatusMessage);
+            mockTempDataDictionary.VerifySet(d => d["Result"] = "Email will be sent.", Times.Once);
         }
     }
 }
