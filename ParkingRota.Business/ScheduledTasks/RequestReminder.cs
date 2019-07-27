@@ -62,11 +62,11 @@
 
         public Instant GetNextRunTime(Instant currentInstant) =>
             currentInstant
-                .InZone(this.dateCalculator.TimeZone)
+                .InZone(DateCalculator.LondonTimeZone)
                 .Date
                 .Next(IsoDayOfWeek.Wednesday)
                 .AtMidnight()
-                .InZoneStrictly(this.dateCalculator.TimeZone)
+                .InZoneStrictly(DateCalculator.LondonTimeZone)
                 .ToInstant();
     }
 }

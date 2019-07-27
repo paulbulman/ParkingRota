@@ -6,6 +6,9 @@ then
   cd ParkingRota.Service
   dotnet lambda deploy-function
   
+  cd ../ParkingRota.Monitor
+  dotnet lambda deploy-function
+  
   cd ../ParkingRota
   dotnet eb deploy-environment
 fi

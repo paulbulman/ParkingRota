@@ -10,5 +10,9 @@
 
         public static string ForRoundTrip(this LocalDate localDate) =>
             LocalDatePattern.Iso.Format(localDate);
+
+        public static string ForDisplay(this ZonedDateTime zonedDateTime) =>
+            $"{ZonedDateTimePattern.CreateWithCurrentCulture("HH:mm:ss", DateTimeZoneProviders.Tzdb).Format(zonedDateTime)} on " +
+            $"{ZonedDateTimePattern.CreateWithCurrentCulture("dd MMM", DateTimeZoneProviders.Tzdb).Format(zonedDateTime)}";
     }
 }

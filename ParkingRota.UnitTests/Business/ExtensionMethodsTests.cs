@@ -25,5 +25,16 @@
 
             Assert.Equal(expectedText, localDate.ForRoundTrip());
         }
+
+        [Theory]
+        [InlineData(2018, 11, 7, 15, 22, 1, "15:22:01 on 07 Nov")]
+        [InlineData(2019, 10, 27, 0, 2, 3, "01:02:03 on 27 Oct")]
+        [InlineData(2019, 10, 27, 1, 2, 3, "01:02:03 on 27 Oct")]
+        public static void Test_ZonedDateTime_ForDisplay(int year, int month, int day, int hour, int minute, int second, string expectedText)
+        {
+            var zonedDateTime = new ZonedDateTime(Instant.FromUtc(year, month, day, hour, minute, second), DateCalculator.LondonTimeZone);
+
+            Assert.Equal(expectedText, zonedDateTime.ForDisplay());
+        }
     }
 }

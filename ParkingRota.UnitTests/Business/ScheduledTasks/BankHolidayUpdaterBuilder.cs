@@ -39,12 +39,9 @@
                 .Setup(f => f.Fetch())
                 .Returns(Task.FromResult(this.returnedBankHolidayDates));
 
-            var bankHolidayRepository = BankHolidayRepositoryTests.CreateRepository(context);
-
             return new BankHolidayUpdater(
                 mockBankHolidayFetcher.Object,
-                bankHolidayRepository,
-                new DateCalculator(new FakeClock(this.currentInstant), bankHolidayRepository));
+                BankHolidayRepositoryTests.CreateRepository(context));
         }
     }
 }

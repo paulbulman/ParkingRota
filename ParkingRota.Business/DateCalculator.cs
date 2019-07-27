@@ -9,8 +9,6 @@
     {
         Instant CurrentInstant { get; }
 
-        DateTimeZone TimeZone { get; }
-
         IReadOnlyList<LocalDate> GetActiveDates();
 
         IReadOnlyList<LocalDate> GetShortLeadTimeAllocationDates();
@@ -28,6 +26,8 @@
 
     public class DateCalculator : IDateCalculator
     {
+        public static readonly DateTimeZone LondonTimeZone = DateTimeZoneProviders.Tzdb["Europe/London"];
+
         private readonly IBankHolidayRepository bankHolidayRepository;
 
         public DateCalculator(IClock clock, IBankHolidayRepository bankHolidayRepository)
@@ -37,8 +37,6 @@
         }
 
         public Instant CurrentInstant { get; }
-
-        public DateTimeZone TimeZone => DateTimeZoneProviders.Tzdb["Europe/London"];
 
         public IReadOnlyList<LocalDate> GetActiveDates()
         {
@@ -93,15 +91,15 @@
 
         public IReadOnlyList<LocalDate> GetUpcomingLongLeadTimeAllocationDates()
         {
-            var todayStart = this.GetCurrentTime().Date.AtStartOfDayInZone(this.TimeZone);
-            var tomorrowStart = this.GetCurrentTime().Date.PlusDays(1).AtStartOfDayInZone(this.TimeZone);
+            var todayStart = this.GetCurrentTime().Date.AtStartOfDayInZone(LondonTimeZone);
+            var tomorrowStart = this.GetCurrentTime().Date.PlusDays(1).AtStartOfDayInZone(LondonTimeZone);
 
             return this.GetLongLeadTimeAllocationDates(tomorrowStart)
                 .Except(this.GetLongLeadTimeAllocationDates(todayStart))
                 .ToArray();
         }
 
-        private ZonedDateTime GetCurrentTime() => this.CurrentInstant.InZone(this.TimeZone);
+        private ZonedDateTime GetCurrentTime() => this.CurrentInstant.InZone(LondonTimeZone);
 
         private LocalDate GetNextWorkingDayStrictlyAfter(LocalDate localDate) =>
             this.GetNextWorkingDayIncluding(localDate.PlusDays(1));

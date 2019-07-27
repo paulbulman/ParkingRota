@@ -1,0 +1,18 @@
+
+{
+    "region" : "eu-west-2",
+    "profile" : "VSAdmin",
+    "configuration" : "Release",
+    "framework"     : "netcoreapp2.1",
+    "function-name" : "parkingrota-monitor",
+    "function-description" : "",
+    "function-handler"     : "ParkingRota.Monitor::ParkingRota.Monitor.Program::CheckLastServiceRunTime",
+    "function-memory-size" : 256,
+    "function-role"        : "arn:aws:iam::059500287549:role/lambda_exec_parkingrota-monitor",
+    "function-timeout"     : 55,
+    "function-runtime"     : "dotnetcore2.1",
+    "function-subnets"     : "subnet-053650de538d6f0ec",
+    "function-security-groups" : "sg-04d41df3d206d631f,sg-053a6729598910152",
+    "tracing-mode"             : "PassThrough",
+    "environment-variables"    : ""
+}

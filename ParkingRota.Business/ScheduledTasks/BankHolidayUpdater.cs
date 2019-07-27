@@ -9,16 +9,13 @@
     {
         private readonly IBankHolidayFetcher bankHolidayFetcher;
         private readonly IBankHolidayRepository bankHolidayRepository;
-        private readonly IDateCalculator dateCalculator;
 
         public BankHolidayUpdater(
             IBankHolidayFetcher bankHolidayFetcher,
-            IBankHolidayRepository bankHolidayRepository,
-            IDateCalculator dateCalculator)
+            IBankHolidayRepository bankHolidayRepository)
         {
             this.bankHolidayFetcher = bankHolidayFetcher;
             this.bankHolidayRepository = bankHolidayRepository;
-            this.dateCalculator = dateCalculator;
         }
 
         public ScheduledTaskType ScheduledTaskType => ScheduledTaskType.BankHolidayUpdater;
@@ -38,11 +35,11 @@
 
         public Instant GetNextRunTime(Instant currentInstant) =>
             currentInstant
-                .InZone(this.dateCalculator.TimeZone)
+                .InZone(DateCalculator.LondonTimeZone)
                 .Date
                 .Next(IsoDayOfWeek.Monday)
                 .AtMidnight()
-                .InZoneStrictly(this.dateCalculator.TimeZone)
+                .InZoneStrictly(DateCalculator.LondonTimeZone)
                 .ToInstant();
     }
 }
