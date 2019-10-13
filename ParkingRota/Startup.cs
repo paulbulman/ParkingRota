@@ -16,7 +16,6 @@ namespace ParkingRota
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using Middleware;
     using NodaTime;
 
     public class Startup
@@ -111,12 +110,7 @@ namespace ParkingRota
             }
             else
             {
-                app.UseResponseHeadersMiddleware(
-                    new ResponseHeadersBuilder()
-                        .AddResponseHeaders());
-
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
             }
 
             if (Helpers.IsElasticBeanstalk())
