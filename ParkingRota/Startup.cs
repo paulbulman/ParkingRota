@@ -1,7 +1,6 @@
 namespace ParkingRota
 {
     using System;
-    using AutoMapper;
     using Business;
     using Business.Model;
     using Data;
@@ -16,7 +15,6 @@ namespace ParkingRota
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using NodaTime;
 
     public class Startup
     {
@@ -63,21 +61,7 @@ namespace ParkingRota
                 .AddDefaultUI(UIFramework.Bootstrap4)
                 .AddDefaultTokenProviders();
 
-            services.AddSingleton<IClock>(SystemClock.Instance);
-
-            services.AddScoped<IAllocationRepository, AllocationRepository>();
-            services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
-            services.AddScoped<IBankHolidayRepository, BankHolidayRepository>();
-            services.AddScoped<IDateCalculator, DateCalculator>();
-            services.AddScoped<IEmailRepository, EmailRepository>();
-            services.AddHttpClient<IPasswordBreachChecker, PasswordBreachChecker>();
-            services.AddScoped<IRegistrationTokenRepository, RegistrationTokenRepository>();
-            services.AddScoped<IRegistrationTokenValidator, RegistrationTokenValidator>();
-            services.AddScoped<IRequestRepository, RequestRepository>();
-            services.AddScoped<IReservationRepository, ReservationRepository>();
-            services.AddScoped<ISystemParameterListRepository, SystemParameterListRepository>();
-
-            services.AddSingleton<IMapper>(MapperBuilder.Build());
+            ServiceCollectionHelper.RegisterServices(services);
 
             services.AddMvc()
                 .AddRazorPagesOptions(options =>
