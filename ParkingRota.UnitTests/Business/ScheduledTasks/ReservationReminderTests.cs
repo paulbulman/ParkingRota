@@ -1,26 +1,27 @@
 ﻿namespace ParkingRota.UnitTests.Business.ScheduledTasks
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
+    using ParkingRota.Business.ScheduledTasks;
+    using ParkingRota.Data;
     using Xunit;
-    using DataReservation = ParkingRota.Data.Reservation;
 
     public class ReservationReminderTests : DatabaseTests
     {
         [Fact]
         public void Test_ScheduledTaskType()
         {
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = new ReservationReminderBuilder()
-                    .Build(context)
-                    .ScheduledTaskType;
-
-                Assert.Equal(ScheduledTaskType.ReservationReminder, result);
+                Assert.Equal(
+                    ScheduledTaskType.ReservationReminder,
+                    CreateReservationReminder(scope).ScheduledTaskType);
             }
         }
 
@@ -29,26 +30,25 @@
         {
             // Arrange
             var date = 13.December(2018);
+            this.SetClock(date.At(10, 0, 0).Utc());
 
             var teamLeaderUsers = new[]
             {
-                new ApplicationUser { Email = "a@b.c" },
-                new ApplicationUser { Email = "x@y.z" }
+                await this.Seed.ApplicationUser("a@b.c", isTeamLeader: true),
+                await this.Seed.ApplicationUser("x@y.z", isTeamLeader: true)
             };
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new ReservationReminderBuilder()
-                    .WithCurrentInstant(date.At(10, 0, 0).Utc())
-                    .WithTeamLeaderUsers(teamLeaderUsers)
-                    .Build(context)
-                    .Run();
+                await CreateReservationReminder(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 foreach (var teamLeaderUser in teamLeaderUsers)
                 {
                     var userEmails = context.EmailQueueItems.Where(e =>
@@ -65,24 +65,27 @@
         {
             // Arrange
             var date = 13.December(2018);
+            this.SetClock(date.At(10, 0, 0).Utc());
 
-            using (var context = this.CreateContext())
+            var teamLeaderUsers = new[]
             {
-                context.Reservations.Add(new DataReservation { Date = date.PlusDays(1) });
-            }
+                await this.Seed.ApplicationUser("a@b.c", isTeamLeader: true),
+                await this.Seed.ApplicationUser("x@y.z", isTeamLeader: true)
+            };
+
+            this.Seed.Reservation(teamLeaderUsers.First(), date.PlusDays(1), 0);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new ReservationReminderBuilder()
-                    .WithCurrentInstant(date.At(10, 0, 0).Utc())
-                    .Build(context)
-                    .Run();
+                await CreateReservationReminder(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Empty(context.EmailQueueItems);
             }
         }
@@ -94,14 +97,12 @@
         {
             // Arrange
             var currentInstant = currentDay.March(2018).At(currentHour, 00, 00).Utc();
+            this.SetClock(currentInstant);
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new ReservationReminderBuilder()
-                    .WithCurrentInstant(currentInstant)
-                    .Build(context)
-                    .GetNextRunTime(currentInstant);
+                var result = CreateReservationReminder(scope).GetNextRunTime(currentInstant);
 
                 // Assert
                 var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
@@ -109,5 +110,11 @@
                 Assert.Equal(expected, result);
             }
         }
+
+        private static ReservationReminder CreateReservationReminder(IServiceScope scope) =>
+            scope.ServiceProvider
+                .GetRequiredService<IEnumerable<IScheduledTask>>()
+                .OfType<ReservationReminder>()
+                .Single();
     }
 }

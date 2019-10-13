@@ -3,25 +3,24 @@
     using System.Collections.Generic;
     using System.Linq;
     using Data;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
+    using ParkingRota.Business.ScheduledTasks;
+    using ParkingRota.Data;
     using Xunit;
-    using DataAllocation = ParkingRota.Data.Allocation;
-    using DataRequest = ParkingRota.Data.Request;
 
     public class WeeklySummaryTests : DatabaseTests
     {
         [Fact]
         public void Test_ScheduledTaskType()
         {
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = new WeeklySummaryBuilder()
-                    .Build(context)
-                    .ScheduledTaskType;
-
-                Assert.Equal(ScheduledTaskType.WeeklySummary, result);
+                Assert.Equal(
+                    ScheduledTaskType.WeeklySummary,
+                    CreateWeeklySummary(scope).ScheduledTaskType);
             }
         }
 
@@ -29,40 +28,33 @@
         public async void Test_Run()
         {
             // Arrange
+            this.SetClock(13.December(2018).AtMidnight().Utc());
+
             var firstDate = 24.December(2018);
             var lastDate = 28.December(2018);
 
-            var allocatedUser = new ApplicationUser { Email = "a@b.c" };
-            var interruptedUser = new ApplicationUser { Email = "x@y.z" };
+            var allocatedUser = await this.Seed.ApplicationUser("a@b.c");
+            var interruptedUser = await this.Seed.ApplicationUser("x@y.z");
 
-            var allocations = new[]
-            {
-                new DataAllocation { ApplicationUser = allocatedUser, Date = firstDate },
-                new DataAllocation { ApplicationUser = allocatedUser, Date = lastDate }
-            };
+            this.Seed.Allocation(allocatedUser, firstDate);
+            this.Seed.Allocation(allocatedUser, lastDate);
 
-            var requests = new[]
-            {
-                new DataRequest { ApplicationUser = allocatedUser, Date = firstDate },
-                new DataRequest { ApplicationUser = allocatedUser, Date = lastDate },
-                new DataRequest { ApplicationUser = interruptedUser, Date = firstDate },
-                new DataRequest { ApplicationUser = interruptedUser, Date = lastDate }
-            };
-
-            this.SeedDatabase(requests, allocations);
+            this.Seed.Request(allocatedUser, firstDate);
+            this.Seed.Request(allocatedUser, lastDate);
+            this.Seed.Request(interruptedUser, firstDate);
+            this.Seed.Request(interruptedUser, lastDate);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new WeeklySummaryBuilder()
-                    .WithCurrentInstant(13.December(2018).AtMidnight().Utc())
-                    .Build(context)
-                    .Run();
+                await CreateWeeklySummary(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 foreach (var applicationUser in new[] { allocatedUser, interruptedUser })
                 {
                     var userEmails = context.EmailQueueItems.Where(e =>
@@ -78,31 +70,27 @@
         public async void Test_Run_ExcludesVisitorAccounts()
         {
             // Arrange
+            this.SetClock(13.December(2018).AtMidnight().Utc());
+
             var firstDate = 24.December(2018);
             var lastDate = 28.December(2018);
 
-            var visitorUser = new ApplicationUser { Email = "x@y.z", IsVisitor = true };
+            var visitorUser = await this.Seed.ApplicationUser("x@y.z", isVisitor: true);
 
-            var requests = new[]
-            {
-                new DataRequest { ApplicationUser = visitorUser, Date = firstDate },
-                new DataRequest { ApplicationUser = visitorUser, Date = lastDate }
-            };
-
-            this.SeedDatabase(requests, new List<DataAllocation>());
+            this.Seed.Request(visitorUser, firstDate);
+            this.Seed.Request(visitorUser, lastDate);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new WeeklySummaryBuilder()
-                    .WithCurrentInstant(13.December(2018).AtMidnight().Utc())
-                    .Build(context)
-                    .Run();
+                await CreateWeeklySummary(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Empty(context.EmailQueueItems);
             }
         }
@@ -115,14 +103,12 @@
         {
             // Arrange
             var currentInstant = currentDay.March(2018).At(currentHour, 00, 00).Utc();
+            this.SetClock(currentInstant);
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new WeeklySummaryBuilder()
-                    .WithCurrentInstant(currentInstant)
-                    .Build(context)
-                    .GetNextRunTime(currentInstant);
+                var result = CreateWeeklySummary(scope).GetNextRunTime(currentInstant);
 
                 // Assert
                 var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
@@ -131,15 +117,10 @@
             }
         }
 
-        private void SeedDatabase(IReadOnlyList<DataRequest> requests, IReadOnlyList<DataAllocation> allocations)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.Requests.AddRange(requests);
-                context.Allocations.AddRange(allocations);
-
-                context.SaveChanges();
-            }
-        }
+        private static WeeklySummary CreateWeeklySummary(IServiceScope scope) =>
+            scope.ServiceProvider
+                .GetRequiredService<IEnumerable<IScheduledTask>>()
+                .OfType<WeeklySummary>()
+                .Single();
     }
 }

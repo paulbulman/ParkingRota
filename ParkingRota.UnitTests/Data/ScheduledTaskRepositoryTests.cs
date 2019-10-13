@@ -1,43 +1,31 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
-    using System.Collections.Generic;
     using System.Linq;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Model;
     using ParkingRota.Data;
     using Xunit;
-    using DataScheduledTask = ParkingRota.Data.ScheduledTask;
     using ModelScheduledTask = ParkingRota.Business.Model.ScheduledTask;
 
     public class ScheduledTaskRepositoryTests : DatabaseTests
     {
-        public static ScheduledTaskRepository CreateRepository(IApplicationDbContext context) =>
-            new ScheduledTaskRepository(context, MapperBuilder.Build());
-
         [Fact]
         public void Test_GetScheduledTasks()
         {
             // Arrange
             var scheduledTasks = new[]
             {
-                new DataScheduledTask
-                {
-                    ScheduledTaskType = ScheduledTaskType.ReservationReminder,
-                    NextRunTime = 10.December(2018).At(20, 0, 0).Utc()
-                },
-                new DataScheduledTask
-                {
-                    ScheduledTaskType = ScheduledTaskType.RequestReminder,
-                    NextRunTime = 10.December(2018).At(21, 0, 0).Utc()
-                }
+                this.Seed.ScheduledTask(10.December(2018).At(20, 0, 0).Utc(), ScheduledTaskType.ReservationReminder),
+                this.Seed.ScheduledTask(10.December(2018).At(21, 0, 0).Utc(), ScheduledTaskType.RequestReminder)
             };
 
-            this.SeedDatabase(scheduledTasks);
-
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = CreateRepository(context).GetScheduledTasks();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IScheduledTaskRepository>()
+                    .GetScheduledTasks();
 
                 // Assert
                 Assert.Equal(scheduledTasks.Length, result.Count);
@@ -55,37 +43,33 @@
         public void Test_UpdateScheduledTask()
         {
             // Arrange
-            var reservationReminder = new DataScheduledTask
-            {
-                ScheduledTaskType = ScheduledTaskType.ReservationReminder,
-                NextRunTime = 10.December(2018).At(20, 0, 0).Utc()
-            };
+            var reservationReminder =
+                this.Seed.ScheduledTask(10.December(2018).At(20, 0, 0).Utc(), ScheduledTaskType.ReservationReminder);
 
-            var requestReminder = new DataScheduledTask
-            {
-                ScheduledTaskType = ScheduledTaskType.RequestReminder,
-                NextRunTime = 10.December(2018).At(21, 0, 0).Utc()
-            };
+            var requestReminder =
+                this.Seed.ScheduledTask(10.December(2018).At(21, 0, 0).Utc(), ScheduledTaskType.RequestReminder);
 
             var scheduledTasks = new[] { reservationReminder, requestReminder };
-
-            this.SeedDatabase(scheduledTasks);
 
             var updatedReservationReminder = new ModelScheduledTask
             {
                 ScheduledTaskType = reservationReminder.ScheduledTaskType,
-                NextRunTime = requestReminder.NextRunTime.Plus(1.Minutes())
+                NextRunTime = reservationReminder.NextRunTime.Plus(1.Minutes())
             };
 
-            // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateRepository(context).UpdateScheduledTask(updatedReservationReminder);
+                // Act
+                scope.ServiceProvider
+                    .GetRequiredService<IScheduledTaskRepository>()
+                    .UpdateScheduledTask(updatedReservationReminder);
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var result = context.ScheduledTasks.ToArray();
 
                 Assert.Equal(scheduledTasks.Length, result.Length);
@@ -97,15 +81,6 @@
                 Assert.Single(result.Where(t =>
                     t.ScheduledTaskType == requestReminder.ScheduledTaskType &&
                     t.NextRunTime == requestReminder.NextRunTime));
-            }
-        }
-
-        private void SeedDatabase(IReadOnlyList<DataScheduledTask> scheduledTasks)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.ScheduledTasks.AddRange(scheduledTasks);
-                context.SaveChanges();
             }
         }
     }

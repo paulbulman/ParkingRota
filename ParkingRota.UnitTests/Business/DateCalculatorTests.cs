@@ -4,11 +4,10 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using Data;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime;
-    using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
-    using ParkingRota.Data;
     using Xunit;
 
     public class DateCalculatorTests : DatabaseTests
@@ -18,12 +17,12 @@
         [InlineData(4, 5, 40)]
         public void Test_GetActiveDates_NextMonthEndsOnWeekend(int currentDay, int expectedFirstDay, int expectedTotalDays)
         {
-            var currentLocalDateTime = new LocalDateTime(2018, 2, currentDay, 0, 0);
+            this.SetClock(currentDay.February(2018).AtMidnight().Utc());
 
             var expectedFirstLocalDate = expectedFirstDay.February(2018);
             var expectedLastLocalDate = 30.March(2018);
 
-            this.Check_GetActiveDates(currentLocalDateTime, expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
+            this.Check_GetActiveDates(expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
         }
 
         [Theory]
@@ -31,36 +30,34 @@
         [InlineData(4, 5, 41)]
         public void Test_GetActiveDates_NextMonthEndsOnWeekday(int currentDay, int expectedFirstDay, int expectedTotalDays)
         {
-            var currentLocalDateTime = new LocalDateTime(2018, 3, currentDay, 0, 0);
+            this.SetClock(currentDay.March(2018).AtMidnight().Utc());
 
             var expectedFirstLocalDate = expectedFirstDay.March(2018);
             var expectedLastLocalDate = 30.April(2018);
 
-            this.Check_GetActiveDates(currentLocalDateTime, expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
+            this.Check_GetActiveDates(expectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
         }
 
         [Fact]
         public void Test_GetActiveDates_BankHoliday()
         {
-            var bankHolidayLocalDates = new[] { 30.March(2018), 2.April(2018) };
+            this.SetClock(17.March(2018).AtMidnight().Utc());
 
-            this.SeedDatabase(bankHolidayLocalDates);
-
-            var currentLocalDateTime = new LocalDateTime(2018, 3, 17, 0, 0);
+            var bankHolidays = new[]
+            {
+                this.Seed.BankHoliday(30.March(2018)),
+                this.Seed.BankHoliday(2.April(2018))
+            };
 
             const int ExpectedTotalDays = 29;
             var expectedFirstLocalDate = 19.March(2018);
             var expectedLastLocalDate = 30.April(2018);
 
-            var result = this.Check_GetActiveDates(
-                currentLocalDateTime,
-                ExpectedTotalDays,
-                expectedFirstLocalDate,
-                expectedLastLocalDate);
+            var result = this.Check_GetActiveDates(ExpectedTotalDays, expectedFirstLocalDate, expectedLastLocalDate);
 
-            foreach (var bankHolidayLocalDate in bankHolidayLocalDates)
+            foreach (var bankHoliday in bankHolidays)
             {
-                Assert.DoesNotContain(bankHolidayLocalDate, result);
+                Assert.DoesNotContain(bankHoliday.Date, result);
             }
         }
 
@@ -78,11 +75,13 @@
             int expectedLastDay,
             int expectedTotalDays)
         {
-            var currentLocalDateTime = new LocalDateTime(2018, 2, currentDay, currentHour, 0);
+            this.SetClock(currentDay.February(2018).At(currentHour, 0, 0).Utc());
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = CreateDateCalculator(context, currentLocalDateTime).GetLongLeadTimeAllocationDates();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IDateCalculator>()
+                    .GetLongLeadTimeAllocationDates();
 
                 Assert.Equal(expectedTotalDays, result.Count);
                 Assert.Equal(expectedFirstDay.February(2018), result.First());
@@ -104,11 +103,13 @@
             int expectedLastDay,
             int expectedTotalDays)
         {
-            var currentLocalDateTime = new LocalDateTime(2018, 2, currentDay, currentHour, 0);
+            this.SetClock(currentDay.February(2018).At(currentHour, 0, 0).Utc());
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = CreateDateCalculator(context, currentLocalDateTime).GetShortLeadTimeAllocationDates();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IDateCalculator>()
+                    .GetShortLeadTimeAllocationDates();
 
                 Assert.Equal(expectedTotalDays, result.Count);
                 Assert.Equal(expectedFirstDay.February(2018), result.First());
@@ -126,13 +127,16 @@
             int expectedLastDay,
             int expectedTotalDays)
         {
-            this.SeedDatabase(25.December(2018), 26.December(2018));
+            this.SetClock(currentDay.December(2018).AtMidnight().Utc());
 
-            var currentLocalDateTime = new LocalDateTime(2018, 12, currentDay, 0, 0);
+            this.Seed.BankHoliday(25.December(2018));
+            this.Seed.BankHoliday(26.December(2018));
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = CreateDateCalculator(context, currentLocalDateTime).GetWeeklySummaryDates();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IDateCalculator>()
+                    .GetWeeklySummaryDates();
 
                 Assert.Equal(expectedTotalDays, result.Count);
                 Assert.Equal(expectedFirstDay.December(2018), result.First());
@@ -146,13 +150,16 @@
         [InlineData(22, 27)]
         public void Test_GetNextWorkingDate(int currentDay, int expectedNextDay)
         {
-            this.SeedDatabase(25.December(2017), 26.December(2017));
+            this.SetClock(currentDay.December(2017).At(11, 00, 00).Utc());
 
-            var currentLocalDateTime = new LocalDateTime(2017, 12, currentDay, 11, 0);
+            this.Seed.BankHoliday(25.December(2017));
+            this.Seed.BankHoliday(26.December(2017));
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = CreateDateCalculator(context, currentLocalDateTime).GetNextWorkingDate();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IDateCalculator>()
+                    .GetNextWorkingDate();
 
                 var expectedNextWorkingDate = new LocalDate(2017, 12, expectedNextDay);
 
@@ -163,11 +170,13 @@
         [Fact]
         public void Test_GetUpcomingLongLeadTimeDates_NewDates()
         {
-            var currentLocalDateTime = 7.November(2018).AtMidnight();
+            this.SetClock(7.November(2018).AtMidnight().Utc());
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = CreateDateCalculator(context, currentLocalDateTime).GetUpcomingLongLeadTimeAllocationDates();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IDateCalculator>()
+                    .GetUpcomingLongLeadTimeAllocationDates();
 
                 Assert.Equal(5, result.Count);
 
@@ -179,11 +188,13 @@
         [Fact]
         public void Test_GetUpcomingLongLeadTimeDates_NoNewDates()
         {
-            var currentLocalDateTime = 6.November(2018).AtMidnight();
+            this.SetClock(6.November(2018).AtMidnight().Utc());
             
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = CreateDateCalculator(context, currentLocalDateTime).GetUpcomingLongLeadTimeAllocationDates();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IDateCalculator>()
+                    .GetUpcomingLongLeadTimeAllocationDates();
 
                 Assert.Empty(result);
             }
@@ -191,38 +202,21 @@
 
         [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
         private IReadOnlyList<LocalDate> Check_GetActiveDates(
-            LocalDateTime currentLocalDateTime,
             int expectedTotalDays,
             LocalDate expectedFirstLocalDate,
             LocalDate expectedLastLocalDate)
         {
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = CreateDateCalculator(context, currentLocalDateTime).GetActiveDates();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IDateCalculator>()
+                    .GetActiveDates();
 
                 Assert.Equal(expectedTotalDays, result.Count);
                 Assert.Equal(expectedFirstLocalDate, result.First());
                 Assert.Equal(expectedLastLocalDate, result.Last());
 
                 return result;
-            }
-        }
-
-        private static DateCalculator CreateDateCalculator(IApplicationDbContext context, LocalDateTime currentLocalDateTime)
-        {
-            var ukTimeZone = DateTimeZoneProviders.Tzdb["Europe/London"];
-
-            return new DateCalculator(
-                new FakeClock(currentLocalDateTime.InZoneStrictly(ukTimeZone).ToInstant()),
-                BankHolidayRepositoryTests.CreateRepository(context));
-        }
-
-        private void SeedDatabase(params LocalDate[] bankHolidayDates)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.BankHolidays.AddRange(bankHolidayDates.Select(d => new BankHoliday { Date = d }));
-                context.SaveChanges();
             }
         }
     }

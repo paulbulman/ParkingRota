@@ -3,8 +3,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using Data;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime;
-    using NodaTime.Testing;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
@@ -19,6 +19,9 @@
         public void Test_Notify()
         {
             // Arrange
+            var currentInstant = 27.December(2018).At(15, 48, 14).Utc();
+            this.SetClock(currentInstant);
+
             var user = new ApplicationUser { Email = "a@b.c" };
             var otherUser = new ApplicationUser { Email = "x@y.z" };
 
@@ -28,17 +31,15 @@
                 .Concat(Create.Allocations(allUsers, 28.December(2018)))
                 .ToArray();
 
-            var currentInstant = 27.December(2018).At(15, 48, 14).Utc();
-
             const bool DailySummaryDue = false;
             const bool WeeklySummaryDue = false;
 
             this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+                scope.ServiceProvider.GetRequiredService<AllocationNotifier>().Notify(allocations);
             }
 
             // Assert
@@ -49,6 +50,9 @@
         public void Test_Notify_DailySummaryDue()
         {
             // Arrange
+            var currentInstant = 26.December(2018).At(11, 0, 1).Utc();
+            this.SetClock(currentInstant);
+
             var user = new ApplicationUser { Email = "a@b.c" };
             var otherUser = new ApplicationUser { Email = "x@y.z" };
 
@@ -61,17 +65,15 @@
                 .Concat(futureDayAllocations)
                 .ToArray();
 
-            var currentInstant = 26.December(2018).At(11, 0, 1).Utc();
-
             const bool DailySummaryDue = true;
             const bool WeeklySummaryDue = false;
 
             this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+                scope.ServiceProvider.GetRequiredService<AllocationNotifier>().Notify(allocations);
             }
 
             // Assert
@@ -82,6 +84,9 @@
         public void Test_Notify_WeeklySummaryDue()
         {
             // Arrange
+            var currentInstant = 27.December(2018).At(0, 0, 1).Utc();
+            this.SetClock(currentInstant);
+
             var user = new ApplicationUser { Email = "a@b.c" };
             var otherUser = new ApplicationUser { Email = "x@y.z" };
 
@@ -97,17 +102,15 @@
                 .Concat(futureWeekAllocations)
                 .ToArray();
 
-            var currentInstant = 27.December(2018).At(0, 0, 1).Utc();
-
             const bool DailySummaryDue = false;
             const bool WeeklySummaryDue = true;
 
             this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+                scope.ServiceProvider.GetRequiredService<AllocationNotifier>().Notify(allocations);
             }
 
             // Assert
@@ -118,6 +121,9 @@
         public void Test_Notify_ExcludesVisitorAccounts()
         {
             // Arrange
+            var currentInstant = 27.December(2018).At(15, 48, 14).Utc();
+            this.SetClock(currentInstant);
+
             var user = new ApplicationUser { Email = "a@b.c", IsVisitor = false };
             var visitorUser = new ApplicationUser { Email = "x@y.z", IsVisitor = true };
 
@@ -125,17 +131,15 @@
 
             var allocations = Create.Allocations(allUsers, 27.December(2018));
 
-            var currentInstant = 27.December(2018).At(15, 48, 14).Utc();
-
             const bool DailySummaryDue = false;
             const bool WeeklySummaryDue = false;
 
             this.SetupScheduledTasks(currentInstant, DailySummaryDue, WeeklySummaryDue);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateAllocationNotifier(context, currentInstant).Notify(allocations);
+                scope.ServiceProvider.GetRequiredService<AllocationNotifier>().Notify(allocations);
             }
 
             // Assert
@@ -149,8 +153,10 @@
             var dailySummary = CreateScheduledTask(currentInstant, ScheduledTaskType.DailySummary, dailySummaryDue);
             var weeklySummary = CreateScheduledTask(currentInstant, ScheduledTaskType.WeeklySummary, weeklySummaryDue);
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 context.ScheduledTasks.AddRange(dailySummary, weeklySummary);
                 context.SaveChanges();
             }
@@ -167,18 +173,12 @@
             };
         }
 
-        private static AllocationNotifier CreateAllocationNotifier(IApplicationDbContext context, Instant currentInstant) =>
-            new AllocationNotifier(
-                new DateCalculator(
-                    new FakeClock(currentInstant),
-                    BankHolidayRepositoryTests.CreateRepository(context)),
-                new EmailRepositoryBuilder().WithCurrentInstant(currentInstant).Build(context),
-                ScheduledTaskRepositoryTests.CreateRepository(context));
-
         private void CheckNotifiedAllocations(IReadOnlyList<Allocation> expectedNotifiedAllocations)
         {
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Equal(expectedNotifiedAllocations.Count, context.EmailQueueItems.ToArray().Length);
 
                 foreach (var allocation in expectedNotifiedAllocations)

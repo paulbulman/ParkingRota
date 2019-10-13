@@ -2,8 +2,10 @@
 {
     using System.Linq;
     using AutoMapper;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.EmailTemplates;
+    using ParkingRota.Business.Model;
     using ParkingRota.Data;
     using Xunit;
     using DataQueueItem = ParkingRota.Data.EmailQueueItem;
@@ -11,7 +13,7 @@
 
     public class EmailRepositoryTests : DatabaseTests
     {
-        private static readonly DataQueueItem UnsentEmail = new DataQueueItem
+        private static DataQueueItem UnsentEmail => new DataQueueItem
         {
             To = "a@b.c",
             Subject = "Unsent email subject",
@@ -20,7 +22,7 @@
             AddedTime = 1.January(2019).At(10, 30, 56).Utc()
         };
 
-        private static readonly DataQueueItem EarlierUnsentEmail = new DataQueueItem
+        private static DataQueueItem EarlierUnsentEmail => new DataQueueItem
         {
             To = "x@y.z",
             Subject = "Earlier unsent email subject",
@@ -29,7 +31,7 @@
             AddedTime = 1.January(2019).At(10, 29, 02).Utc()
         };
 
-        private static readonly DataQueueItem SentEmail = new DataQueueItem
+        private static DataQueueItem SentEmail => new DataQueueItem
         {
             To = "d@e.f",
             Subject = "Sent email subject",
@@ -39,7 +41,7 @@
             SentTime = 1.January(2019).At(10, 28, 03).Utc()
         };
 
-        private static readonly DataQueueItem EarlierSentEmail = new DataQueueItem
+        private static DataQueueItem EarlierSentEmail => new DataQueueItem
         {
             To = "x@y.z",
             Subject = "Earlier sent email subject",
@@ -52,21 +54,25 @@
         [Fact]
         public void Test_AddToQueue()
         {
+            // Arrange
             var instant = 18.June(2019).At(23, 0, 0).Utc();
+
+            this.SetClock(instant);
 
             var email = new RequestReminder("a@b.com", 1.July(2019), 5.July(2019));
 
-            // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                new EmailRepositoryBuilder()
-                    .WithCurrentInstant(instant)
-                    .Build(context)
+                // Act
+                scope.ServiceProvider
+                    .GetRequiredService<IEmailRepository>()
                     .AddToQueue(email);
             }
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var emails = context.EmailQueueItems.ToArray();
 
                 Assert.Single(emails);
@@ -85,16 +91,17 @@
         public void Test_GetRecent()
         {
             // Arrange
+            var instant = 1.January(2019).At(10, 30, 00).Utc();
+            
+            this.SetClock(instant);
+
             this.SeedDatabase(UnsentEmail, SentEmail, EarlierSentEmail);
 
-            var instant = 1.January(2019).At(10, 30, 00).Utc();
-
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new EmailRepositoryBuilder()
-                    .WithCurrentInstant(instant)
-                    .Build(context)
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IEmailRepository>()
                     .GetRecent();
 
                 // Assert
@@ -125,11 +132,11 @@
             // Arrange
             this.SeedDatabase(UnsentEmail, EarlierUnsentEmail, SentEmail);
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new EmailRepositoryBuilder()
-                    .Build(context)
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IEmailRepository>()
                     .GetUnsent();
 
                 // Assert
@@ -160,27 +167,32 @@
             const string Subject = "Earlier unsent email subject";
 
             // Arrange
+            var instant = 1.January(2019).At(11, 07, 23).Utc();
+
+            this.SetClock(instant);
+
             this.SeedDatabase(UnsentEmail, EarlierUnsentEmail, SentEmail);
 
             IMapper mapper = MapperBuilder.Build();
 
-            var instant = 1.January(2019).At(11, 07, 23).Utc();
-
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var dataUnsentEmail = context.EmailQueueItems.Single(e => e.Subject == Subject);
                 var modelUnsentEmail = mapper.Map<ModelQueueItem>(dataUnsentEmail);
 
-                new EmailRepositoryBuilder()
-                    .WithCurrentInstant(instant)
-                    .Build(context)
+                scope.ServiceProvider
+                    .GetRequiredService<IEmailRepository>()
                     .MarkAsSent(modelUnsentEmail);
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Single(context.EmailQueueItems.Where(e => e.DbSentTime == null));
 
                 var previouslyUnsentEmail = context.EmailQueueItems.Single(e => e.Subject == Subject);
@@ -191,8 +203,10 @@
 
         private void SeedDatabase(params DataQueueItem[] emailQueueItems)
         {
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 context.EmailQueueItems.AddRange(emailQueueItems);
                 context.SaveChanges();
             }

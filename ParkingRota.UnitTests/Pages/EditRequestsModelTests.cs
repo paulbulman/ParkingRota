@@ -1,58 +1,69 @@
 ﻿namespace ParkingRota.UnitTests.Pages
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using Data;
     using Microsoft.AspNetCore.Http;
-    using Moq;
-    using NodaTime;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
+    using ParkingRota.Data;
     using ParkingRota.Pages;
     using Xunit;
 
-    public class EditRequestsModelTests
+    public class EditRequestsModelTests : DatabaseTests
     {
         [Fact]
         public async Task Test_Post()
         {
             // Arrange
-            var principal = new ClaimsPrincipal();
-            var loggedInUser = new ApplicationUser { FirstName = "Colm", LastName = "Wilkinson" };
+            var loggedInUser = await this.Seed.ApplicationUser("a@b.c");
 
-            // Set up request repository
-            var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
-            mockRequestRepository
-                .Setup(r => r.UpdateRequests(loggedInUser, It.IsAny<IReadOnlyList<Request>>()));
-
-            // Set up user manager
-            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
+            var principal = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new[] { new Claim(new ClaimsIdentityOptions().UserIdClaimType, loggedInUser.Id) })
+            });
 
             // Act
             var requestDates = new[] { 13.November(2018), 15.November(2018), 16.November(2018) };
 
-            var model = new EditRequestsModel(mockRequestRepository.Object, mockUserManager.Object)
+            using (var scope = this.CreateScope())
             {
-                PageContext = { HttpContext = new DefaultHttpContext { User = principal } }
-            };
+                var requestRepository = scope.ServiceProvider.GetRequiredService<IRequestRepository>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            await model.OnPostAsync(requestDates.Select(d => d.ForRoundTrip()).ToArray());
+                var model = new EditRequestsModel(requestRepository, userManager)
+                {
+                    PageContext = { HttpContext = new DefaultHttpContext { User = principal } }
+                };
+
+                await model.OnPostAsync(requestDates.Select(d => d.ForRoundTrip()).ToArray());
+
+                Assert.Equal("Requests updated.", model.StatusMessage);
+            }
 
             // Assert
-            mockRequestRepository.Verify(
-                r => r.UpdateRequests(loggedInUser, It.Is(Match(loggedInUser, requestDates))),
-                Times.Once);
-        }
+            using (var scope = this.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        private static Expression<Func<IReadOnlyList<Request>, bool>> Match(
-            ApplicationUser expectedUser, IReadOnlyList<LocalDate> expectedDates) =>
-            list =>
-                list != null &&
-                list.All(r => r.ApplicationUser == expectedUser) &&
-                list.Select(r => r.Date).SequenceEqual(expectedDates);
+                var result = context.Requests
+                    .Include(r => r.ApplicationUser)
+                    .ToArray();
+
+                Assert.Equal(requestDates.Length, result.Length);
+
+                foreach (var requestDate in requestDates)
+                {
+                    Assert.Single(result.Where(r =>
+                        r.ApplicationUser.Id == loggedInUser.Id &&
+                        r.Date == requestDate));
+                }
+            }
+        }
     }
 }

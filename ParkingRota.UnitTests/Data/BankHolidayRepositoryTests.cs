@@ -1,11 +1,11 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
-    using System.Collections.Generic;
     using System.Linq;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
+    using ParkingRota.Business.Model;
     using ParkingRota.Data;
     using Xunit;
-    using DataBankHoliday = ParkingRota.Data.BankHoliday;
     using ModelBankHoliday = ParkingRota.Business.Model.BankHoliday;
 
     public class BankHolidayRepositoryTests : DatabaseTests
@@ -19,16 +19,16 @@
             // Arrange
             var existingBankHolidays = new[]
             {
-                new DataBankHoliday { Date = 25.December(2019) },
-                new DataBankHoliday { Date = 26.December(2019) }
+                this.Seed.BankHoliday(25.December(2019)),
+                this.Seed.BankHoliday(26.December(2019))
             };
 
-            this.SeedDatabase(existingBankHolidays);
-
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = CreateRepository(context).GetBankHolidays();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IBankHolidayRepository>()
+                    .GetBankHolidays();
 
                 // Assert
                 Assert.Equal(existingBankHolidays.Length, result.Count);
@@ -46,11 +46,9 @@
             // Arrange
             var existingBankHolidays = new[]
             {
-                new DataBankHoliday { Date = 25.December(2018) },
-                new DataBankHoliday { Date = 26.December(2018) }
+                this.Seed.BankHoliday(25.December(2018)),
+                this.Seed.BankHoliday(26.December(2018))
             };
-
-            this.SeedDatabase(existingBankHolidays);
 
             var newBankHolidays = new[]
             {
@@ -58,10 +56,12 @@
                 new ModelBankHoliday { Date = 26.December(2019) }
             };
 
-            // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateRepository(context).AddBankHolidays(newBankHolidays);
+                // Act
+                scope.ServiceProvider
+                    .GetRequiredService<IBankHolidayRepository>()
+                    .AddBankHolidays(newBankHolidays);
             }
 
             // Assert
@@ -69,8 +69,10 @@
                 .Concat(newBankHolidays.Select(b => b.Date))
                 .ToArray();
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var result = context.BankHolidays.ToArray();
 
                 Assert.Equal(expectedDates.Length, result.Length);
@@ -79,15 +81,6 @@
                 {
                     Assert.Single(result.Where(b => b.Date == expectedDate));
                 }
-            }
-        }
-
-        private void SeedDatabase(IReadOnlyList<DataBankHoliday> bankHolidays)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.BankHolidays.AddRange(bankHolidays);
-                context.SaveChanges();
             }
         }
     }

@@ -4,9 +4,12 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
+    using ParkingRota.Business.ScheduledTasks;
+    using ParkingRota.Data;
     using Xunit;
     using DataAllocation = ParkingRota.Data.Allocation;
     using DataRequest = ParkingRota.Data.Request;
@@ -16,13 +19,11 @@
         [Fact]
         public void Test_ScheduledTaskType()
         {
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = new DailySummaryBuilder()
-                    .Build(context)
-                    .ScheduledTaskType;
-
-                Assert.Equal(ScheduledTaskType.DailySummary, result);
+                Assert.Equal(
+                    ScheduledTaskType.DailySummary,
+                    CreateDailySummary(scope).ScheduledTaskType);
             }
         }
 
@@ -30,32 +31,29 @@
         public async void Test_Run()
         {
             // Arrange
+            this.SetClock(27.December(2018).At(11, 0, 0).Utc());
+
             var nextWorkingDate = 28.December(2018);
 
-            var allocatedUser = new ApplicationUser { Email = "a@b.c" };
-            var interruptedUser = new ApplicationUser { Email = "x@y.z" };
+            var allocatedUser = await this.Seed.ApplicationUser("a@b.c");
+            var interruptedUser = await this.Seed.ApplicationUser("x@y.z");
 
-            var allocations = new[] { new DataAllocation { ApplicationUser = allocatedUser, Date = nextWorkingDate } };
-            var requests = new[]
-            {
-                new DataRequest { ApplicationUser = allocatedUser, Date = nextWorkingDate },
-                new DataRequest { ApplicationUser = interruptedUser, Date = nextWorkingDate }
-            };
+            this.Seed.Allocation(allocatedUser, nextWorkingDate);
 
-            this.SeedDatabase(requests, allocations);
+            this.Seed.Request(allocatedUser, nextWorkingDate);
+            this.Seed.Request(interruptedUser, nextWorkingDate);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new DailySummaryBuilder()
-                    .WithCurrentInstant(27.December(2018).At(11, 0, 0).Utc())
-                    .Build(context)
-                    .Run();
+                await CreateDailySummary(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 foreach (var applicationUser in new[] { allocatedUser, interruptedUser })
                 {
                     var userEmails = context.EmailQueueItems.Where(e =>
@@ -71,26 +69,24 @@
         public async Task Test_Run_ExcludesVisitorAccounts()
         {
             // Arrange
+            this.SetClock(27.December(2018).At(11, 0, 0).Utc());
             var nextWorkingDate = 28.December(2018);
 
-            var visitorUser = new ApplicationUser { Email = "x@y.z", IsVisitor = true };
+            var visitorUser = await this.Seed.ApplicationUser("x@y.z", isVisitor: true);
 
-            var visitorRequest = new DataRequest { ApplicationUser = visitorUser, Date = nextWorkingDate };
-
-            this.SeedDatabase(new[] { visitorRequest }, new List<DataAllocation>());
+            this.Seed.Request(visitorUser, nextWorkingDate);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new DailySummaryBuilder()
-                    .WithCurrentInstant(27.December(2018).At(11, 0, 0).Utc())
-                    .Build(context)
-                    .Run();
+                await CreateDailySummary(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Empty(context.EmailQueueItems);
             }
         }
@@ -102,14 +98,12 @@
         {
             // Arrange
             var currentInstant = currentDay.March(2018).At(currentHour, 00, 00).Utc();
+            this.SetClock(currentInstant);
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new DailySummaryBuilder()
-                    .WithCurrentInstant(currentInstant)
-                    .Build(context)
-                    .GetNextRunTime(currentInstant);
+                var result = CreateDailySummary(scope).GetNextRunTime(currentInstant);
 
                 // Assert
                 var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
@@ -118,15 +112,10 @@
             }
         }
 
-        private void SeedDatabase(IReadOnlyList<DataRequest> requests, IReadOnlyList<DataAllocation> allocations)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.Requests.AddRange(requests);
-                context.Allocations.AddRange(allocations);
-
-                context.SaveChanges();
-            }
-        }
+        private static DailySummary CreateDailySummary(IServiceScope scope) =>
+            scope.ServiceProvider
+                .GetRequiredService<IEnumerable<IScheduledTask>>()
+                .OfType<DailySummary>()
+                .Single();
     }
 }

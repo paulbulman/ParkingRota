@@ -1,9 +1,12 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
     using System.Linq;
+    using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business.Model;
+    using ParkingRota.Data;
     using Xunit;
     using DataReservation = ParkingRota.Data.Reservation;
     using ModelReservation = ParkingRota.Business.Model.Reservation;
@@ -11,35 +14,31 @@
     public class ReservationRepositoryTests : DatabaseTests
     {
         [Fact]
-        public void Test_GetReservations()
+        public async Task Test_GetReservations()
         {
             // Arrange
-            var user1 = new ApplicationUser();
-            var user2 = new ApplicationUser();
+            var user1 = await this.Seed.ApplicationUser("a@b.c");
+            var user2 = await this.Seed.ApplicationUser("d@e.f");
 
             var firstDate = 6.November(2018);
             var lastDate = 8.November(2018);
 
             var matchingReservations = new[]
             {
-                new DataReservation { ApplicationUser = user1, Date = firstDate, Order = 1 },
-                new DataReservation { ApplicationUser = user1, Date = lastDate, Order = 1 },
-                new DataReservation { ApplicationUser = user2, Date = firstDate, Order = 2 }
+                this.Seed.Reservation(user1, firstDate, 0),
+                this.Seed.Reservation(user1, lastDate, 0),
+                this.Seed.Reservation(user2, firstDate, 1)
             };
 
-            var filteredOutReservations = new[]
-            {
-                new DataReservation { ApplicationUser = user1, Date = firstDate.PlusDays(-1), Order = 1 },
-                new DataReservation { ApplicationUser = user2, Date = lastDate.PlusDays(1), Order = 1 }
-            };
+            // Should be filtered out
+            this.Seed.Reservation(user1, firstDate.PlusDays(-1), 0);
+            this.Seed.Reservation(user2, lastDate.PlusDays(1), 0);
 
-            this.SeedDatabase(matchingReservations.Concat(filteredOutReservations).ToArray());
-
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new ReservationRepositoryBuilder()
-                    .Build(context)
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IReservationRepository>()
                     .GetReservations(firstDate, lastDate);
 
                 // Assert
@@ -56,20 +55,19 @@
         }
 
         [Fact]
-        public void Test_UpdateReservations()
+        public async Task Test_UpdateReservations()
         {
             // Arrange
-            var user1 = new ApplicationUser();
-            var user2 = new ApplicationUser();
+            this.SetClock(6.November(2018).At(10, 0, 0).Utc());
 
-            var existingReservationToRemove = new DataReservation { ApplicationUser = user1, Date = 6.November(2018), Order = 0 };
-            var existingReservationToKeep = new DataReservation { ApplicationUser = user2, Date = 8.November(2018), Order = 1 };
+            var user1 = await this.Seed.ApplicationUser("a@b.c");
+            var user2 = await this.Seed.ApplicationUser("d@e.f");
 
-            var existingReservationOutsideActivePeriod = new DataReservation { ApplicationUser = user1, Date = 5.November(2018), Order = 0 };
+            var existingReservationToRemove = Seed.Reservation(user1, 6.November(2018), 0);
+            var existingReservationToKeep = Seed.Reservation(user2, 8.November(2018), 1);
 
-            this.SeedDatabase(existingReservationToRemove, existingReservationToKeep, existingReservationOutsideActivePeriod);
+            var existingReservationOutsideActivePeriod = Seed.Reservation(user1, 5.November(2018), 0);
 
-            // Act
             var existingReservation = new ModelReservation
             {
                 ApplicationUser = existingReservationToKeep.ApplicationUser,
@@ -84,11 +82,11 @@
                 Order = existingReservationToRemove.Order + 1
             };
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                new ReservationRepositoryBuilder()
-                    .WithCurrentInstant(6.November(2018).At(10, 0, 0).Utc())
-                    .Build(context)
+                // Act
+                scope.ServiceProvider
+                    .GetRequiredService<IReservationRepository>()
                     .UpdateReservations(new[] { existingReservation, newReservation });
             }
 
@@ -107,8 +105,10 @@
                 expectedNewReservation
             };
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var result = context.Reservations
                     .Include(r => r.ApplicationUser)
                     .ToArray();
@@ -120,15 +120,6 @@
                     e => Assert.Contains(
                         result,
                         r => r.ApplicationUser.Id == e.ApplicationUser.Id && r.Date == e.Date && r.Order == e.Order));
-            }
-        }
-
-        private void SeedDatabase(params DataReservation[] reservations)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.Reservations.AddRange(reservations);
-                context.SaveChanges();
             }
         }
     }

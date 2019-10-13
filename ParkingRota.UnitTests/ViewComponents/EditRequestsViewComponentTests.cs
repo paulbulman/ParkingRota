@@ -1,46 +1,41 @@
 ﻿namespace ParkingRota.UnitTests.ViewComponents
 {
-    using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Data;
     using Microsoft.AspNetCore.Mvc.ViewComponents;
-    using NodaTime.Testing;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
     using ParkingRota.ViewComponents;
     using Xunit;
-    using DataRequest = ParkingRota.Data.Request;
 
     public class EditRequestsViewComponentTests : DatabaseTests
     {
         [Fact]
-        public void Test_Invoke()
+        public async Task Test_Invoke()
         {
             // Arrange
-            var loggedInUser = new ApplicationUser { FirstName = "Colm", LastName = "Wilkinson" };
-            var otherUser = new ApplicationUser { FirstName = "Philip", LastName = "Quast" };
-
             var currentInstant = 6.November(2018).AtMidnight().Utc();
+            this.SetClock(currentInstant);
+
+            var loggedInUser = await this.Seed.ApplicationUser("a@b.c");
+            var otherUser = await this.Seed.ApplicationUser("d@e.f");
 
             var bothUsersRequestDate = 7.November(2018);
             var otherUserRequestDate = 8.November(2018);
 
-            var requests = new[]
-            {
-                new DataRequest { ApplicationUser = loggedInUser, Date = bothUsersRequestDate},
-                new DataRequest { ApplicationUser = otherUser, Date = bothUsersRequestDate},
-                new DataRequest { ApplicationUser = otherUser, Date = otherUserRequestDate}
-            };
-            
-            this.SeedDatabase(requests);
+            this.Seed.Request(loggedInUser, bothUsersRequestDate);
+            this.Seed.Request(otherUser, bothUsersRequestDate);
+            this.Seed.Request(otherUser, otherUserRequestDate);
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
                 var viewComponent = new EditRequestsViewComponent(
-                    new DateCalculator(new FakeClock(currentInstant), BankHolidayRepositoryTests.CreateRepository(context)),
-                    new RequestRepositoryBuilder().WithCurrentInstant(currentInstant).Build(context));
+                    scope.ServiceProvider.GetRequiredService<IDateCalculator>(),
+                    scope.ServiceProvider.GetRequiredService<IRequestRepository>());
 
                 var result = (ViewViewComponentResult)viewComponent.Invoke(loggedInUser.Id);
 
@@ -64,15 +59,6 @@
 
                 Assert.False(viewModel.Calendar.Data(bothUsersRequestDate).IsNextMonth);
                 Assert.True(viewModel.Calendar.Data(expectedLastActiveDate).IsNextMonth);
-            }
-        }
-
-        private void SeedDatabase(IReadOnlyList<DataRequest> requests)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.Requests.AddRange(requests);
-                context.SaveChanges();
             }
         }
     }

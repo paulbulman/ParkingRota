@@ -5,7 +5,6 @@
     using Business.EmailSenders;
     using Business.Model;
     using Business.ScheduledTasks;
-    using Microsoft.AspNetCore.Identity;
     using Microsoft.Extensions.DependencyInjection;
     using NodaTime;
 

@@ -1,83 +1,94 @@
 ﻿namespace ParkingRota.UnitTests.Pages
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Linq.Expressions;
-    using System.Security.Claims;
-    using Moq;
-    using NodaTime;
+    using System.Threading.Tasks;
+    using Data;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
+    using ParkingRota.Data;
     using ParkingRota.Pages;
     using Xunit;
 
-    public static class OverrideRequestsModelTests
+    public class OverrideRequestsModelTests : DatabaseTests
     {
         [Fact]
-        public static void Test_Get()
+        public async Task Test_Get()
         {
-            var principal = new ClaimsPrincipal();
-            var loggedInUser = Create.User("Colm Wilkinson");
-            var otherUser = Create.User("Philip Quast");
+            var loggedInUser = await this.Seed.ApplicationUser("Colm.Wilkinson@lesmis.com");
+            var otherUser = await this.Seed.ApplicationUser("Philip.Quast@lesmis.com");
 
-            var applicationUsers = new[] { loggedInUser, otherUser };
+            var applicationUsers = new[]
+            {
+                loggedInUser,
+                otherUser
+            };
 
-            var mockUserManager = TestHelpers.CreateMockUserManager(principal, loggedInUser);
-            mockUserManager
-                .SetupGet(u => u.Users)
-                .Returns(applicationUsers.AsQueryable());
+            using (var scope = this.CreateScope())
+            {
+                var model = CreateModel(scope);
 
-            var model = new OverrideRequestsModel(mockUserManager.Object, Mock.Of<IRequestRepository>());
+                model.OnGet(loggedInUser.Id);
 
-            model.OnGet(loggedInUser.Id);
+                Assert.Equal(loggedInUser.Id, model.SelectedUserId);
 
-            Assert.Equal(loggedInUser.Id, model.SelectedUserId);
+                Assert.Equal(applicationUsers.Length, model.Users.Count);
 
-            Assert.Equal(applicationUsers.Length, model.Users.Count);
+                Assert.Equal(
+                    applicationUsers.OrderBy(u => u.LastName).Select(u => u.FullName),
+                    model.Users.Select(u => u.Text));
 
-            Assert.Equal(
-                applicationUsers.OrderBy(u => u.LastName).Select(u => u.FullName),
-                model.Users.Select(u => u.Text));
-
-            Assert.All(
-                applicationUsers,
-                u => Assert.Single(model.Users.Where(l => l.Value == u.Id && l.Text == u.FullName)));
+                Assert.All(
+                    applicationUsers,
+                    u => Assert.Single(model.Users.Where(l => l.Value == u.Id && l.Text == u.FullName)));
+            }
         }
 
         [Fact]
-        public static void Test_Post()
+        public async Task Test_Post()
         {
             // Arrange
-            var selectedUser = Create.User("Colm Wilkinson");
-
-            // Set up request repository
-            var mockRequestRepository = new Mock<IRequestRepository>(MockBehavior.Strict);
-            mockRequestRepository
-                .Setup(r => r.UpdateRequests(selectedUser, It.IsAny<IReadOnlyList<Request>>()));
-
-            // Set up user manager
-            var mockUserManager = TestHelpers.CreateMockUserManager(new[] { selectedUser });
+            var selectedUser = await this.Seed.ApplicationUser("a@b.c");
 
             // Act
             var requestDates = new[] { 13.November(2018), 15.November(2018), 16.November(2018) };
 
-            var model = new OverrideRequestsModel(mockUserManager.Object, mockRequestRepository.Object);
+            using (var scope = this.CreateScope())
+            {
+                var model = CreateModel(scope);
 
-            model.OnPost(selectedUser.Id, requestDates.Select(d => d.ForRoundTrip()).ToArray());
+                model.OnPost(selectedUser.Id, requestDates.Select(d => d.ForRoundTrip()).ToArray());
+
+                Assert.Equal("Requests updated.", model.StatusMessage);
+            }
 
             // Assert
-            mockRequestRepository.Verify(
-                r => r.UpdateRequests(selectedUser, It.Is(Match(selectedUser, requestDates))),
-                Times.Once);
+            using (var scope = this.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                var result = context.Requests.Include(a => a.ApplicationUser).ToArray();
+
+                Assert.Equal(requestDates.Length, result.Length);
+
+                foreach (var requestDate in requestDates)
+                {
+                    Assert.Single(result.Where(r =>
+                        r.ApplicationUser.Id == selectedUser.Id &&
+                        r.Date == requestDate));
+                }
+            }
         }
 
-        private static Expression<Func<IReadOnlyList<Request>, bool>> Match(
-            ApplicationUser expectedUser, IReadOnlyList<LocalDate> expectedDates) =>
-            list =>
-                list != null &&
-                list.All(r => r.ApplicationUser == expectedUser) &&
-                list.Select(r => r.Date).SequenceEqual(expectedDates);
+        private static OverrideRequestsModel CreateModel(IServiceScope scope)
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var requestRepository = scope.ServiceProvider.GetRequiredService<IRequestRepository>();
+
+            return new OverrideRequestsModel(userManager, requestRepository);
+        }
     }
 }

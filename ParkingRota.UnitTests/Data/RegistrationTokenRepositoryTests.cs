@@ -1,33 +1,31 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
     using System.Linq;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
+    using ParkingRota.Business.Model;
     using ParkingRota.Data;
     using Xunit;
-    using DataRegistrationToken = ParkingRota.Data.RegistrationToken;
     using ModelRegistrationToken = ParkingRota.Business.Model.RegistrationToken;
 
     public class RegistrationTokenRepositoryTests : DatabaseTests
     {
-        public static RegistrationTokenRepository CreateRepository(IApplicationDbContext context) =>
-            new RegistrationTokenRepository(context, MapperBuilder.Build());
-
         [Fact]
         public void Test_GetRegistrationTokens()
         {
             // Arrange
             var existingRegistrationTokens = new[]
             {
-                new DataRegistrationToken { ExpiryTime = 8.May(2019).At(15, 44, 38).Utc(), Token = "ABC" },
-                new DataRegistrationToken { ExpiryTime = 9.May(2019).At(16, 32, 14).Utc(), Token = "XYZ" }
+                this.Seed.RegistrationToken("ABC", 8.May(2019).At(15, 44, 38).Utc()),
+                this.Seed.RegistrationToken("XYZ", 9.May(2019).At(16, 32, 14).Utc())
             };
 
-            this.SeedDatabase(existingRegistrationTokens);
-
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = CreateRepository(context).GetRegistrationTokens();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IRegistrationTokenRepository>()
+                    .GetRegistrationTokens();
 
                 // Assert
                 Assert.Equal(existingRegistrationTokens.Length, result.Count);
@@ -46,13 +44,7 @@
         public void Test_AddRegistrationToken()
         {
             // Arrange
-            var existingToken = new DataRegistrationToken
-            {
-                ExpiryTime = 8.May(2019).At(15, 44, 38).Utc(),
-                Token = "ABC"
-            };
-
-            this.SeedDatabase(existingToken);
+            var existingToken = this.Seed.RegistrationToken("ABC", 8.May(2019).At(15, 44, 38).Utc());
 
             var tokenToAdd = new ModelRegistrationToken
             {
@@ -60,15 +52,19 @@
                 Token = "XYZ"
             };
 
-            // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateRepository(context).AddRegistrationToken(tokenToAdd);
+                // Act
+                scope.ServiceProvider
+                    .GetRequiredService<IRegistrationTokenRepository>()
+                    .AddRegistrationToken(tokenToAdd);
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var expectedTokens = new[] { existingToken.Token, tokenToAdd.Token };
 
                 var result = context.RegistrationTokens.ToArray();
@@ -91,46 +87,29 @@
         public void Test_DeleteRegistrationToken()
         {
             // Arrange
-            var tokenToKeep = new DataRegistrationToken
-            {
-                ExpiryTime = 8.May(2019).At(15, 44, 38).Utc(),
-                Token = "ABC"
-            };
-
-            var tokenToDelete = new DataRegistrationToken
-            {
-                ExpiryTime = 9.May(2019).At(16, 32, 14).Utc(),
-                Token = "XYZ"
-            };
-
-            var existingRegistrationTokens = new[] { tokenToKeep, tokenToDelete };
-
-            this.SeedDatabase(existingRegistrationTokens);
+            var tokenToKeep = this.Seed.RegistrationToken("ABC", 8.May(2019).At(15, 44, 38).Utc());
+            var tokenToDelete = this.Seed.RegistrationToken("XYZ", 9.May(2019).At(16, 32, 14).Utc());
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateRepository(context).DeleteRegistrationToken(tokenToDelete.Token);
+                // Act
+                scope.ServiceProvider
+                    .GetRequiredService<IRegistrationTokenRepository>()
+                    .DeleteRegistrationToken(tokenToDelete.Token);
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var result = context.RegistrationTokens.ToArray();
 
                 Assert.Single(result);
 
                 Assert.Equal(tokenToKeep.Token, result[0].Token);
                 Assert.Equal(tokenToKeep.ExpiryTime, result[0].ExpiryTime);
-            }
-        }
-
-        private void SeedDatabase(params DataRegistrationToken[] registrationTokens)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.RegistrationTokens.AddRange(registrationTokens);
-                context.SaveChanges();
             }
         }
     }

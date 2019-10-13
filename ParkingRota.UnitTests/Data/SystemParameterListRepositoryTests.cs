@@ -1,7 +1,9 @@
 ﻿namespace ParkingRota.UnitTests.Data
 {
     using System.Linq;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
+    using ParkingRota.Business.Model;
     using ParkingRota.Data;
     using Xunit;
     using DataSystemParameterList = ParkingRota.Data.SystemParameterList;
@@ -9,19 +11,18 @@
 
     public class SystemParameterListRepositoryTests : DatabaseTests
     {
-        public static SystemParameterListRepository CreateRepository(ApplicationDbContext context) =>
-            new SystemParameterListRepository(context, MapperBuilder.Build());
-
         [Fact]
         public void Test_GetSystemParameterList()
         {
             // Arrange
             var systemParameterList = this.SeedDatabase();
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = CreateRepository(context).GetSystemParameterList();
+                var result = scope.ServiceProvider
+                    .GetRequiredService<ISystemParameterListRepository>()
+                    .GetSystemParameterList();
 
                 // Assert
                 Assert.NotNull(result);
@@ -49,15 +50,19 @@
                 LastServiceRunTime = systemParameterList.LastServiceRunTime.Plus(4.Minutes())
             };
 
-            // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                CreateRepository(context).UpdateSystemParameterList(updatedSystemParameterList);
+                // Act
+                scope.ServiceProvider
+                    .GetRequiredService<ISystemParameterListRepository>()
+                    .UpdateSystemParameterList(updatedSystemParameterList);
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var result = context.SystemParameterLists.ToArray();
 
                 Assert.NotNull(result);
@@ -73,7 +78,7 @@
             }
         }
 
-        private SystemParameterList SeedDatabase()
+        private DataSystemParameterList SeedDatabase()
         {
             var systemParameterList = new DataSystemParameterList
             {
@@ -85,8 +90,10 @@
                 LastServiceRunTime = 27.June(2019).At(16, 54, 20).Utc()
             };
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 context.SystemParameterLists.Add(systemParameterList);
                 context.SaveChanges();
             }

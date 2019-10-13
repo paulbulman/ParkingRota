@@ -1,11 +1,15 @@
 ﻿namespace ParkingRota.UnitTests.Business.ScheduledTasks
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
     using ParkingRota.Business.Model;
+    using ParkingRota.Business.ScheduledTasks;
+    using ParkingRota.Data;
     using Xunit;
     using DataRequest = ParkingRota.Data.Request;
 
@@ -14,13 +18,11 @@
         [Fact]
         public void Test_ScheduledTaskType()
         {
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                var result = new RequestReminderBuilder()
-                    .Build(context)
-                    .ScheduledTaskType;
-
-                Assert.Equal(ScheduledTaskType.RequestReminder, result);
+                Assert.Equal(
+                    ScheduledTaskType.RequestReminder,
+                    CreateRequestReminder(scope).ScheduledTaskType);
             }
         }
 
@@ -28,34 +30,30 @@
         public async Task Test_Run_RequestsNotEntered()
         {
             // Arrange
-            var date = 12.December(2018);
+            this.SetClock(12.December(2018).AtMidnight().Utc());
 
-            var userWithRequests = new ApplicationUser();
-            var userWithoutRequests = new ApplicationUser { Email = "a@b.c" };
-            var otherUserWithoutRequests = new ApplicationUser { Email = "x@y.z" };
+            var userWithRequests = await this.Seed.ApplicationUser("d@e.f");
+            var userWithoutRequests = await this.Seed.ApplicationUser("a@b.c");
+            var otherUserWithoutRequests = await this.Seed.ApplicationUser("x@y.z");
 
-            var existingRequests = new[]
-            {
-                new DataRequest { ApplicationUser = userWithRequests, Date = 28.December(2018) },
-                new DataRequest { ApplicationUser = userWithoutRequests, Date = 21.December(2018) },
-                new DataRequest { ApplicationUser = otherUserWithoutRequests, Date = 21.December(2018) }
-            };
+            var upcomingReminderDate = 28.December(2018);
+            var previouslyRemindedDate = 21.December(2018);
 
-            this.SeedDatabase(existingRequests);
+            this.Seed.Request(userWithRequests, upcomingReminderDate);
+            this.Seed.Request(userWithoutRequests, previouslyRemindedDate);
+            this.Seed.Request(otherUserWithoutRequests, previouslyRemindedDate);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new RequestReminderBuilder()
-                    .WithCurrentInstant(date.AtMidnight().Utc())
-                    .WithUsers(userWithRequests, userWithoutRequests, otherUserWithoutRequests)
-                    .Build(context)
-                    .Run();
+                await CreateRequestReminder(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 foreach (var expectedApplicationUser in new[] { userWithoutRequests, otherUserWithoutRequests })
                 {
                     var userEmails = context.EmailQueueItems.Where(e =>
@@ -71,25 +69,24 @@
         public async Task Test_Run_RequestsAlreadyEntered()
         {
             // Arrange
-            var date = 12.December(2018);
+            this.SetClock(12.December(2018).AtMidnight().Utc());
 
-            var user = new ApplicationUser();
+            var user = await this.Seed.ApplicationUser("d@e.f");
 
-            this.SeedDatabase(new DataRequest { ApplicationUser = user, Date = 28.December(2018) });
+            var upcomingReminderDate = 28.December(2018);
+            this.Seed.Request(user, upcomingReminderDate);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new RequestReminderBuilder()
-                    .WithCurrentInstant(date.AtMidnight().Utc())
-                    .WithUsers(user)
-                    .Build(context)
-                    .Run();
+                await CreateRequestReminder(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Empty(context.EmailQueueItems);
             }
         }
@@ -99,24 +96,23 @@
         {
             // Arrange
             var date = 12.December(2018);
+            this.SetClock(date.AtMidnight().Utc());
 
-            var user = new ApplicationUser();
+            var user = await this.Seed.ApplicationUser("d@e.f");
 
-            this.SeedDatabase(new DataRequest { ApplicationUser = user, Date = date.PlusDays(-31) });
+            this.Seed.Request(user, date.PlusDays(-31));
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new RequestReminderBuilder()
-                    .WithCurrentInstant(date.AtMidnight().Utc())
-                    .WithUsers(user)
-                    .Build(context)
-                    .Run();
+                await CreateRequestReminder(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Empty(context.EmailQueueItems);
             }
         }
@@ -125,25 +121,25 @@
         public async Task Test_Run_VisitorUser()
         {
             // Arrange
-            var date = 12.December(2018);
+            this.SetClock(12.December(2018).AtMidnight().Utc());
 
-            var user = new ApplicationUser { IsVisitor = true };
+            var user = await this.Seed.ApplicationUser("d@e.f", isVisitor: true);
 
-            this.SeedDatabase(new DataRequest { ApplicationUser = user, Date = 21.December(2018) });
+            var previouslyRemindedDate = 21.December(2018);
+
+            this.Seed.Request(user, previouslyRemindedDate);
 
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                await new RequestReminderBuilder()
-                    .WithCurrentInstant(date.AtMidnight().Utc())
-                    .WithUsers(user)
-                    .Build(context)
-                    .Run();
+                await CreateRequestReminder(scope).Run();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 Assert.Empty(context.EmailQueueItems);
             }
         }
@@ -156,14 +152,12 @@
         {
             // Arrange
             var currentInstant = currentDay.March(2018).At(currentHour, 00, 00).Utc();
+            this.SetClock(currentInstant);
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new RequestReminderBuilder()
-                    .WithCurrentInstant(currentInstant)
-                    .Build(context)
-                    .GetNextRunTime(currentInstant);
+                var result = CreateRequestReminder(scope).GetNextRunTime(currentInstant);
 
                 // Assert
                 var expected = expectedDay.March(2018).At(expectedHour, 00, 00).Utc();
@@ -172,13 +166,10 @@
             }
         }
 
-        private void SeedDatabase(params DataRequest[] existingRequests)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.Requests.AddRange(existingRequests);
-                context.SaveChanges();
-            }
-        }
+        private static RequestReminder CreateRequestReminder(IServiceScope scope) =>
+            scope.ServiceProvider
+                .GetRequiredService<IEnumerable<IScheduledTask>>()
+                .OfType<RequestReminder>()
+                .Single();
     }
 }

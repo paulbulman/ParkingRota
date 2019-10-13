@@ -2,9 +2,10 @@
 {
     using System.Linq;
     using Data;
-    using NodaTime.Testing;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
     using ParkingRota.Business;
+    using ParkingRota.Data;
     using Xunit;
     using DataSystemParameterList = ParkingRota.Data.SystemParameterList;
 
@@ -15,26 +16,29 @@
         {
             // Arrange
             var previousInstant = 28.June(2019).At(7, 40, 58).Utc();
-            using (var context = this.CreateContext())
+            var currentInstant = 28.June(2019).At(7, 41, 19).Utc();
+
+            this.SetClock(currentInstant);
+
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 context.SystemParameterLists.Add(new DataSystemParameterList { LastServiceRunTime = previousInstant });
                 context.SaveChanges();
             }
 
-            var currentInstant = 28.June(2019).At(7, 41, 19).Utc();
-
             // Act
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
-                new LastServiceRunTimeUpdater(
-                        new FakeClock(currentInstant),
-                        SystemParameterListRepositoryTests.CreateRepository(context))
-                    .Update();
+                scope.ServiceProvider.GetRequiredService<LastServiceRunTimeUpdater>().Update();
             }
 
             // Assert
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 var result = context.SystemParameterLists.Single();
                 
                 Assert.Equal(currentInstant, result.LastServiceRunTime);

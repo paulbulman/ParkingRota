@@ -1,8 +1,9 @@
 ﻿namespace ParkingRota.UnitTests.Business
 {
     using Data;
+    using Microsoft.Extensions.DependencyInjection;
     using NodaTime.Testing.Extensions;
-    using ParkingRota.Data;
+    using ParkingRota.Business;
     using Xunit;
 
     public class RegistrationTokenValidatorTests : DatabaseTests
@@ -17,21 +18,16 @@
         {
             // Arrange
             var currentInstant = 15.September(2018).At(17, 37, 01).Utc();
+            this.SetClock(currentInstant);
 
-            var registrationTokens = new[]
-            {
-                new RegistrationToken { Token = "A", ExpiryTime = currentInstant.Plus(1.Seconds()) },
-                new RegistrationToken { Token = "B", ExpiryTime = currentInstant.Plus(1.Seconds()) }
-            };
+            this.Seed.RegistrationToken("A", currentInstant.Plus(1.Seconds()));
+            this.Seed.RegistrationToken("B", currentInstant.Plus(1.Seconds()));
 
-            this.SeedDatabase(registrationTokens);
-
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new RegistrationTokenValidatorBuilder()
-                    .WithCurrentInstant(currentInstant)
-                    .Build(context)
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IRegistrationTokenValidator>()
                     .TokenIsValid(token);
 
                 // Assert
@@ -47,34 +43,19 @@
             const string Token = "A";
 
             var currentInstant = 15.September(2018).At(17, 37, 01).Utc();
+            this.SetClock(currentInstant);
 
-            var registrationToken = new RegistrationToken
-            {
-                Token = Token,
-                ExpiryTime = currentInstant.Plus(expiryOffsetSeconds.Seconds())
-            };
-            
-            this.SeedDatabase(registrationToken);
+            this.Seed.RegistrationToken(Token, currentInstant.Plus(expiryOffsetSeconds.Seconds()));
 
-            using (var context = this.CreateContext())
+            using (var scope = this.CreateScope())
             {
                 // Act
-                var result = new RegistrationTokenValidatorBuilder()
-                    .WithCurrentInstant(currentInstant)
-                    .Build(context)
+                var result = scope.ServiceProvider
+                    .GetRequiredService<IRegistrationTokenValidator>()
                     .TokenIsValid(Token);
 
                 // Assert
                 Assert.Equal(expectedIsValid, result);
-            }
-        }
-
-        private void SeedDatabase(params RegistrationToken[] registrationTokens)
-        {
-            using (var context = this.CreateContext())
-            {
-                context.RegistrationTokens.AddRange(registrationTokens);
-                context.SaveChanges();
             }
         }
     }
