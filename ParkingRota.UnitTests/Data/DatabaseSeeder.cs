@@ -105,12 +105,13 @@
             return registrationToken;
         }
 
-        public Request Request(ApplicationUser applicationUser, LocalDate date)
+        public Request Request(ApplicationUser applicationUser, LocalDate date, bool isAllocated)
         {
             var request = new Request
             {
                 ApplicationUserId = applicationUser.Id,
-                Date = date
+                Date = date,
+                IsAllocated = isAllocated
             };
 
             using (var scope = this.serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())

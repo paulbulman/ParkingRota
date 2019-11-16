@@ -22,5 +22,7 @@
 
         [Required]
         public DateTime DbDate { get; set; }
+
+        public bool IsAllocated { get; set; }
     }
 }

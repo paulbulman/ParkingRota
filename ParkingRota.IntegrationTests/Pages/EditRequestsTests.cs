@@ -115,7 +115,8 @@
                         var request = new Request
                         {
                             ApplicationUser = applicationUser,
-                            Date = 7.November(2018)
+                            Date = 7.November(2018),
+                            IsAllocated = false
                         };
 
                         context.Requests.Add(request);

@@ -72,13 +72,15 @@
                         context.Requests.Add(new Request
                         {
                             ApplicationUser = applicationUser,
-                            Date = 7.November(2018)
+                            Date = 7.November(2018),
+                            IsAllocated = true
                         });
 
                         context.Requests.Add(new Request
                         {
                             ApplicationUser = otherUser,
-                            Date = 8.November(2018)
+                            Date = 8.November(2018),
+                            IsAllocated = false
                         });
 
                         context.Allocations.Add(new Allocation

@@ -2,14 +2,12 @@
 {
     using NodaTime;
 
-    public class Request
+    public class RequestPostModel
     {
         public int Id { get; set; }
 
         public ApplicationUser ApplicationUser { get; set; }
 
         public LocalDate Date { get; set; }
-
-        public bool IsAllocated { get; set; }
     }
 }

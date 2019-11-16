@@ -39,10 +39,10 @@
             this.Seed.Allocation(allocatedUser, firstDate);
             this.Seed.Allocation(allocatedUser, lastDate);
 
-            this.Seed.Request(allocatedUser, firstDate);
-            this.Seed.Request(allocatedUser, lastDate);
-            this.Seed.Request(interruptedUser, firstDate);
-            this.Seed.Request(interruptedUser, lastDate);
+            this.Seed.Request(allocatedUser, firstDate, isAllocated: true);
+            this.Seed.Request(allocatedUser, lastDate, isAllocated: true);
+            this.Seed.Request(interruptedUser, firstDate, isAllocated: false);
+            this.Seed.Request(interruptedUser, lastDate, isAllocated: false);
 
             // Act
             using (var scope = this.CreateScope())
@@ -77,8 +77,8 @@
 
             var visitorUser = await this.Seed.ApplicationUser("x@y.z", isVisitor: true);
 
-            this.Seed.Request(visitorUser, firstDate);
-            this.Seed.Request(visitorUser, lastDate);
+            this.Seed.Request(visitorUser, firstDate, isAllocated: false);
+            this.Seed.Request(visitorUser, lastDate, isAllocated: false);
 
             // Act
             using (var scope = this.CreateScope())

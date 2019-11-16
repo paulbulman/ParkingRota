@@ -7,6 +7,6 @@
     {
         IReadOnlyList<Request> GetRequests(LocalDate firstDate, LocalDate lastDate);
 
-        void UpdateRequests(ApplicationUser user, IReadOnlyList<Request> requests);
+        void UpdateRequests(ApplicationUser user, IReadOnlyList<RequestPostModel> requests);
     }
 }

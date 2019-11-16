@@ -26,9 +26,9 @@
             var bothUsersRequestDate = 7.November(2018);
             var otherUserRequestDate = 8.November(2018);
 
-            this.Seed.Request(loggedInUser, bothUsersRequestDate);
-            this.Seed.Request(otherUser, bothUsersRequestDate);
-            this.Seed.Request(otherUser, otherUserRequestDate);
+            this.Seed.Request(loggedInUser, bothUsersRequestDate, isAllocated: false);
+            this.Seed.Request(otherUser, bothUsersRequestDate, isAllocated: false);
+            this.Seed.Request(otherUser, otherUserRequestDate, isAllocated: false);
 
             using (var scope = this.CreateScope())
             {

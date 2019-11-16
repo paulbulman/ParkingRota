@@ -39,9 +39,9 @@
             var upcomingReminderDate = 28.December(2018);
             var previouslyRemindedDate = 21.December(2018);
 
-            this.Seed.Request(userWithRequests, upcomingReminderDate);
-            this.Seed.Request(userWithoutRequests, previouslyRemindedDate);
-            this.Seed.Request(otherUserWithoutRequests, previouslyRemindedDate);
+            this.Seed.Request(userWithRequests, upcomingReminderDate, isAllocated: false);
+            this.Seed.Request(userWithoutRequests, previouslyRemindedDate, isAllocated: false);
+            this.Seed.Request(otherUserWithoutRequests, previouslyRemindedDate, isAllocated: false);
 
             // Act
             using (var scope = this.CreateScope())
@@ -74,7 +74,7 @@
             var user = await this.Seed.ApplicationUser("d@e.f");
 
             var upcomingReminderDate = 28.December(2018);
-            this.Seed.Request(user, upcomingReminderDate);
+            this.Seed.Request(user, upcomingReminderDate, isAllocated: false);
 
             // Act
             using (var scope = this.CreateScope())
@@ -100,7 +100,7 @@
 
             var user = await this.Seed.ApplicationUser("d@e.f");
 
-            this.Seed.Request(user, date.PlusDays(-31));
+            this.Seed.Request(user, date.PlusDays(-31), isAllocated: false);
 
             // Act
             using (var scope = this.CreateScope())
@@ -127,7 +127,7 @@
 
             var previouslyRemindedDate = 21.December(2018);
 
-            this.Seed.Request(user, previouslyRemindedDate);
+            this.Seed.Request(user, previouslyRemindedDate, isAllocated: false);
 
             // Act
             using (var scope = this.CreateScope())

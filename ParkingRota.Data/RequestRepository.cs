@@ -34,7 +34,7 @@
                 .ToArray();
         }
 
-        public void UpdateRequests(ApplicationUser user, IReadOnlyList<Business.Model.Request> requests)
+        public void UpdateRequests(ApplicationUser user, IReadOnlyList<Business.Model.RequestPostModel> requests)
         {
             var activeDates = this.dateCalculator.GetActiveDates();
 
@@ -50,7 +50,7 @@
 
             var requestsToAdd = requests
                 .Where(r => existingUserActiveRequests.All(existing => existing.Date != r.Date))
-                .Select(r => new Request { ApplicationUserId = user.Id, Date = r.Date });
+                .Select(r => new Request { ApplicationUserId = user.Id, Date = r.Date, IsAllocated = false });
 
             this.context.Requests.RemoveRange(requestsToRemove);
             this.context.Requests.AddRange(requestsToAdd);
