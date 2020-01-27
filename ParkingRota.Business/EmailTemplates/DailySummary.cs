@@ -143,7 +143,7 @@
                 .Select(i => GetName(recipient, i.ApplicationUser, bodyType))
                 .ToArray();
 
-        private string FormattedDate => this.allocations.First().Date.ForDisplay();
+        private string FormattedDate => this.allocations.First().Date.ForDisplayWithDayOfWeek();
 
         private string Header => $"Allocations for {this.FormattedDate}, after day-ahead spaces released:";
 
