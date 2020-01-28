@@ -33,7 +33,7 @@
 
                 foreach (var localDate in this.OrderedDates)
                 {
-                    body.Append($"<p>{localDate.ForDisplay()}:</p>");
+                    body.Append($"<p>{localDate.ForDisplayWithDayOfWeek()}:</p>");
                     body.Append(DailySummary.GetHtmlSummary(this.recipient, this.GetDailyAllocations(localDate), this.GetDailyRequests(localDate)));
                 }
 
@@ -54,7 +54,7 @@
 
                 foreach (var localDate in this.OrderedDates)
                 {
-                    lines.Add($"{localDate.ForDisplay()}:");
+                    lines.Add($"{localDate.ForDisplayWithDayOfWeek()}:");
                     lines.Add(string.Empty);
                     lines.AddRange(DailySummary.GetPlainTextSummary(this.recipient, this.GetDailyAllocations(localDate), this.GetDailyRequests(localDate)));
                 }

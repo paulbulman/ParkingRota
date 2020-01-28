@@ -41,7 +41,7 @@
 
             var email = new DailySummary(recipient, allocations, requests);
 
-            Assert.Equal("[Allocated] 18 Dec Daily allocations summary", email.Subject);
+            Assert.Equal("[Allocated] Tue 18 Dec Daily allocations summary", email.Subject);
         }
 
         [Fact]
@@ -61,7 +61,7 @@
 
             var email = new DailySummary(recipient, allocations, requests);
 
-            Assert.Equal("[INTERRUPTED] 18 Dec Daily allocations summary", email.Subject);
+            Assert.Equal("[INTERRUPTED] Tue 18 Dec Daily allocations summary", email.Subject);
         }
 
         [Fact]
@@ -116,6 +116,24 @@
 
             Assert.True(email.HtmlBody.Contains(ExpectedHtmlInterruptedText, StringComparison.InvariantCulture));
             Assert.True(email.PlainTextBody.Contains(ExpectedPlainInterruptedText, StringComparison.InvariantCulture));
+        }
+
+        [Fact]
+        public static void TestBody_Date()
+        {
+            var date = 19.December(2018);
+
+            var user = Create.User("Pierre-Emerick Aubameyang");
+
+            var email = new DailySummary(
+                user,
+                Create.Allocations(new[] { user }, date),
+                Create.Requests(new[] { user }, date));
+
+            const string ExpectedDateText = "Wed 19 Dec";
+
+            Assert.True(email.HtmlBody.Contains(ExpectedDateText, StringComparison.InvariantCulture));
+            Assert.True(email.PlainTextBody.Contains(ExpectedDateText, StringComparison.InvariantCulture));
         }
     }
 }

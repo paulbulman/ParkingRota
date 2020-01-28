@@ -53,7 +53,7 @@
                 {
                     var userEmails = context.EmailQueueItems.Where(e =>
                         e.To == teamLeaderUser.Email &&
-                        e.Subject == $"No reservations entered for {date.PlusDays(1).ForDisplay()}");
+                        e.Subject == $"No reservations entered for {date.PlusDays(1).ForDisplayWithDayOfWeek()}");
 
                     Assert.Single(userEmails);
                 }

@@ -60,14 +60,14 @@
 
             var expectedHtmlValues = new[]
             {
-                "17 Dec:", "<strong>Pierre-Emerick Aubameyang</strong>", "Héctor Bellerín", "Petr Čech", "(Interrupted: Mohamed Elneny, Sokratis Papastathopoulos)",
-                "21 Dec:", "Laurent Koscielny", "Henrikh Mkhitaryan", "(Interrupted: <strong>Pierre-Emerick Aubameyang</strong>, Alexandre Lacazette, Aaron Ramsey)"
+                "Mon 17 Dec:", "<strong>Pierre-Emerick Aubameyang</strong>", "Héctor Bellerín", "Petr Čech", "(Interrupted: Mohamed Elneny, Sokratis Papastathopoulos)",
+                "Fri 21 Dec:", "Laurent Koscielny", "Henrikh Mkhitaryan", "(Interrupted: <strong>Pierre-Emerick Aubameyang</strong>, Alexandre Lacazette, Aaron Ramsey)"
             };
 
             var expectedPlainTextValues = new[]
             {
-                "17 Dec:", "*Pierre-Emerick Aubameyang*", "Héctor Bellerín", "Petr Čech", "(Interrupted: Mohamed Elneny, Sokratis Papastathopoulos)",
-                "21 Dec:", "Laurent Koscielny", "Henrikh Mkhitaryan", "(Interrupted: *Pierre-Emerick Aubameyang*, Alexandre Lacazette, Aaron Ramsey)"
+                "Mon 17 Dec:", "*Pierre-Emerick Aubameyang*", "Héctor Bellerín", "Petr Čech", "(Interrupted: Mohamed Elneny, Sokratis Papastathopoulos)",
+                "Fri 21 Dec:", "Laurent Koscielny", "Henrikh Mkhitaryan", "(Interrupted: *Pierre-Emerick Aubameyang*, Alexandre Lacazette, Aaron Ramsey)"
             };
 
             Check_TextAppearsInOrder(expectedHtmlValues, email.HtmlBody);
