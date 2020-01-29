@@ -186,7 +186,7 @@
                     var allocationEmail = context.EmailQueueItems.Where(
                         e =>
                             e.To == allocation.ApplicationUser.Email &&
-                            e.Subject == $"Space available on {allocation.Date.ForDisplay()}");
+                            e.Subject == $"Space available on {allocation.Date.ForDisplayWithDayOfWeek()}");
 
                     Assert.Single(allocationEmail);
                 }
